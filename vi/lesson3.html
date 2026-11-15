@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RL 3: Khám phá và khai thác</title>
+<style>:root{
+  --ink:#1c2430;--muted:#5d6878;--bg:#f7f7f3;--card:#ffffff;--line:#e3e6ea;
+  --accent:#2563eb;--accent-soft:#dbeafe;--ok:#15803d;--ok-soft:#dcfce7;--bad:#b91c1c;--bad-soft:#fee2e2;
+  --warn:#b45309;--warn-soft:#fef3c7;--purple:#7c3aed;--purple-soft:#ede9fe;
+  --c1:#2563eb;--c2:#ea580c;--c3:#16a34a;--c4:#7c3aed;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font:16.5px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+main{max-width:860px;margin:0 auto;padding:0 18px 80px}
+header.top{max-width:860px;margin:0 auto;padding:22px 18px 6px}
+.crumbs{font-size:.85rem;color:var(--muted);letter-spacing:.02em;text-transform:uppercase;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.langbtn{flex:none;text-transform:none;letter-spacing:0;font-size:.82rem;font-weight:600;text-decoration:none;color:var(--accent);border:1px solid var(--accent);background:#fff;border-radius:999px;padding:3px 12px;white-space:nowrap}
+.langbtn:hover{background:var(--accent);color:#fff}
+h1{font-size:2rem;line-height:1.2;margin:.25em 0 .35em}
+h2{font-size:1.35rem;margin:2.2em 0 .6em;padding-top:.3em;border-top:1px solid var(--line)}
+h3{font-size:1.08rem;margin:1.5em 0 .4em}
+.lead{color:var(--muted);font-size:1.05rem;margin-top:0}
+nav.course{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
+nav.course a{font-size:.82rem;text-decoration:none;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 10px}
+nav.course a.cur{background:var(--accent);border-color:var(--accent);color:#fff}
+.toc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin:18px 0}
+.toc b{display:block;margin-bottom:4px}
+.toc ol{margin:0;padding-left:20px}
+.toc a{color:var(--accent);text-decoration:none}
+.goals{background:var(--ok-soft);border-radius:12px;padding:12px 18px;margin:16px 0}
+.goals ul{margin:.3em 0 0;padding-left:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:18px 0}
+.demo{background:var(--card);border:2px solid var(--accent-soft);border-radius:14px;padding:16px 18px;margin:20px 0}
+.demo>.tag,.card>.tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.box{border-radius:10px;padding:10px 14px;margin:14px 0}
+.key{background:var(--accent-soft);border-left:4px solid var(--accent)}
+.analogy{background:var(--purple-soft);border-left:4px solid var(--purple)}
+.warn{background:var(--warn-soft);border-left:4px solid var(--warn)}
+.example{background:#f1f5f9;border-left:4px solid #64748b}
+.box b.lbl{display:block;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.analogy b.lbl{color:var(--purple)}.key b.lbl{color:var(--accent)}.warn b.lbl{color:var(--warn)}.example b.lbl{color:#475569}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.95rem;background:#fff}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:#f1f5f9}
+.formula{font-family:ui-monospace,Menlo,Consolas,monospace;background:#fff;border:1px dashed #cbd5e1;border-radius:10px;padding:12px;text-align:center;font-size:1.05rem;margin:14px 0;overflow-x:auto}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92rem}
+.note{color:var(--muted);font-size:.92rem}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.center{text-align:center}
+button{font:inherit;font-size:.95rem;padding:7px 14px;border-radius:9px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+button.alt{background:#fff;color:var(--accent)}
+button:disabled{opacity:.45;cursor:default}
+input[type=range]{width:180px;vertical-align:middle}
+svg{max-width:100%;height:auto;display:block;margin:0 auto}
+svg text{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:.88rem;margin-top:4px}
+.legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+.log{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88rem;background:#f8fafc;border-radius:8px;padding:10px 12px;white-space:pre-wrap;min-height:3.2em}
+.steps{counter-reset:s;list-style:none;padding-left:0}
+.steps li{counter-increment:s;position:relative;padding-left:38px;margin:10px 0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:.85rem;display:flex;align-items:center;justify-content:center}
+pre.code{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow-x:auto;font-size:.86rem;line-height:1.55}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:640px){.grid2{grid-template-columns:1fr}h1{font-size:1.6rem}}
+/* quiz */
+.quiz{background:#fff;border:2px solid var(--line);border-radius:16px;padding:18px 20px;margin-top:40px}
+.quiz h2{border:0;margin-top:0;padding-top:0}
+.q{margin:22px 0;padding-bottom:14px;border-bottom:1px dashed var(--line)}
+.q p.qt{font-weight:600;margin:0 0 8px}
+.opt{display:block;width:100%;text-align:left;margin:6px 0;padding:10px 12px;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:9px}
+.opt:hover{border-color:var(--accent)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt .why{display:none;font-size:.9rem;color:var(--muted);margin-top:4px}
+.q.done .opt .why{display:block}
+.q.done .opt{cursor:default}
+.verdict{display:none;font-weight:700;margin-top:6px}
+.q.done .verdict{display:block}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.scorebar{position:sticky;bottom:10px;background:#0f172a;color:#fff;border-radius:12px;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px}
+.scorebar button{background:#fff;color:#0f172a;border-color:#fff}
+.final{display:none;margin-top:14px;padding:14px;border-radius:12px;background:var(--accent-soft)}
+footer.pn{display:flex;justify-content:space-between;gap:10px;margin-top:30px}
+footer.pn a{flex:1;text-decoration:none;border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px 14px;color:var(--ink)}
+footer.pn a small{display:block;color:var(--muted)}
+footer.pn a.next{text-align:right}
+@media (max-width:640px){nav.course{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}nav.course a{white-space:nowrap}}
+</style>
+</head>
+<body>
+<header class="top">
+<div class="crumbs"><span>Học tăng cường từ con số 0 · Ngày 2 · Bài 3/7</span><a class="langbtn" href="../lesson3.html">🌐 English</a></div>
+<nav class="course"><a href="index.html">Trang chủ</a><a href="lesson1.html" class="">1. Học tăng cường là gì?</a><a href="lesson2.html" class="">2. Phần thưởng, tổng phần thưởng và giá trị</a><a href="lesson3.html" class="cur">3. Khám phá và khai thác</a><a href="lesson4.html" class="">4. Monte Carlo và học sai khác thời gian (TD)</a><a href="lesson5.html" class="">5. Sarsa và Q-learning</a><a href="lesson6.html" class="">6. Học tăng cường dựa vào chính sách</a><a href="lesson7.html" class="">7. Máy trò chơi nhiều cánh tay và ứng dụng</a></nav>
+</header>
+<main>
+<h1>Bài 3: Khám phá và khai thác</h1>
+<p class="lead">Lúc đầu, tác nhân không biết gì về các hành động của mình. Muốn học, nó phải thử chúng. Nhưng mỗi lần thử một hành động tệ là mất đi phần thưởng. Bài này nói về sự giằng co đó, tình thế lưỡng nan nổi tiếng nhất của RL, và những chiến lược đơn giản để xử lý nó.</p>
+
+<div class="goals"><b>Sau bài học này bạn có thể:</b>
+<ul>
+<li>Giải thích khám phá và khai thác, và vì sao tác nhân cần cả hai.</li>
+<li>Ước lượng giá trị của một hành động bằng cách lấy trung bình phần thưởng, và cập nhật ước lượng từng bước.</li>
+<li>Mô tả các chiến lược tham lam, ε-tham lam, ε giảm dần, khởi tạo lạc quan và UCB.</li>
+<li>Đọc biểu đồ đường cong học và nói chiến lược nào tốt hơn, vì sao.</li>
+</ul></div>
+
+<div class="toc" id="toc"><b>Nội dung</b></div>
+
+<h2>1. Tình thế lưỡng nan</h2>
+<p>Bạn vừa chuyển đến một thành phố mới. Sau một tuần, bạn tìm được một quán ăn mình thích: chất lượng ổn định khoảng 7 trên 10. Tối nay, bạn quay lại đó hay thử một trong hai mươi nơi chưa từng ghé?</p>
+
+<div class="card"><span class="tag">Minh họa</span>
+<svg viewBox="0 0 680 250">
+  <defs><marker id="ah3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+  <circle cx="340" cy="190" r="26" fill="#2563eb"/><circle cx="331" cy="185" r="4" fill="#fff"/><circle cx="349" cy="185" r="4" fill="#fff"/>
+  <text x="340" y="238" text-anchor="middle" font-size="13" fill="#334155">Bạn (tác nhân)</text>
+  <path d="M310,175 L170,110" stroke="#16a34a" stroke-width="3" marker-end="url(#ah3)"/>
+  <path d="M370,175 L510,110" stroke="#ea580c" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#ah3)"/>
+  <rect x="40" y="20" width="230" height="88" rx="12" fill="#dcfce7" stroke="#16a34a"/>
+  <text x="155" y="46" text-anchor="middle" font-weight="700" font-size="15" fill="#14532d">KHAI THÁC</text>
+  <text x="155" y="68" text-anchor="middle" font-size="13">Đến quán đã biết</text>
+  <text x="155" y="88" text-anchor="middle" font-size="13">An toàn: khoảng 7/10 mỗi lần</text>
+  <rect x="410" y="20" width="230" height="88" rx="12" fill="#ffedd5" stroke="#ea580c"/>
+  <text x="525" y="46" text-anchor="middle" font-weight="700" font-size="15" fill="#7c2d12">KHÁM PHÁ</text>
+  <text x="525" y="68" text-anchor="middle" font-size="13">Thử một quán mới</text>
+  <text x="525" y="88" text-anchor="middle" font-size="13">Rủi ro: có thể 3/10 hoặc 10/10</text>
+  <text x="175" y="160" font-size="12" fill="#16a34a">phần thưởng ngay</text>
+  <text x="450" y="160" font-size="12" fill="#ea580c">thông tin cho về sau</text>
+</svg>
+</div>
+
+<ul>
+<li><b>Khai thác</b> (exploitation) nghĩa là chọn hành động hiện đang trông có vẻ tốt nhất. Nó cực đại hoá phần thưởng <i>ngay lúc này</i>, dựa trên điều bạn đã biết.</li>
+<li><b>Khám phá</b> (exploration) nghĩa là chọn một hành động khác để tìm hiểu thêm về nó. Nó có thể tốn phần thưởng bây giờ, nhưng có thể phát hiện ra thứ tốt hơn, và điều đó có lợi cho mọi lựa chọn về sau.</li>
+</ul>
+
+<div class="box key"><b class="lbl">Vì sao không thể chỉ làm một trong hai</b>
+<b>Chỉ khai thác:</b> bạn có thể không bao giờ tìm ra quán 10/10, vì chưa từng thử.<br>
+<b>Chỉ khám phá:</b> bạn cứ ăn ở những nơi ngẫu nhiên, kể cả những nơi dở, và không bao giờ hưởng lợi từ điều đã học.<br>
+Một tác nhân tốt khám phá nhiều khi biết ít, và khai thác nhiều hơn khi hiểu biết tăng lên.</div>
+
+<h2>2. Một bài toán thử nghiệm đơn giản: các máy trò chơi</h2>
+<p>Để nghiên cứu tình thế lưỡng nan này cho gọn gàng, RL dùng bài toán <b>máy trò chơi nhiều cánh tay</b> (multi-armed bandit; Bài 7 sẽ nói sâu hơn). Có một hàng máy, gọi là các <b>cánh tay</b>. Mỗi lần kéo một cánh tay sẽ trả về một số điểm ngẫu nhiên. Mỗi cánh tay có <b>mức trả thưởng trung bình thật</b> của riêng nó, ký hiệu q*(a), nhưng tác nhân không biết các giá trị trung bình này. Mục tiêu: thu được càng nhiều điểm càng tốt sau nhiều lần kéo.</p>
+<p>Chỉ có một tình huống (một trạng thái), nên câu hỏi duy nhất là <b>kéo cánh tay nào</b>. Điều đó khiến bài toán này trở thành phòng thí nghiệm hoàn hảo cho khám phá và khai thác.</p>
+
+<h2>3. Ước lượng một hành động tốt đến đâu</h2>
+<p>Tác nhân giữ một <b>ước lượng</b> Q(a) cho giá trị trung bình thật q*(a) của mỗi cánh tay. Ước lượng tự nhiên nhất là <b>trung bình mẫu</b>: trung bình của mọi phần thưởng đã nhận từ cánh tay đó cho đến giờ.</p>
+<div class="formula">Q(a) = (tổng phần thưởng từ cánh tay a) / (số lần cánh tay a đã được kéo)</div>
+<div class="box example"><b class="lbl">Ví dụ minh họa</b>
+Cánh tay 2 đã được kéo 4 lần và trả 5, 7, 4, 8 điểm. Q(cánh tay 2) = (5 + 7 + 4 + 8) / 4 = <b>6</b>.<br>
+Lần kéo thứ năm trả 9. Q mới = (5 + 7 + 4 + 8 + 9) / 5 = <b>6,6</b>.</div>
+
+<h3>Cập nhật tăng dần (không cần lưu mọi phần thưởng)</h3>
+<p>Lưu mọi phần thưởng sẽ tốn bộ nhớ ngày càng nhiều. Thay vào đó, ta có thể cập nhật giá trị trung bình chỉ với ước lượng cũ và số lần n:</p>
+<div class="formula">Q_mới = Q_cũ + (1/n) × (R − Q_cũ)</div>
+<p>Kiểm tra với ví dụ: Q_cũ = 6, R = 9, n = 5 → 6 + (1/5)(9 − 6) = 6 + 0,6 = <b>6,6</b>. Cùng đáp án, không cần lưu danh sách.</p>
+<div class="box key"><b class="lbl">Khuôn mẫu quan trọng nhất của RL</b>
+<span class="mono">ƯớcLượngMới ← ƯớcLượngCũ + BướcCậpNhật × (MụcTiêu − ƯớcLượngCũ)</span><br>
+(MụcTiêu − ƯớcLượngCũ) là <b>sai số</b>: ước lượng đã sai bao nhiêu. Ta dịch ước lượng một bước nhỏ về phía mục tiêu. Bạn sẽ gặp lại đúng khuôn mẫu này ở Monte Carlo, TD, Sarsa và Q-learning. Thường thì bước cập nhật là một số cố định α (alpha), chẳng hạn 0,1, giúp ước lượng tiếp tục thích nghi nếu mức trả thưởng của cánh tay thay đổi theo thời gian.</div>
+
+<h2>4. Các chiến lược cân bằng hai việc</h2>
+<h3>4.1 Tham lam</h3>
+<p>Luôn chọn cánh tay có ước lượng Q(a) cao nhất. Đơn giản nhưng nguy hiểm: nếu một cánh tay tốt trả ít ở lần kéo đầu, tác nhân tham lam có thể <b>không bao giờ thử lại</b> nó và kẹt mãi ở một cánh tay tệ hơn.</p>
+
+<h3>4.2 ε-tham lam (epsilon-greedy)</h3>
+<p>Chọn một số nhỏ ε, chẳng hạn 0,1. Ở mỗi bước:</p>
+<ol class="steps">
+<li>Với xác suất <b>1 − ε</b> (ví dụ 90%), <b>khai thác</b>: kéo cánh tay có Q cao nhất.</li>
+<li>Với xác suất <b>ε</b> (ví dụ 10%), <b>khám phá</b>: kéo một cánh tay được chọn hoàn toàn ngẫu nhiên.</li>
+</ol>
+<p>Vì mọi cánh tay thỉnh thoảng đều được thử, mọi ước lượng cuối cùng sẽ trở nên chính xác, và tác nhân sẽ tìm ra cánh tay tốt nhất. Cái giá phải trả: nó vẫn tiếp tục khám phá ngay cả khi đã biết đáp án, lãng phí khoảng ε số lần kéo.</p>
+<p><b>ε giảm dần</b> khắc phục điều này: bắt đầu với ε lớn (khám phá nhiều) rồi giảm từ từ (khai thác nhiều hơn khi hiểu biết tăng).</p>
+
+<h3>4.3 Khởi tạo lạc quan</h3>
+<p>Thay vì bắt đầu mọi ước lượng ở 0, hãy bắt đầu ở một <b>giá trị cao X</b> tốt hơn mức bất kỳ cánh tay nào thực sự trả, ví dụ X = 10 khi mức trả khoảng 2 đến 6. Lúc này ngay cả tác nhân thuần túy tham lam cũng khám phá:</p>
+<ul>
+<li>Nó kéo một cánh tay nào đó. Mức trả thật thấp hơn X, nên ước lượng của cánh tay đó giảm xuống.</li>
+<li>Các cánh tay khác vẫn trông như 10, nên tác nhân thử chúng tiếp theo. Lần lượt từng cánh tay làm nó thất vọng.</li>
+<li>Sau khi mọi cánh tay đã được thử đủ, các ước lượng trở nên thực tế và tác nhân dừng ở cánh tay thực sự tốt nhất.</li>
+</ul>
+<p>Cụm từ "lạc quan trước sự bất định" mô tả điều này: coi những gì chưa thử là có thể rất tuyệt. Cách này đơn giản và hiệu quả, nhưng chỉ khuyến khích khám phá ở giai đoạn đầu.</p>
+
+<h3>4.4 Cận trên độ tin cậy (UCB)</h3>
+<p>UCB khám phá khôn ngoan hơn. Nó cộng một <b>khoản thưởng thêm</b> cho các cánh tay mới được thử ít lần, vì ước lượng của chúng còn bất định:</p>
+<div class="formula">chọn cánh tay có giá trị lớn nhất  Q(a) + c × √( ln t / N(a) )</div>
+<p>Ở đây t là tổng số lần kéo, N(a) là số lần cánh tay a được kéo, và c điều khiển mức độ khám phá. Cánh tay hiếm được thử nhận khoản thưởng thêm lớn; cánh tay đã biết rõ nhận khoản nhỏ. Khám phá đi đến nơi hữu ích nhất, thay vì ngẫu nhiên.</p>
+
+<h2>5. Thử ngay: bốn máy trò chơi</h2>
+<div class="demo"><span class="tag">Mô phỏng tương tác</span>
+<p class="note" style="margin-top:0">Mỗi máy trả một lượng ngẫu nhiên quanh giá trị trung bình thật bị ẩn của nó (có nhiễu). Chọn một chiến lược và xem tác nhân học. Đường gạch đậm trên mỗi cột đánh dấu giá trị trung bình thật; tích "Hiện trung bình thật" để thấy.</p>
+<div class="row">
+  <label>Chiến lược:
+    <select id="bStrat" style="font:inherit;padding:4px">
+      <option value="greedy">Tham lam (bắt đầu từ 0)</option>
+      <option value="eps" selected>ε-tham lam (bắt đầu từ 0)</option>
+      <option value="opt">Tham lam, khởi tạo lạc quan ở X</option>
+      <option value="ucb">UCB</option>
+    </select></label>
+  <label id="epsBox">ε = <b id="epsTxt" class="mono"></b> <input type="range" id="eps" min="0" max="0.5" step="0.01" value="0.1"></label>
+  <label id="xBox" style="display:none">X = <b id="xTxt" class="mono"></b> <input type="range" id="xSl" min="0" max="15" step="1" value="10"></label>
+  <label><input type="checkbox" id="showTrue"> Hiện trung bình thật</label>
+</div>
+<div class="row">
+  <button id="b1">Kéo một lần</button>
+  <button id="bAuto" class="alt">▶ Tự chạy</button>
+  <button id="b100" class="alt">+100 lần kéo (tức thì)</button>
+  <button id="bReset" class="alt">Đặt lại</button>
+</div>
+<svg viewBox="0 0 680 335" id="banditSvg"></svg>
+<div class="log" id="bLog"></div>
+</div>
+<p class="note">Các thí nghiệm nên thử: (1) Tham lam, đặt lại nhiều lần: nó kẹt ở cánh tay tệ hơn thường xuyên cỡ nào? (2) ε-tham lam với ε = 0,1. (3) Khởi tạo lạc quan với X = 10: để ý nó thử mọi máy trước tiên. (4) X = 0: tắt sự lạc quan, nó hành xử như tham lam thuần túy.</p>
+
+<h2>6. So sánh các chiến lược một cách công bằng</h2>
+<p>Một lần chạy có thể may hoặc rủi. Để so sánh các chiến lược cho đúng, các nhà nghiên cứu chạy nhiều thí nghiệm độc lập rồi lấy trung bình kết quả. Biểu đồ dưới đây làm điều đó trên một bài kiểm tra chuẩn: <b>10 cánh tay</b>, mỗi cánh tay có giá trị trung bình thật được rút ngẫu nhiên, <b>1.000 lần kéo</b> mỗi lượt chạy, lấy trung bình qua <b>nhiều lượt chạy</b>. (Ở đây các giá trị trung bình thật quanh 0, nên khởi tạo lạc quan X = 5 là rất lạc quan. Tác nhân lạc quan dùng bước cập nhật cố định α = 0,1, nên sự lạc quan của nó phai dần chậm.)</p>
+<div class="demo"><span class="tag">Thí nghiệm</span>
+<div class="row"><button id="expRun">Chạy thí nghiệm (200 lượt × 1000 lần kéo)</button><span class="note" id="expProg"></span></div>
+<h3 style="margin-top:6px">Phần thưởng trung bình mỗi lần kéo</h3>
+<div id="chartR"><p class="note center">Bấm nút để chạy.</p></div>
+<h3>Tần suất chọn đúng cánh tay tốt nhất (%)</h3>
+<div id="chartO"></div>
+</div>
+<p><b>Cách đọc các biểu đồ:</b></p>
+<ul>
+<li><b>Tham lam</b> (màu xám) cải thiện nhanh lúc đầu rồi đi ngang ở mức thấp hơn: nó thường kẹt ở một cánh tay chưa tối ưu.</li>
+<li><b>ε = 0,1</b> (xanh dương) khám phá đủ để tìm ra cánh tay tốt nhất trong hầu hết các lượt chạy, nhưng không bao giờ chọn nó quá khoảng 91% số lần, vì 10% lần kéo là ngẫu nhiên.</li>
+<li><b>ε = 0,01</b> (cam) học chậm hơn nhưng về lâu dài sẽ còn tốt hơn.</li>
+<li><b>Lạc quan, X = 5</b> (xanh lá) làm tệ trong khoảng 100–200 lần kéo đầu, lúc nó thử mọi thứ, rồi vượt các chiến lược khác và cuối cùng chọn cánh tay tốt nhất nhiều nhất.</li>
+</ul>
+
+<h2>7. Thuật toán dưới dạng mã giả</h2>
+<pre class="code">Khởi tạo, với mọi cánh tay a:
+    Q(a) ← 0          # hoặc X nếu khởi tạo lạc quan
+    N(a) ← 0          # số lần cánh tay a đã được kéo
+
+Lặp mãi mãi:
+    với xác suất ε:   A ← một cánh tay ngẫu nhiên          # khám phá
+    ngược lại:        A ← cánh tay có Q(a) lớn nhất         # khai thác
+    R ← kéo cánh tay A và quan sát phần thưởng
+    N(A) ← N(A) + 1
+    Q(A) ← Q(A) + (1 / N(A)) × (R − Q(A))                   # dịch ước lượng về phía R</pre>
+
+<h2>8. Tóm tắt</h2>
+<ul>
+<li><b>Khai thác</b> dùng hiểu biết hiện có để kiếm phần thưởng ngay; <b>khám phá</b> thu thập thông tin để kiếm nhiều hơn về sau. Cả hai đều cần thiết.</li>
+<li>Giá trị hành động được ước lượng bằng <b>trung bình phần thưởng</b>; dạng tăng dần là Q ← Q + bước × (R − Q).</li>
+<li><b>Tham lam</b> có thể bị kẹt. <b>ε-tham lam</b> khám phá ngẫu nhiên với xác suất ε. <b>Khởi tạo lạc quan</b> làm các hành động chưa thử trông hấp dẫn. <b>UCB</b> cộng khoản thưởng thêm cho các hành động bất định.</li>
+<li>Bài sau: bài toán RL đầy đủ, với nhiều trạng thái. Làm sao ước lượng giá trị khi phần thưởng đến nhiều bước sau?</li>
+</ul>
+
+
+
+<section class="quiz" id="quiz">
+<h2>Trắc nghiệm: kiểm tra mức hiểu bài</h2>
+<p class="note">10 câu trắc nghiệm. Bấm vào một đáp án: bạn sẽ biết đúng hay sai, kèm giải thích cho <b>từng</b> phương án.</p>
+<div id="quizItems"></div>
+<div class="final" id="finalMsg"></div>
+<div class="scorebar"><span id="scoreText"></span><button id="retry">Làm lại</button></div>
+</section>
+<footer class="pn"><a href="lesson2.html"><small>← Bài trước</small>2. Phần thưởng, tổng phần thưởng và giá trị</a><a class="next" href="lesson4.html"><small>Bài tiếp theo →</small>4. Monte Carlo và học sai khác thời gian (TD)</a></footer>
+</main>
+<script>// ---------- small helpers ----------
+const $ = id => document.getElementById(id);
+const NS = 'http://www.w3.org/2000/svg';
+function S(tag, attrs, parent){
+  const e = document.createElementNS(NS, tag);
+  for (const k in (attrs||{})) {
+    if (k === 'text') e.textContent = attrs[k]; else e.setAttribute(k, attrs[k]);
+  }
+  if (parent) parent.appendChild(e);
+  return e;
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const fmt = (x, d=2) => (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toFixed(d).replace('.',',');
+function argmaxRand(arr){
+  const m = Math.max(...arr); const c = [];
+  arr.forEach((v,i)=>{ if (v === m) c.push(i); });
+  return c[Math.floor(Math.random()*c.length)];
+}
+function randn(){ let u=0,v=0; while(!u)u=Math.random(); while(!v)v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+
+// ---------- line chart ----------
+// opts: {w,h,series:[{label,color,data:[y..], dash}], xLabel,yLabel,yMin,yMax,xStart}
+function lineChart(container, opts){
+  const w = opts.w||640, h = opts.h||300, L=56, R=16, T=14, B=44;
+  container.innerHTML = '';
+  const svg = S('svg', {viewBox:`0 0 ${w} ${h}`, role:'img'}, container);
+  let all = []; opts.series.forEach(s => all = all.concat(s.data));
+  const yMin = opts.yMin !== undefined ? opts.yMin : Math.min(...all);
+  const yMax = opts.yMax !== undefined ? opts.yMax : Math.max(...all);
+  const n = Math.max(...opts.series.map(s=>s.data.length));
+  const x0 = opts.xStart||0;
+  const X = i => L + (w-L-R) * (n<=1?0:i/(n-1));
+  const Y = v => T + (h-T-B) * (1 - (v-yMin)/((yMax-yMin)||1));
+  for (let k=0;k<=4;k++){
+    const v = yMin + (yMax-yMin)*k/4, y = Y(v);
+    S('line',{x1:L,x2:w-R,y1:y,y2:y,stroke:'#e5e7eb'},svg);
+    S('text',{x:L-6,y:y+4,'text-anchor':'end','font-size':11,fill:'#64748b',text:(Math.abs(yMax-yMin)<5?fmt(v,2):Math.round(v))},svg);
+  }
+  for (let k=0;k<=4;k++){
+    const i = Math.round((n-1)*k/4), x = X(i);
+    S('text',{x:x,y:h-B+16,'text-anchor':'middle','font-size':11,fill:'#64748b',text:x0+i},svg);
+  }
+  S('line',{x1:L,x2:L,y1:T,y2:h-B,stroke:'#94a3b8'},svg);
+  S('line',{x1:L,x2:w-R,y1:h-B,y2:h-B,stroke:'#94a3b8'},svg);
+  if (opts.xLabel) S('text',{x:(L+w-R)/2,y:h-6,'text-anchor':'middle','font-size':12,fill:'#334155',text:opts.xLabel},svg);
+  if (opts.yLabel) S('text',{x:14,y:(T+h-B)/2,'text-anchor':'middle','font-size':12,fill:'#334155',transform:`rotate(-90 14 ${(T+h-B)/2})`,text:opts.yLabel},svg);
+  opts.series.forEach(s=>{
+    const pts = s.data.map((v,i)=>`${X(i).toFixed(1)},${Y(Math.max(yMin,Math.min(yMax,v))).toFixed(1)}`).join(' ');
+    S('polyline',{points:pts,fill:'none',stroke:s.color,'stroke-width':2.2,'stroke-dasharray':s.dash||'', 'stroke-linejoin':'round'},svg);
+  });
+  const lg = document.createElement('div'); lg.className='legend';
+  opts.series.forEach(s=>{ const sp=document.createElement('span'); sp.style.setProperty('--c',s.color); sp.textContent=s.label; lg.appendChild(sp); });
+  container.appendChild(lg);
+}
+
+// ---------- table of contents ----------
+function buildTOC(){
+  const toc = $('toc'); if (!toc) return;
+  const hs = [...document.querySelectorAll('main > section > h2, main > h2')].filter(h=>!h.closest('.quiz'));
+  const ol = document.createElement('ol');
+  hs.forEach((h,i)=>{ if(!h.id) h.id='sec'+(i+1); const li=document.createElement('li'); li.innerHTML=`<a href="#${h.id}">${h.textContent}</a>`; ol.appendChild(li); });
+  const li=document.createElement('li'); li.innerHTML='<a href="#quiz">Trắc nghiệm (10 câu)</a>'; ol.appendChild(li);
+  toc.appendChild(ol);
+}
+
+// ---------- quiz ----------
+// item: {q, o:[4 options], a:index, e:[4 explanations]}
+function renderQuiz(items){
+  const box = $('quizItems'); box.innerHTML = '';
+  let answered = 0, correct = 0;
+  const bar = $('scoreText'), fin = $('finalMsg');
+  function upd(){
+    bar.textContent = `Đã trả lời ${answered}/${items.length} · Đúng ${correct}`;
+    if (answered === items.length){
+      fin.style.display='block';
+      const pct = correct/items.length;
+      fin.innerHTML = `<b>Bạn đạt ${correct}/${items.length} điểm.</b> ` + (pct===1 ? 'Tuyệt vời! Bạn đã nắm vững bài học này.' : pct>=0.7 ? 'Làm tốt lắm. Hãy đọc phần giải thích của những câu bạn làm sai rồi học tiếp.' : 'Hãy đọc lại các phần trong mục lục phía trên, rồi bấm "Làm lại".');
+    } else fin.style.display='none';
+  }
+  items = items.map(it0=>{ // shuffle option order so the answer is not always in the same place
+    const idx=[0,1,2,3].slice(0,it0.o.length); for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+    return {q:it0.q,o:idx.map(i=>it0.o[i]),e:idx.map(i=>it0.e[i]),a:idx.indexOf(it0.a),orig:it0};
+  });
+  items.forEach((it, qi)=>{
+    const d = document.createElement('div'); d.className='q';
+    d.innerHTML = `<p class="qt">${qi+1}. ${it.q}</p>`;
+    const btns = [];
+    it.o.forEach((t,j)=>{
+      const b = document.createElement('button'); b.className='opt';
+      b.innerHTML = `<b>${String.fromCharCode(65+j)}.</b> ${t}<span class="why">${j===it.a?'✔ ':'✘ '}${it.e[j]}</span>`;
+      b.onclick = ()=>{
+        if (d.classList.contains('done')) return;
+        d.classList.add('done'); answered++;
+        btns[it.a].classList.add('right');
+        if (j===it.a){ correct++; v.innerHTML='<span class="ok">Chính xác!</span> Tất cả các phương án đều được giải thích bên dưới.'; }
+        else { b.classList.add('wrong'); v.innerHTML=`<span class="bad">Chưa đúng.</span> Đáp án là ${String.fromCharCode(65+it.a)}. Hãy đọc vì sao từng phương án đúng hoặc sai.`; }
+        upd();
+      };
+      btns.push(b); d.appendChild(b);
+    });
+    const v = document.createElement('div'); v.className='verdict'; d.insertBefore(v, d.children[1]);
+    box.appendChild(d);
+  });
+  $('retry').onclick = ()=>{ renderQuiz(items.map(x=>x.orig)); $('quiz').scrollIntoView(); };
+  upd();
+}
+</script>
+<script>
+// ----- bandit demo -----
+(function(){
+  const TRUE=[3,6,4.5,2], SD=2, K=4, COLORS=['#2563eb','#ea580c','#16a34a','#7c3aed'];
+  let Q,N,t,total,last=null,auto=null,history=[];
+  const strat=()=>$('bStrat').value;
+  function init(){const x=strat()==='opt'?+$('xSl').value:0;Q=Array(K).fill(x);N=Array(K).fill(0);t=0;total=0;last=null;history=[];draw();}
+  function choose(){
+    const s=strat();
+    if(s==='eps'&&Math.random()<+$('eps').value) return {a:Math.floor(Math.random()*K),why:'khám phá (ngẫu nhiên)'};
+    if(s==='ucb'){ for(let a=0;a<K;a++) if(N[a]===0) return {a,why:'UCB: cánh tay chưa thử có khoản thưởng thêm vô hạn'};
+      const u=Q.map((q,a)=>q+2*Math.sqrt(Math.log(t+1)/N[a])); return {a:argmaxRand(u),why:'UCB: Q + khoản thưởng thêm lớn nhất'}; }
+    return {a:argmaxRand(Q),why:'khai thác (Q cao nhất)'};
+  }
+  function pull(anim){
+    const {a,why}=choose();
+    const r=TRUE[a]+SD*randn();
+    N[a]++; t++; total+=r; const old=Q[a];
+    Q[a]+= (r-Q[a])/N[a];
+    last={a,r,why,old};
+    history.push(a);
+    if(anim!==false) draw();
+  }
+  function draw(){
+    $('epsTxt').textContent=fmt(+$('eps').value,2); $('xTxt').textContent=$('xSl').value;
+    const svg=$('banditSvg'); svg.innerHTML='';
+    const show=$('showTrue').checked;
+    const bx=a=>40+a*160;
+    for(let a=0;a<K;a++){
+      const x=bx(a), active=last&&last.a===a;
+      // machine body
+      S('rect',{x:x,y:10,width:110,height:120,rx:14,fill:active?'#fef3c7':'#f1f5f9',stroke:COLORS[a],'stroke-width':active?4:2},svg);
+      S('rect',{x:x+15,y:30,width:80,height:40,rx:6,fill:'#0f172a'},svg);
+      S('text',{x:x+55,y:57,'text-anchor':'middle','font-size':17,'font-weight':700,fill:active?'#fde047':'#94a3b8',text:active?(last.r>=0?'+':'')+fmt(last.r,1):'— —'},svg);
+      S('text',{x:x+55,y:95,'text-anchor':'middle','font-size':14,'font-weight':700,fill:COLORS[a],text:'Cánh tay '+(a+1)},svg);
+      S('text',{x:x+55,y:116,'text-anchor':'middle','font-size':12,fill:'#475569',text:'đã kéo '+N[a]+' lần'},svg);
+      // lever
+      const ly=active?60:30;
+      S('line',{x1:x+110,y1:70,x2:x+130,y2:ly,stroke:'#64748b','stroke-width':4,'stroke-linecap':'round'},svg);
+      S('circle',{cx:x+130,cy:ly,r:8,fill:'#dc2626'},svg);
+      // estimate bar
+      const base=288, scale=16, h=Math.max(0,Q[a])*scale;
+      S('rect',{x:x+25,y:base-Math.min(h,150),width:60,height:Math.min(h,150),rx:4,fill:COLORS[a],opacity:.75},svg);
+      S('text',{x:x+55,y:base+18,'text-anchor':'middle','font-size':13,'font-weight':700,fill:COLORS[a],text:'Q = '+fmt(Q[a],1)},svg);
+      if(show){const ty=base-TRUE[a]*scale; S('line',{x1:x+15,x2:x+95,y1:ty,y2:ty,stroke:'#0f172a','stroke-width':2.5,'stroke-dasharray':'5 3'},svg); S('text',{x:x+100,y:ty+4,'font-size':11,fill:'#0f172a',text:'q*='+String(TRUE[a]).replace('.',',')},svg);}
+      S('line',{x1:x+10,x2:x+100,y1:base,y2:base,stroke:'#94a3b8'},svg);
+    }
+    S('text',{x:340,y:326,'text-anchor':'middle','font-size':12,fill:'#475569',text:'Các cột = ước lượng Q(a) hiện tại của tác nhân'},svg);
+    const best=TRUE.indexOf(Math.max(...TRUE));
+    const recent=history.slice(-100), pct=recent.length?Math.round(100*recent.filter(x=>x===best).length/recent.length):0;
+    $('bLog').textContent=(last?`Lần kéo #${t}: ${last.why} → Cánh tay ${last.a+1} trả ${fmt(last.r,2)}.  Q(cánh tay ${last.a+1}): ${fmt(last.old,2)} + (1/${N[last.a]})×(${fmt(last.r,2)} − ${fmt(last.old,2)}) = ${fmt(Q[last.a],2)}\n`:'Bấm "Kéo một lần" để bắt đầu.\n')
+      +`Tổng điểm: ${fmt(total,1)}   Trung bình mỗi lần kéo: ${t?fmt(total/t,2):'-'}   Tỉ lệ chọn cánh tay tốt nhất trong ${recent.length} lần kéo gần nhất: ${pct}%`;
+  }
+  function stopAuto(){ if(auto){clearInterval(auto);auto=null;$('bAuto').textContent='▶ Tự chạy';} }
+  $('b1').onclick=()=>{stopAuto();pull();};
+  $('b100').onclick=()=>{stopAuto();for(let i=0;i<99;i++)pull(false);pull();};
+  $('bAuto').onclick=()=>{ if(auto){stopAuto();return;} $('bAuto').textContent='⏸ Tạm dừng'; auto=setInterval(()=>pull(),350); };
+  $('bReset').onclick=()=>{stopAuto();init();};
+  $('bStrat').onchange=()=>{ const s=strat(); $('epsBox').style.display=s==='eps'?'':'none'; $('xBox').style.display=s==='opt'?'':'none'; stopAuto(); init(); };
+  $('eps').oninput=draw; $('xSl').oninput=()=>{stopAuto();init();}; $('showTrue').onchange=draw;
+  init();
+})();
+
+// ----- 10-armed testbed experiment -----
+(function(){
+  const RUNS=200, STEPS=1000, K=10;
+  const agents=[
+    {label:'Tham lam (ε = 0)',color:'#64748b',eps:0,init:0,alpha:0},
+    {label:'ε-tham lam, ε = 0,1',color:'#2563eb',eps:0.1,init:0,alpha:0},
+    {label:'ε-tham lam, ε = 0,01',color:'#ea580c',eps:0.01,init:0,alpha:0},
+    {label:'Tham lam lạc quan, X = 5, α = 0,1',color:'#16a34a',eps:0,init:5,alpha:0.1}
+  ];
+  function smooth(a,w){return a.map((_,i)=>{let s=0,c=0;for(let j=Math.max(0,i-w);j<=i;j++){s+=a[j];c++;}return s/c;});}
+  $('expRun').onclick=async()=>{
+    $('expRun').disabled=true;
+    const R=agents.map(()=>new Float64Array(STEPS)), O=agents.map(()=>new Float64Array(STEPS));
+    for(let run=0;run<RUNS;run++){
+      const q=[...Array(K)].map(()=>randn()); const best=q.indexOf(Math.max(...q));
+      agents.forEach((ag,i)=>{
+        const Q=Array(K).fill(ag.init), N=Array(K).fill(0);
+        for(let t=0;t<STEPS;t++){
+          const a=(Math.random()<ag.eps)?Math.floor(Math.random()*K):argmaxRand(Q);
+          const r=q[a]+randn(); N[a]++;
+          Q[a]+=(ag.alpha||1/N[a])*(r-Q[a]);
+          R[i][t]+=r; if(a===best)O[i][t]+=1;
+        }
+      });
+      if(run%20===19){$('expProg').textContent=`Đã chạy: ${run+1}/${RUNS} lượt`;await sleep(0);}
+    }
+    lineChart($('chartR'),{series:agents.map((ag,i)=>({label:ag.label,color:ag.color,data:smooth([...R[i]].map(x=>x/RUNS),5)})),xLabel:'Lần kéo thứ',yLabel:'Phần thưởng trung bình',yMin:-0.4,yMax:1.6,xStart:1});
+    lineChart($('chartO'),{series:agents.map((ag,i)=>({label:ag.label,color:ag.color,data:smooth([...O[i]].map(x=>100*x/RUNS),5)})),xLabel:'Lần kéo thứ',yLabel:'% cánh tay tốt nhất',yMin:0,yMax:100,xStart:1});
+    $('expProg').textContent='Xong. Hãy chạy lại: các đường cong thay đổi đôi chút vì thí nghiệm có tính ngẫu nhiên.';
+    $('expRun').disabled=false;
+  };
+})();
+
+const QUIZ=[
+{q:"Khai thác nghĩa là gì?",
+ o:["Chọn hành động hiện có giá trị ước lượng cao nhất","Chọn một hành động ngẫu nhiên để tìm hiểu về nó","Đặt lại mọi ước lượng","Bỏ qua các phần thưởng"],a:0,
+ e:["Chính xác. Khai thác dùng hiểu biết hiện có để nhận nhiều phần thưởng nhất ngay lúc này.","Đó là khám phá.","Đặt lại ước lượng không thuộc ý tưởng nào cả.","Khai thác dựa vào các phần thưởng đã thấy cho đến giờ."]},
+{q:"Vì sao một tác nhân thuần túy tham lam có thể hoạt động tệ?",
+ o:["Nó khám phá quá nhiều","Nếu cánh tay tốt nhất trả ít lúc đầu, tác nhân có thể không bao giờ thử lại nó","Nó không tính được trung bình","Nó luôn chọn cánh tay tệ nhất"],a:1,
+ e:["Tác nhân tham lam hoàn toàn không khám phá.","Chính xác. Không khám phá thì một ước lượng đầu xui rủi sẽ không bao giờ được sửa.","Tính trung bình rất dễ; vấn đề là những cánh tay nào được lấy mẫu.","Nó chọn cánh tay trông tốt nhất, điều này thường ổn nhưng đôi khi sai."]},
+{q:"Một cánh tay được kéo 3 lần với phần thưởng 2, 4, 6. Ước lượng trung bình mẫu của nó là bao nhiêu?",
+ o:["6","4","12","2"],a:1,
+ e:["Đó chỉ là phần thưởng cuối.","Chính xác: (2 + 4 + 6) / 3 = 4.","Đó là tổng, không phải trung bình.","Đó chỉ là phần thưởng đầu."]},
+{q:"Dùng Q_mới = Q_cũ + (1/n)(R − Q_cũ) với Q_cũ = 4, n = 4 và R = 8, Q_mới là bao nhiêu?",
+ o:["5","8","6","4"],a:0,
+ e:["Chính xác: 4 + (1/4)(8 − 4) = 4 + 1 = 5.","Ước lượng chỉ dịch một phần đường về phía R.","Đó sẽ là bước 1/2, nhưng n = 4 cho 1/4.","Ước lượng phải thay đổi, vì R khác Q_cũ."]},
+{q:"Với ε-tham lam và ε = 0,2, tác nhân chọn cánh tay ngẫu nhiên với tần suất nào?",
+ o:["Không bao giờ","Khoảng 20% số lần","Khoảng 80% số lần","Luôn luôn"],a:1,
+ e:["ε > 0 nghĩa là có khám phá.","Chính xác. ε là xác suất khám phá.","80% là tần suất nó khai thác.","Nó chỉ khám phá với xác suất ε."]},
+{q:"Khởi tạo lạc quan khiến tác nhân tham lam khám phá bằng cách nào?",
+ o:["Nó thêm nhiễu ngẫu nhiên vào phần thưởng","Mọi cánh tay bắt đầu với ước lượng cao, nên mỗi cánh tay đều được thử cho đến khi mức trả thật kéo ước lượng của nó xuống","Nó đặt ε bằng 1","Nó loại bỏ cánh tay tệ nhất"],a:1,
+ e:["Phần thưởng không bị thay đổi.","Chính xác. Cánh tay chưa thử giữ giá trị khởi đầu cao, nên tác nhân tham lam bị hút về phía chúng.","ε không liên quan đến giá trị khởi tạo.","Không có cánh tay nào bị loại."]},
+{q:"Với khởi tạo lạc quan, các cánh tay trả từ 2 đến 6 điểm. Giá trị khởi đầu X nào hợp lý?",
+ o:["X = 0","X = 10","X = −5","X = 3"],a:1,
+ e:["0 thấp hơn mọi mức trả, nên đó là bi quan, không phải lạc quan.","Chính xác. X phải cao hơn mức bất kỳ cánh tay nào thực sự trả, để lúc đầu cánh tay nào cũng trông hấp dẫn.","Khởi đầu âm sẽ làm nản việc khám phá.","3 thấp hơn một số mức trả, nên có cánh tay sẽ không bao giờ trông tốt hơn cánh tay được thử đầu tiên."]},
+{q:"UCB cộng thêm gì vào ước lượng của mỗi cánh tay?",
+ o:["Một khoản thưởng thêm lớn hơn cho các cánh tay mới được thử ít lần","Một khoản phạt cho các cánh tay đã thử nhiều lần chỉ sau 1000 lần kéo","Nhiễu ngẫu nhiên","Không gì cả; UCB giống tham lam"],a:0,
+ e:["Chính xác. Khoản thưởng thêm phản ánh sự bất định: thử càng ít thì càng bất định và khoản thưởng càng lớn.","Khoản thưởng thêm giảm dần mượt mà khi N(a) tăng; không có ngưỡng cố định.","UCB mang tính tất định; nó không dùng nhiễu ngẫu nhiên.","UCB cộng một khoản thưởng khám phá mà tham lam không có."]},
+{q:"Trong biểu đồ thí nghiệm, ε-tham lam với ε = 0,1 không thể chọn cánh tay tốt nhất quá khoảng 91% số lần. Vì sao?",
+ o:["Ước lượng của nó không bao giờ trở nên chính xác","10% lựa chọn của nó là ngẫu nhiên, và chỉ 1 trong 10 lựa chọn ngẫu nhiên tình cờ là cánh tay tốt nhất","Cánh tay tốt nhất thay đổi ở mỗi bước","Biểu đồ được lấy trung bình sai"],a:1,
+ e:["Ước lượng của nó có trở nên chính xác; giới hạn đến từ việc buộc phải khám phá.","Chính xác: 90% khai thác (cánh tay tốt nhất) + 10% × 1/10 trúng ngẫu nhiên = 91%.","Các giá trị trung bình thật cố định trong mỗi lượt chạy.","Lấy trung bình nhiều lượt chạy là cách làm đúng."]},
+{q:"Khuôn mẫu cập nhật nào xuất hiện trong bài này và xuyên suốt RL?",
+ o:["ƯớcLượngMới ← ƯớcLượngCũ + BướcCậpNhật × (MụcTiêu − ƯớcLượngCũ)","ƯớcLượngMới ← MụcTiêu × ƯớcLượngCũ","ƯớcLượngMới ← ƯớcLượngCũ − MụcTiêu","ƯớcLượngMới ← một số ngẫu nhiên"],a:0,
+ e:["Chính xác. Dịch ước lượng một bước về phía mục tiêu, tỉ lệ với sai số.","Nhân mục tiêu với ước lượng không có ý nghĩa ở đây.","Cách này bỏ qua bước cập nhật và đi sai chiều.","Ước lượng được cập nhật từ trải nghiệm, không phải ngẫu nhiên."]}
+];
+</script>
+<script>
+buildTOC();
+renderQuiz(QUIZ);
+</script>
+</body>
+</html>

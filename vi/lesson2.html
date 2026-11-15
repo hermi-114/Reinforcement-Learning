@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RL 2: Phần thưởng, tổng phần thưởng và giá trị</title>
+<style>:root{
+  --ink:#1c2430;--muted:#5d6878;--bg:#f7f7f3;--card:#ffffff;--line:#e3e6ea;
+  --accent:#2563eb;--accent-soft:#dbeafe;--ok:#15803d;--ok-soft:#dcfce7;--bad:#b91c1c;--bad-soft:#fee2e2;
+  --warn:#b45309;--warn-soft:#fef3c7;--purple:#7c3aed;--purple-soft:#ede9fe;
+  --c1:#2563eb;--c2:#ea580c;--c3:#16a34a;--c4:#7c3aed;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font:16.5px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+main{max-width:860px;margin:0 auto;padding:0 18px 80px}
+header.top{max-width:860px;margin:0 auto;padding:22px 18px 6px}
+.crumbs{font-size:.85rem;color:var(--muted);letter-spacing:.02em;text-transform:uppercase;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.langbtn{flex:none;text-transform:none;letter-spacing:0;font-size:.82rem;font-weight:600;text-decoration:none;color:var(--accent);border:1px solid var(--accent);background:#fff;border-radius:999px;padding:3px 12px;white-space:nowrap}
+.langbtn:hover{background:var(--accent);color:#fff}
+h1{font-size:2rem;line-height:1.2;margin:.25em 0 .35em}
+h2{font-size:1.35rem;margin:2.2em 0 .6em;padding-top:.3em;border-top:1px solid var(--line)}
+h3{font-size:1.08rem;margin:1.5em 0 .4em}
+.lead{color:var(--muted);font-size:1.05rem;margin-top:0}
+nav.course{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
+nav.course a{font-size:.82rem;text-decoration:none;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 10px}
+nav.course a.cur{background:var(--accent);border-color:var(--accent);color:#fff}
+.toc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin:18px 0}
+.toc b{display:block;margin-bottom:4px}
+.toc ol{margin:0;padding-left:20px}
+.toc a{color:var(--accent);text-decoration:none}
+.goals{background:var(--ok-soft);border-radius:12px;padding:12px 18px;margin:16px 0}
+.goals ul{margin:.3em 0 0;padding-left:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:18px 0}
+.demo{background:var(--card);border:2px solid var(--accent-soft);border-radius:14px;padding:16px 18px;margin:20px 0}
+.demo>.tag,.card>.tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.box{border-radius:10px;padding:10px 14px;margin:14px 0}
+.key{background:var(--accent-soft);border-left:4px solid var(--accent)}
+.analogy{background:var(--purple-soft);border-left:4px solid var(--purple)}
+.warn{background:var(--warn-soft);border-left:4px solid var(--warn)}
+.example{background:#f1f5f9;border-left:4px solid #64748b}
+.box b.lbl{display:block;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.analogy b.lbl{color:var(--purple)}.key b.lbl{color:var(--accent)}.warn b.lbl{color:var(--warn)}.example b.lbl{color:#475569}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.95rem;background:#fff}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:#f1f5f9}
+.formula{font-family:ui-monospace,Menlo,Consolas,monospace;background:#fff;border:1px dashed #cbd5e1;border-radius:10px;padding:12px;text-align:center;font-size:1.05rem;margin:14px 0;overflow-x:auto}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92rem}
+.note{color:var(--muted);font-size:.92rem}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.center{text-align:center}
+button{font:inherit;font-size:.95rem;padding:7px 14px;border-radius:9px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+button.alt{background:#fff;color:var(--accent)}
+button:disabled{opacity:.45;cursor:default}
+input[type=range]{width:180px;vertical-align:middle}
+svg{max-width:100%;height:auto;display:block;margin:0 auto}
+svg text{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:.88rem;margin-top:4px}
+.legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+.log{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88rem;background:#f8fafc;border-radius:8px;padding:10px 12px;white-space:pre-wrap;min-height:3.2em}
+.steps{counter-reset:s;list-style:none;padding-left:0}
+.steps li{counter-increment:s;position:relative;padding-left:38px;margin:10px 0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:.85rem;display:flex;align-items:center;justify-content:center}
+pre.code{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow-x:auto;font-size:.86rem;line-height:1.55}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:640px){.grid2{grid-template-columns:1fr}h1{font-size:1.6rem}}
+/* quiz */
+.quiz{background:#fff;border:2px solid var(--line);border-radius:16px;padding:18px 20px;margin-top:40px}
+.quiz h2{border:0;margin-top:0;padding-top:0}
+.q{margin:22px 0;padding-bottom:14px;border-bottom:1px dashed var(--line)}
+.q p.qt{font-weight:600;margin:0 0 8px}
+.opt{display:block;width:100%;text-align:left;margin:6px 0;padding:10px 12px;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:9px}
+.opt:hover{border-color:var(--accent)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt .why{display:none;font-size:.9rem;color:var(--muted);margin-top:4px}
+.q.done .opt .why{display:block}
+.q.done .opt{cursor:default}
+.verdict{display:none;font-weight:700;margin-top:6px}
+.q.done .verdict{display:block}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.scorebar{position:sticky;bottom:10px;background:#0f172a;color:#fff;border-radius:12px;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px}
+.scorebar button{background:#fff;color:#0f172a;border-color:#fff}
+.final{display:none;margin-top:14px;padding:14px;border-radius:12px;background:var(--accent-soft)}
+footer.pn{display:flex;justify-content:space-between;gap:10px;margin-top:30px}
+footer.pn a{flex:1;text-decoration:none;border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px 14px;color:var(--ink)}
+footer.pn a small{display:block;color:var(--muted)}
+footer.pn a.next{text-align:right}
+@media (max-width:640px){nav.course{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}nav.course a{white-space:nowrap}}
+</style>
+</head>
+<body>
+<header class="top">
+<div class="crumbs"><span>Học tăng cường từ con số 0 · Ngày 1 · Bài 2/7</span><a class="langbtn" href="../lesson2.html">🌐 English</a></div>
+<nav class="course"><a href="index.html">Trang chủ</a><a href="lesson1.html" class="">1. Học tăng cường là gì?</a><a href="lesson2.html" class="cur">2. Phần thưởng, tổng phần thưởng và giá trị</a><a href="lesson3.html" class="">3. Khám phá và khai thác</a><a href="lesson4.html" class="">4. Monte Carlo và học sai khác thời gian (TD)</a><a href="lesson5.html" class="">5. Sarsa và Q-learning</a><a href="lesson6.html" class="">6. Học tăng cường dựa vào chính sách</a><a href="lesson7.html" class="">7. Máy trò chơi nhiều cánh tay và ứng dụng</a></nav>
+</header>
+<main>
+<h1>Bài 2: Phần thưởng, tổng phần thưởng và giá trị</h1>
+<p class="lead">Bài 1 nói rằng tác nhân muốn "nhiều phần thưởng nhất về lâu dài". Bài này làm cho ý tưởng đó trở nên chính xác. Bạn sẽ học tổng phần thưởng tích lũy (return), hệ số chiết khấu, chính sách và hai hàm giá trị V và Q, nền tảng của mọi thuật toán ở Ngày 2.</p>
+
+<div class="goals"><b>Sau bài học này bạn có thể:</b>
+<ul>
+<li>Tính tổng phần thưởng tích lũy của một tập, có và không có chiết khấu.</li>
+<li>Giải thích hệ số chiết khấu γ làm gì và chọn nó như thế nào.</li>
+<li>Phân biệt chính sách tất định và chính sách ngẫu nhiên.</li>
+<li>Giải thích giá trị trạng thái V(s) và giá trị hành động Q(s, a), và đọc chúng trên một lưới ô.</li>
+<li>Dùng ý tưởng Bellman đơn giản: giá trị bây giờ = phần thưởng + giá trị kế tiếp đã chiết khấu.</li>
+</ul></div>
+
+<div class="toc" id="toc"><b>Nội dung</b></div>
+
+<h2>1. Phần thưởng: nói cho tác nhân biết bạn muốn gì</h2>
+<p>Phần thưởng là cách duy nhất để ta cho tác nhân RL biết mục tiêu của nó. Theo <b>giả thuyết phần thưởng</b>, mọi mục tiêu đều có thể diễn đạt bằng việc cực đại hoá kỳ vọng của tổng phần thưởng. Trong thực tế, điều này có nghĩa là người thiết kế bài toán phải chọn phần thưởng thật cẩn thận.</p>
+<table>
+<tr><th>Nhiệm vụ</th><th>Phần thưởng tốt</th><th>Vì sao</th></tr>
+<tr><td>Thoát khỏi mê cung</td><td>−1 cho mỗi bước cho đến khi ra ngoài</td><td>Thoát càng nhanh thì tổng càng cao</td></tr>
+<tr><td>Thắng cờ vua</td><td>+1 thắng, −1 thua, 0 hòa</td><td>Thưởng đúng kết quả ta thực sự quan tâm</td></tr>
+<tr><td>Đèn giao thông</td><td>Âm tổng thời gian chờ của mọi xe</td><td>Chờ càng ít thì phần thưởng càng cao (bớt âm)</td></tr>
+<tr><td>Máy trò chơi nhiều cánh tay</td><td>Số điểm thắng được ở mỗi lần kéo</td><td>Mục tiêu là tổng điểm sau tất cả các lần kéo</td></tr>
+</table>
+
+<div class="box warn"><b class="lbl">Hãy thưởng cho điều bạn muốn, không phải cách làm</b>
+Giả sử bạn thưởng cho tác nhân chơi cờ vì ăn quân. Nó có thể học cách tham lam ăn quân và thua cả ván. Tác nhân tối ưu đúng phần thưởng bạn đưa ra, đôi khi theo những cách bất ngờ. Một ví dụ nổi tiếng: một tác nhân trong trò đua thuyền phát hiện nó có thể ghi nhiều điểm hơn bằng cách quay vòng mãi để đụng cùng những mục tiêu, thay vì về đích. Phần thưởng nên mô tả <b>cái gì</b> cần đạt được, chứ không phải <b>làm thế nào</b> để đạt được.</div>
+
+<h2>2. Tổng phần thưởng tích lũy: cộng các phần thưởng lại</h2>
+<p><b>Tổng phần thưởng tích lũy</b> (return), ký hiệu Gₜ, là tổng phần thưởng thu được từ thời điểm t trở đi. Với một tập kết thúc ở thời điểm T:</p>
+<div class="formula">Gₜ = Rₜ₊₁ + Rₜ₊₂ + Rₜ₊₃ + … + R_T</div>
+<p>Mục tiêu của tác nhân là chọn hành động để tổng phần thưởng tích lũy lớn nhất có thể, tính trung bình.</p>
+
+<div class="box example"><b class="lbl">Ví dụ minh họa</b>
+Trong trò chơi ô vuông ở Bài 1, rô-bốt đi theo đường ngắn nhất: năm bước mất −1, rồi một bước lên đích trị giá +10.<br>
+G₀ = (−1) + (−1) + (−1) + (−1) + (−1) + 10 = <b>5</b>.<br>
+Một đường dài hơn với chín bước cho G₀ = 8 × (−1) + 10 = 2. Đường ngắn có tổng cao hơn, nên tốt hơn.</div>
+
+<h3>Vì sao phải chiết khấu?</h3>
+<p>Có hai vấn đề xuất hiện nếu ta chỉ cộng các phần thưởng:</p>
+<ul>
+<li><b>Nhiệm vụ liên tục không bao giờ kết thúc,</b> nên tổng có thể tăng đến vô cùng, và chính sách nào cũng có thể trông "tốt vô hạn".</li>
+<li><b>Sớm thường tốt hơn muộn.</b> 100 điểm hôm nay tốt hơn 100 điểm một năm sau, vì tương lai không chắc chắn.</li>
+</ul>
+<p>Cách khắc phục là một <b>hệ số chiết khấu</b> (discount factor) γ (gamma), một số từ 0 đến 1. Phần thưởng đến sau k bước nữa được nhân với γᵏ:</p>
+<div class="formula">Gₜ = Rₜ₊₁ + γ·Rₜ₊₂ + γ²·Rₜ₊₃ + γ³·Rₜ₊₄ + …</div>
+
+<div class="demo"><span class="tag">Tương tác: phần thưởng trong tương lai đáng giá bao nhiêu?</span>
+<div class="row"><label>Chiết khấu γ = <b id="gTxt" class="mono"></b> <input type="range" id="gSl" min="0" max="1" step="0.01" value="0.9"></label></div>
+<svg viewBox="0 0 660 230" id="wSvg"></svg>
+<p class="note center" id="wTxt"></p>
+</div>
+<ul>
+<li><b>γ = 0:</b> chỉ phần thưởng ngay kế tiếp được tính. Tác nhân "thiển cận".</li>
+<li><b>γ gần 1</b> (ví dụ 0,99): phần thưởng xa trong tương lai vẫn được tính nhiều. Tác nhân "nhìn xa".</li>
+<li>Khi γ &lt; 1 và phần thưởng bị chặn, tổng vẫn hữu hạn ngay cả với nhiệm vụ không bao giờ kết thúc. Ví dụ, với phần thưởng 1 ở mỗi bước mãi mãi, G = 1 + γ + γ² + … = 1 / (1 − γ). Với γ = 0,9, kết quả là 10.</li>
+</ul>
+
+<div class="demo"><span class="tag">Tương tác: máy tính tổng phần thưởng tích lũy</span>
+<div class="row"><label>Phần thưởng R₁, R₂, … (cách nhau bằng dấu phẩy): <input id="rIn" value="-1,-1,-1,10" style="font:inherit;padding:5px 8px;width:220px;border:1px solid #cbd5e1;border-radius:6px"></label></div>
+<div class="row"><label>γ = <b id="g2Txt" class="mono"></b> <input type="range" id="g2Sl" min="0" max="1" step="0.05" value="0.9"></label></div>
+<div id="rOut"></div>
+</div>
+
+<h3>Một mẹo hữu ích: tổng phần thưởng tích lũy có tính đệ quy</h3>
+<p>Hãy nhìn lại công thức. Mọi thứ sau phần thưởng đầu tiên chỉ là γ nhân với tổng phần thưởng tích lũy từ bước kế tiếp:</p>
+<div class="formula">Gₜ = Rₜ₊₁ + γ · Gₜ₊₁</div>
+<p>Điều này nghĩa là bạn có thể tính tổng phần thưởng tích lũy <b>ngược từ cuối</b> tập, từng bước một.</p>
+<div class="box example"><b class="lbl">Ví dụ minh họa (γ = 0,9, phần thưởng −1, −1, −1, +10)</b>
+G₃ = 10 (phần thưởng cuối)<br>
+G₂ = −1 + 0,9 × 10 = 8<br>
+G₁ = −1 + 0,9 × 8 = 6,2<br>
+G₀ = −1 + 0,9 × 6,2 = <b>4,58</b><br>
+Ý tưởng đơn giản này, "bây giờ = phần thưởng + γ × về sau", là trái tim của hầu hết mọi thuật toán RL.</div>
+
+<h2>3. Chính sách: tất định và ngẫu nhiên</h2>
+<p><b>Chính sách</b> π mô tả cách tác nhân hành xử. Có hai loại:</p>
+<div class="grid2">
+<div class="card"><span class="tag">Tất định</span><br>Luôn chọn cùng một hành động ở một trạng thái: π(s) = a.<br><span class="note">Ví dụ: "Ở ô (3,0), luôn đi Lên."</span>
+<svg viewBox="0 0 260 90"><rect x="10" y="20" width="60" height="50" rx="8" fill="#dbeafe" stroke="#2563eb"/><text x="40" y="50" text-anchor="middle" font-size="13">trạng thái s</text><path d="M72,45 L170,45" stroke="#2563eb" stroke-width="3" marker-end="url(#ah2)"/><text x="120" y="38" text-anchor="middle" font-size="12">100%</text><rect x="175" y="25" width="70" height="40" rx="8" fill="#fff" stroke="#2563eb"/><text x="210" y="50" text-anchor="middle" font-size="13">Lên</text>
+<defs><marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs></svg></div>
+<div class="card"><span class="tag">Ngẫu nhiên</span><br>Một xác suất cho mỗi hành động: π(a | s).<br><span class="note">Ví dụ: "Lên với 70%, Phải với 30%."</span>
+<svg viewBox="0 0 260 90"><rect x="10" y="20" width="60" height="50" rx="8" fill="#ede9fe" stroke="#7c3aed"/><text x="40" y="50" text-anchor="middle" font-size="13">trạng thái s</text><path d="M72,38 L170,20" stroke="#7c3aed" stroke-width="3" marker-end="url(#ah2)"/><path d="M72,52 L170,72" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#ah2)"/><text x="118" y="20" font-size="12">70%</text><text x="118" y="80" font-size="12">30%</text><rect x="175" y="5" width="70" height="32" rx="8" fill="#fff" stroke="#7c3aed"/><text x="210" y="26" text-anchor="middle" font-size="13">Lên</text><rect x="175" y="55" width="70" height="32" rx="8" fill="#fff" stroke="#7c3aed"/><text x="210" y="76" text-anchor="middle" font-size="13">Phải</text></svg></div>
+</div>
+<p>Chính sách ngẫu nhiên hữu ích khi đang học (sự ngẫu nhiên giúp tác nhân thử cái mới) và trong các trò chơi mà bị đoán trước là bất lợi, như oẳn tù tì.</p>
+
+<h2>4. Hàm giá trị: một trạng thái tốt đến đâu?</h2>
+<p>Tổng phần thưởng tích lũy của một tập đơn lẻ phụ thuộc vào may rủi: môi trường hoặc chính sách có thể mang tính ngẫu nhiên. Để đánh giá một trạng thái cho công bằng, ta dùng tổng phần thưởng tích lũy <b>trung bình</b> qua nhiều tập. Giá trị trung bình này gọi là tổng phần thưởng <b>kỳ vọng</b>, và nó cho ta các hàm giá trị.</p>
+<div class="box key"><b class="lbl">Giá trị trạng thái V(s)</b>
+V<sub>π</sub>(s) = tổng phần thưởng tích lũy kỳ vọng nếu tác nhân bắt đầu ở trạng thái s rồi theo chính sách π.<br>Nói bằng lời: "Đứng ở đây tốt đến đâu, nếu tôi cứ hành xử như thế này?"</div>
+<div class="box key"><b class="lbl">Giá trị hành động Q(s, a)</b>
+Q<sub>π</sub>(s, a) = tổng phần thưởng tích lũy kỳ vọng nếu tác nhân bắt đầu ở trạng thái s, thực hiện hành động a trước, rồi theo chính sách π.<br>Nói bằng lời: "Làm hành động này ở đây tốt đến đâu?"</div>
+<p>Q là đại lượng thực dụng nhất: nếu bạn biết Q(s, a) của mọi hành động thì việc chọn rất dễ. <b>Chọn hành động có giá trị Q lớn nhất.</b> Đây là cốt lõi của RL dựa vào giá trị.</p>
+
+<div class="demo"><span class="tag">Tương tác: bản đồ giá trị của thế giới ô vuông</span>
+<p class="note" style="margin-top:0">Cùng thế giới như Bài 1: −1 mỗi bước, +10 đích, −10 bẫy. Mỗi ô hiển thị giá trị V(s). Xanh = chỗ tốt, đỏ = chỗ xấu. Mũi tên chỉ hành động tốt nhất. Bấm vào một ô để xem bốn giá trị Q của nó.</p>
+<div class="row">
+  <label><input type="radio" name="pol" value="opt" checked> Chính sách tốt nhất</label>
+  <label><input type="radio" name="pol" value="rnd"> Chính sách ngẫu nhiên (mỗi hành động 25%)</label>
+  <label>γ = <b id="g3Txt" class="mono"></b> <input type="range" id="g3Sl" min="0" max="1" step="0.05" value="0.9"></label>
+</div>
+<div class="row">
+  <button id="vSweep">Một lượt cập nhật</button>
+  <button id="vConv" class="alt">Chạy đến khi ổn định</button>
+  <button id="vZero" class="alt">Đặt lại giá trị về 0</button>
+  <span class="note" id="vInfo"></span>
+</div>
+<div class="grid2">
+  <svg viewBox="0 0 300 300" id="vSvg" style="max-width:320px"></svg>
+  <div><div class="log" id="qPanel">Bấm vào một ô để xem các giá trị Q của nó.</div></div>
+</div>
+<p class="note">Hãy bấm "Một lượt cập nhật" nhiều lần, bắt đầu từ 0. Quan sát giá trị <b>lan ra từ đích</b>, mỗi lượt thêm một ô. Rồi chuyển sang chính sách ngẫu nhiên: cùng những ô đó giờ đáng giá thấp hơn nhiều, vì người đi ngẫu nhiên lãng phí bước và đôi khi rơi vào bẫy. <b>Giá trị luôn phụ thuộc vào chính sách.</b></p>
+</div>
+
+<h2>5. Ý tưởng Bellman</h2>
+<p>Lưới ô đã tính các giá trị đó như thế nào? Bằng cùng một ý tưởng "bây giờ = phần thưởng + γ × về sau" như tổng phần thưởng tích lũy đệ quy. Với một bước đi từ s đến s′ cho phần thưởng r:</p>
+<div class="formula">Q(s, a) = r + γ · V(s′)</div>
+<p>Và với chính sách <b>tốt nhất</b>, giá trị của một trạng thái là giá trị của hành động tốt nhất của nó:</p>
+<div class="formula">V*(s) = max theo hành động a của [ r + γ · V*(s′) ]</div>
+<p>Đây là một dạng đơn giản của <b>phương trình Bellman</b>, đặt theo tên Richard Bellman. Nó nói rằng giá trị của một trạng thái phụ thuộc vào giá trị của các trạng thái lân cận. Mỗi "lượt cập nhật" trong phần demo áp dụng phương trình này một lần cho mọi ô. Lặp lại nhiều lần làm các giá trị ổn định về đáp án đúng.</p>
+
+<div class="box example"><b class="lbl">Ví dụ minh họa (γ = 0,9)</b>
+Ô ngay dưới đích: đi Lên là tới đích. Phần thưởng +10, và tập kết thúc, nên V(đích) = 0.<br>
+Q(ô dưới đích, Lên) = 10 + 0,9 × 0 = <b>10</b>.<br>
+Xa thêm một ô: đi về phía ô đó cho phần thưởng −1 và rơi vào ô có V = 10.<br>
+Q = −1 + 0,9 × 10 = <b>8</b>. Tiếp theo: −1 + 0,9 × 8 = <b>6,2</b>, và cứ thế. Giá trị giảm dần theo khoảng cách đến đích.</div>
+
+<div class="box analogy"><b class="lbl">Ví dụ so sánh: mùi hương lan tỏa</b>
+Hãy tưởng tượng đích tỏa ra một mùi hương yếu dần theo khoảng cách. Một rô-bốt đói chỉ cần di chuyển về phía mùi mạnh hơn. Hàm giá trị chính là mùi hương đó: khi đã học xong, tác nhân chỉ việc leo về phía giá trị cao hơn.</div>
+
+<h3>Tính chất Markov</h3>
+<p>Tất cả điều này giả định trạng thái chứa <b>mọi thứ cần thiết</b> để dự đoán điều gì xảy ra tiếp theo. Quá khứ không quan trọng một khi bạn biết trạng thái hiện tại. Đây gọi là <b>tính chất Markov</b>, và một bài toán có tính chất này gọi là <b>quá trình quyết định Markov (MDP)</b>. Trong thế giới ô vuông, biết ô hiện tại là đủ; việc bạn đến đó bằng cách nào không làm thay đổi kết quả của mỗi bước đi.</p>
+
+<h2>6. Tóm tắt</h2>
+<ul>
+<li><b>Tổng phần thưởng tích lũy</b> Gₜ là tổng (đã chiết khấu) của các phần thưởng tương lai: Gₜ = Rₜ₊₁ + γGₜ₊₁.</li>
+<li><b>Hệ số chiết khấu</b> γ ∈ [0, 1] quyết định tương lai được tính nhiều hay ít và giữ cho các tổng hữu hạn.</li>
+<li><b>Chính sách</b> có thể tất định (một hành động) hoặc ngẫu nhiên (các xác suất).</li>
+<li><b>V(s)</b> = tổng phần thưởng tích lũy kỳ vọng từ một trạng thái; <b>Q(s, a)</b> = tổng phần thưởng tích lũy kỳ vọng khi thực hiện hành động a ở trạng thái s. Cả hai đều phụ thuộc vào chính sách.</li>
+<li><b>Ý tưởng Bellman</b>: giá trị bây giờ = phần thưởng + γ × giá trị kế tiếp. Biết Q thì tác nhân chọn hành động có Q cao nhất.</li>
+<li>Bài sau: lúc đầu tác nhân chưa biết Q. Làm sao nó quyết định giữa việc dùng điều đã biết và thử điều mới?</li>
+</ul>
+
+
+
+<section class="quiz" id="quiz">
+<h2>Trắc nghiệm: kiểm tra mức hiểu bài</h2>
+<p class="note">10 câu trắc nghiệm. Bấm vào một đáp án: bạn sẽ biết đúng hay sai, kèm giải thích cho <b>từng</b> phương án.</p>
+<div id="quizItems"></div>
+<div class="final" id="finalMsg"></div>
+<div class="scorebar"><span id="scoreText"></span><button id="retry">Làm lại</button></div>
+</section>
+<footer class="pn"><a href="lesson1.html"><small>← Bài trước</small>1. Học tăng cường là gì?</a><a class="next" href="lesson3.html"><small>Bài tiếp theo →</small>3. Khám phá và khai thác</a></footer>
+</main>
+<script>// ---------- small helpers ----------
+const $ = id => document.getElementById(id);
+const NS = 'http://www.w3.org/2000/svg';
+function S(tag, attrs, parent){
+  const e = document.createElementNS(NS, tag);
+  for (const k in (attrs||{})) {
+    if (k === 'text') e.textContent = attrs[k]; else e.setAttribute(k, attrs[k]);
+  }
+  if (parent) parent.appendChild(e);
+  return e;
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const fmt = (x, d=2) => (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toFixed(d).replace('.',',');
+function argmaxRand(arr){
+  const m = Math.max(...arr); const c = [];
+  arr.forEach((v,i)=>{ if (v === m) c.push(i); });
+  return c[Math.floor(Math.random()*c.length)];
+}
+function randn(){ let u=0,v=0; while(!u)u=Math.random(); while(!v)v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+
+// ---------- line chart ----------
+// opts: {w,h,series:[{label,color,data:[y..], dash}], xLabel,yLabel,yMin,yMax,xStart}
+function lineChart(container, opts){
+  const w = opts.w||640, h = opts.h||300, L=56, R=16, T=14, B=44;
+  container.innerHTML = '';
+  const svg = S('svg', {viewBox:`0 0 ${w} ${h}`, role:'img'}, container);
+  let all = []; opts.series.forEach(s => all = all.concat(s.data));
+  const yMin = opts.yMin !== undefined ? opts.yMin : Math.min(...all);
+  const yMax = opts.yMax !== undefined ? opts.yMax : Math.max(...all);
+  const n = Math.max(...opts.series.map(s=>s.data.length));
+  const x0 = opts.xStart||0;
+  const X = i => L + (w-L-R) * (n<=1?0:i/(n-1));
+  const Y = v => T + (h-T-B) * (1 - (v-yMin)/((yMax-yMin)||1));
+  for (let k=0;k<=4;k++){
+    const v = yMin + (yMax-yMin)*k/4, y = Y(v);
+    S('line',{x1:L,x2:w-R,y1:y,y2:y,stroke:'#e5e7eb'},svg);
+    S('text',{x:L-6,y:y+4,'text-anchor':'end','font-size':11,fill:'#64748b',text:(Math.abs(yMax-yMin)<5?fmt(v,2):Math.round(v))},svg);
+  }
+  for (let k=0;k<=4;k++){
+    const i = Math.round((n-1)*k/4), x = X(i);
+    S('text',{x:x,y:h-B+16,'text-anchor':'middle','font-size':11,fill:'#64748b',text:x0+i},svg);
+  }
+  S('line',{x1:L,x2:L,y1:T,y2:h-B,stroke:'#94a3b8'},svg);
+  S('line',{x1:L,x2:w-R,y1:h-B,y2:h-B,stroke:'#94a3b8'},svg);
+  if (opts.xLabel) S('text',{x:(L+w-R)/2,y:h-6,'text-anchor':'middle','font-size':12,fill:'#334155',text:opts.xLabel},svg);
+  if (opts.yLabel) S('text',{x:14,y:(T+h-B)/2,'text-anchor':'middle','font-size':12,fill:'#334155',transform:`rotate(-90 14 ${(T+h-B)/2})`,text:opts.yLabel},svg);
+  opts.series.forEach(s=>{
+    const pts = s.data.map((v,i)=>`${X(i).toFixed(1)},${Y(Math.max(yMin,Math.min(yMax,v))).toFixed(1)}`).join(' ');
+    S('polyline',{points:pts,fill:'none',stroke:s.color,'stroke-width':2.2,'stroke-dasharray':s.dash||'', 'stroke-linejoin':'round'},svg);
+  });
+  const lg = document.createElement('div'); lg.className='legend';
+  opts.series.forEach(s=>{ const sp=document.createElement('span'); sp.style.setProperty('--c',s.color); sp.textContent=s.label; lg.appendChild(sp); });
+  container.appendChild(lg);
+}
+
+// ---------- table of contents ----------
+function buildTOC(){
+  const toc = $('toc'); if (!toc) return;
+  const hs = [...document.querySelectorAll('main > section > h2, main > h2')].filter(h=>!h.closest('.quiz'));
+  const ol = document.createElement('ol');
+  hs.forEach((h,i)=>{ if(!h.id) h.id='sec'+(i+1); const li=document.createElement('li'); li.innerHTML=`<a href="#${h.id}">${h.textContent}</a>`; ol.appendChild(li); });
+  const li=document.createElement('li'); li.innerHTML='<a href="#quiz">Trắc nghiệm (10 câu)</a>'; ol.appendChild(li);
+  toc.appendChild(ol);
+}
+
+// ---------- quiz ----------
+// item: {q, o:[4 options], a:index, e:[4 explanations]}
+function renderQuiz(items){
+  const box = $('quizItems'); box.innerHTML = '';
+  let answered = 0, correct = 0;
+  const bar = $('scoreText'), fin = $('finalMsg');
+  function upd(){
+    bar.textContent = `Đã trả lời ${answered}/${items.length} · Đúng ${correct}`;
+    if (answered === items.length){
+      fin.style.display='block';
+      const pct = correct/items.length;
+      fin.innerHTML = `<b>Bạn đạt ${correct}/${items.length} điểm.</b> ` + (pct===1 ? 'Tuyệt vời! Bạn đã nắm vững bài học này.' : pct>=0.7 ? 'Làm tốt lắm. Hãy đọc phần giải thích của những câu bạn làm sai rồi học tiếp.' : 'Hãy đọc lại các phần trong mục lục phía trên, rồi bấm "Làm lại".');
+    } else fin.style.display='none';
+  }
+  items = items.map(it0=>{ // shuffle option order so the answer is not always in the same place
+    const idx=[0,1,2,3].slice(0,it0.o.length); for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+    return {q:it0.q,o:idx.map(i=>it0.o[i]),e:idx.map(i=>it0.e[i]),a:idx.indexOf(it0.a),orig:it0};
+  });
+  items.forEach((it, qi)=>{
+    const d = document.createElement('div'); d.className='q';
+    d.innerHTML = `<p class="qt">${qi+1}. ${it.q}</p>`;
+    const btns = [];
+    it.o.forEach((t,j)=>{
+      const b = document.createElement('button'); b.className='opt';
+      b.innerHTML = `<b>${String.fromCharCode(65+j)}.</b> ${t}<span class="why">${j===it.a?'✔ ':'✘ '}${it.e[j]}</span>`;
+      b.onclick = ()=>{
+        if (d.classList.contains('done')) return;
+        d.classList.add('done'); answered++;
+        btns[it.a].classList.add('right');
+        if (j===it.a){ correct++; v.innerHTML='<span class="ok">Chính xác!</span> Tất cả các phương án đều được giải thích bên dưới.'; }
+        else { b.classList.add('wrong'); v.innerHTML=`<span class="bad">Chưa đúng.</span> Đáp án là ${String.fromCharCode(65+it.a)}. Hãy đọc vì sao từng phương án đúng hoặc sai.`; }
+        upd();
+      };
+      btns.push(b); d.appendChild(b);
+    });
+    const v = document.createElement('div'); v.className='verdict'; d.insertBefore(v, d.children[1]);
+    box.appendChild(d);
+  });
+  $('retry').onclick = ()=>{ renderQuiz(items.map(x=>x.orig)); $('quiz').scrollIntoView(); };
+  upd();
+}
+</script>
+<script>
+// discount weights
+(function(){
+  function draw(){
+    const g=+$('gSl').value; $('gTxt').textContent=fmt(g,2);
+    const svg=$('wSvg'); svg.innerHTML='';
+    const K=15, L=40, W=600, H=170, bw=W/K;
+    S('line',{x1:L,x2:L+W,y1:H+10,y2:H+10,stroke:'#94a3b8'},svg);
+    for(let k=0;k<K;k++){
+      const v=Math.pow(g,k), h=v*(H-20);
+      S('rect',{x:L+k*bw+6,y:H+10-h,width:bw-12,height:h,rx:4,fill:k===0?'#2563eb':'#93c5fd',style:'transition:all .3s'},svg);
+      S('text',{x:L+k*bw+bw/2,y:H+28,'text-anchor':'middle','font-size':11,fill:'#475569',text:'+'+k},svg);
+      S('text',{x:L+k*bw+bw/2,y:H+4-h,'text-anchor':'middle','font-size':10,fill:'#1e3a8a',text:fmt(v,2)},svg);
+    }
+    S('text',{x:L+W/2,y:H+48,'text-anchor':'middle','font-size':12,fill:'#334155',text:'số bước trong tương lai (k) — chiều cao cột = trọng số γᵏ'},svg);
+    $('wTxt').textContent=`Một phần thưởng 10 đến sau 10 bước nữa, hôm nay chỉ đáng giá 10 × γ¹⁰ = ${fmt(10*Math.pow(g,10),2)}.`;
+  }
+  $('gSl').oninput=draw; draw();
+})();
+// return calculator
+(function(){
+  const sup=['⁰','¹','²','³','⁴','⁵','⁶','⁷','⁸','⁹'];
+  const pw=k=>String(k).split('').map(d=>sup[+d]).join('');
+  function calc(){
+    const g=+$('g2Sl').value; $('g2Txt').textContent=fmt(g,2);
+    const r=$('rIn').value.split(',').map(x=>parseFloat(x)).filter(x=>!isNaN(x));
+    let G=0, rows='';
+    r.forEach((x,k)=>{const w=Math.pow(g,k);G+=w*x;rows+=`<tr><td>R${k+1}</td><td class="mono">${x}</td><td class="mono">γ${pw(k)} = ${fmt(w,3)}</td><td class="mono">${fmt(w*x,3)}</td></tr>`;});
+    $('rOut').innerHTML=`<table><tr><th>Phần thưởng</th><th>Giá trị</th><th>Trọng số</th><th>Sau trọng số</th></tr>${rows}<tr><td colspan="3"><b>Tổng phần thưởng tích lũy G₀ (tổng)</b></td><td class="mono"><b>${fmt(G,3)}</b></td></tr></table>`;
+  }
+  $('rIn').oninput=calc; $('g2Sl').oninput=calc; calc();
+})();
+// value grid
+(function(){
+  const N=4,C=72,OFF=6, GOAL='0,3', TRAP='1,2';
+  const D=[[-1,0],[0,1],[1,0],[0,-1]], AN=['Lên','Phải','Xuống','Trái'];
+  let V, sweeps=0, sel=null;
+  const term=k=>k===GOAL||k===TRAP;
+  function step(r,c,a){let r1=r+D[a][0],c1=c+D[a][1]; if(r1<0||r1>=N||c1<0||c1>=N){r1=r;c1=c;} const k=r1+','+c1; return [r1,c1,k===GOAL?10:k===TRAP?-10:-1,k];}
+  function qv(r,c,a,g){const [r1,c1,rw,k]=step(r,c,a); return rw+g*(term(k)?0:V[r1][c1]);}
+  function sweep(){
+    const g=+$('g3Sl').value, opt=document.querySelector('input[name=pol]:checked').value==='opt';
+    const NV=V.map(x=>x.slice());
+    for(let r=0;r<N;r++)for(let c=0;c<N;c++){ if(term(r+','+c))continue;
+      const q=[0,1,2,3].map(a=>qv(r,c,a,g));
+      NV[r][c]=opt?Math.max(...q):q.reduce((x,y)=>x+y,0)/4; }
+    const diff=Math.max(...NV.flat().map((v,i)=>Math.abs(v-V.flat()[i])));
+    V=NV; sweeps++; return diff;
+  }
+  function col(v){const t=Math.max(-1,Math.min(1,v/10)); if(t>=0){const a=Math.round(255-t*(255-134)),b=Math.round(255-t*(255-239));return `rgb(${a},${Math.round(255-t*(255-239)+0)},${Math.round(255-t*(255-172))})`;} const s=-t; return `rgb(${Math.round(255-s*(255-252))},${Math.round(255-s*(255-165))},${Math.round(255-s*(255-165))})`;}
+  function draw(){
+    const g=+$('g3Sl').value; $('g3Txt').textContent=fmt(g,2);
+    const svg=$('vSvg'); svg.innerHTML='';
+    for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+      const k=r+','+c, x=OFF+c*C, y=OFF+r*C;
+      const fill=k===GOAL?'#86efac':k===TRAP?'#fca5a5':col(V[r][c]);
+      const rc=S('rect',{x:x,y:y,width:C-4,height:C-4,rx:8,fill:fill,stroke:sel===k?'#0f172a':'#cbd5e1','stroke-width':sel===k?3:1,style:'cursor:pointer;transition:fill .3s'},svg);
+      rc.onclick=()=>{sel=k;draw();};
+      if(term(k)){S('text',{x:x+(C-4)/2,y:y+(C-4)/2+5,'text-anchor':'middle','font-size':14,'font-weight':700,fill:'#334155',text:k===GOAL?'ĐÍCH +10':'BẪY −10',style:'font-size:11px'},svg);continue;}
+      S('text',{x:x+(C-4)/2,y:y+24,'text-anchor':'middle','font-size':14,'font-weight':700,fill:'#0f172a',text:fmt(V[r][c],1),style:'pointer-events:none'},svg);
+      if(sweeps>0){
+        const q=[0,1,2,3].map(a=>qv(r,c,a,g)), m=Math.max(...q);
+        q.forEach((v,a)=>{ if(Math.abs(v-m)<1e-6){ const cx=x+(C-4)/2, cy=y+46; const dx=D[a][1]*12, dy=D[a][0]*12;
+          const ux=D[a][1], uy=D[a][0], px=-uy, py=ux, tx=cx+ux*14, ty=cy+uy*10;
+          S('polygon',{points:`${tx+ux*7},${ty+uy*7} ${tx+px*6},${ty+py*6} ${tx-px*6},${ty-py*6}`,fill:'#1e293b',style:'pointer-events:none'},svg);} });
+      }
+    }
+    $('vInfo').textContent=`Số lượt đã chạy: ${sweeps}`;
+    if(sel&&!term(sel)){const [r,c]=sel.split(',').map(Number);
+      const lines=[0,1,2,3].map(a=>{const [r1,c1,rw,k]=step(r,c,a);const nv=term(k)?0:V[r1][c1];return `Q(s, ${AN[a].padEnd(5)}) = ${rw>0?'+':''}${rw} + ${fmt(g,2)} × ${fmt(nv,2)} = ${fmt(rw+g*nv,2)}`;});
+      $('qPanel').textContent=`Ô (hàng ${r}, cột ${c})\nV(s) = ${fmt(V[r][c],2)}\n\n`+lines.join('\n')+`\n\nCông thức: Q(s,a) = phần thưởng + γ × V(ô kế tiếp)\n(ô kết thúc có V = 0)`;}
+    else if(sel){$('qPanel').textContent='Đây là ô kết thúc: tập dừng ở đây, nên giá trị của nó là 0.';}
+  }
+  function zero(){V=[...Array(N)].map(()=>Array(N).fill(0));sweeps=0;draw();}
+  $('vSweep').onclick=()=>{sweep();draw();};
+  $('vConv').onclick=()=>{let d=1,i=0;while(d>1e-4&&i<5000){d=sweep();i++;}draw();};
+  $('vZero').onclick=zero;
+  document.querySelectorAll('input[name=pol]').forEach(x=>x.onchange=()=>{zero();});
+  $('g3Sl').oninput=()=>{zero();};
+  zero();
+})();
+
+const QUIZ=[
+{q:"Các phần thưởng trong một tập là −1, −1, +10 và không chiết khấu (γ = 1). Tổng phần thưởng tích lũy G₀ là bao nhiêu?",
+ o:["10","8","12","−2"],a:1,
+ e:["Đáp án này bỏ qua hai phần thưởng −1.","Chính xác: −1 − 1 + 10 = 8.","Các phần thưởng −1 phải được trừ đi, không phải cộng vào.","Đáp án này quên mất +10 ở cuối."]},
+{q:"Cùng các phần thưởng (−1, −1, +10) nhưng bây giờ γ = 0,5. G₀ là bao nhiêu?",
+ o:["8","1","2,5","−1,5"],a:1,
+ e:["Đó là tổng phần thưởng tích lũy khi không chiết khấu.","Chính xác: −1 + 0,5 × (−1) + 0,25 × 10 = −1 − 0,5 + 2,5 = 1.","Chỉ số hạng cuối bằng 2,5. Bạn còn phải cộng hai số hạng đầu nữa.","Đáp án này bỏ sót +10 đã chiết khấu."]},
+{q:"Hành vi của tác nhân thế nào khi γ = 0?",
+ o:["Nó chỉ quan tâm đến phần thưởng ngay kế tiếp","Nó quan tâm đến mọi phần thưởng tương lai như nhau","Nó ngừng nhận phần thưởng","Nó luôn chọn hành động ngẫu nhiên"],a:0,
+ e:["Chính xác. Khi γ = 0, mọi số hạng sau số hạng đầu đều được nhân với 0.","Đó là trường hợp γ = 1.","Phần thưởng vẫn đến; tác nhân chỉ bỏ qua các phần thưởng tương lai khi chọn.","γ ảnh hưởng đến cách định giá phần thưởng, không quyết định hành động có ngẫu nhiên hay không."]},
+{q:"Vì sao cần hệ số chiết khấu γ < 1 cho các nhiệm vụ liên tục?",
+ o:["Để làm mọi phần thưởng thành âm","Để tổng phần thưởng vẫn hữu hạn dù nhiệm vụ không bao giờ kết thúc","Vì nhiệm vụ liên tục không có phần thưởng","Để tác nhân khám phá nhiều hơn"],a:1,
+ e:["Chiết khấu thay đổi độ lớn của phần thưởng nhưng không bao giờ đổi dấu.","Chính xác. Không chiết khấu, một dòng phần thưởng vô tận có thể cộng lại thành vô cùng.","Nhiệm vụ liên tục vẫn có phần thưởng.","Khám phá là một chủ đề riêng (Bài 3)."]},
+{q:"Phương trình nào biểu diễn tổng phần thưởng tích lũy theo dạng đệ quy?",
+ o:["Gₜ = Rₜ₊₁ + γ·Gₜ₊₁","Gₜ = γ·Rₜ₊₁","Gₜ = Gₜ₊₁ − Rₜ₊₁","Gₜ = Rₜ₊₁ × Rₜ₊₂"],a:0,
+ e:["Chính xác. Tổng phần thưởng tích lũy hiện tại là phần thưởng kế tiếp cộng với tổng phần thưởng tích lũy đã chiết khấu từ bước sau.","Đáp án này chỉ giữ lại một phần thưởng đã chiết khấu.","Phép trừ đi ngược chiều và không có γ.","Phần thưởng được cộng lại, không nhân với nhau."]},
+{q:"V<sub>π</sub>(s) là gì?",
+ o:["Phần thưởng nhận được khi bước vào s","Tổng phần thưởng tích lũy kỳ vọng bắt đầu từ s và theo chính sách π","Số hành động có thể thực hiện ở s","Xác suất ghé thăm s"],a:1,
+ e:["Đó chỉ là một phần thưởng đơn lẻ, không phải tổng dài hạn.","Chính xác. Đó là tổng phần thưởng (đã chiết khấu) trung bình từ s trở đi theo π.","Đó là kích thước của không gian hành động.","Xác suất ghé thăm là một đại lượng khác."]},
+{q:"Một tác nhân biết Q(s, Trái) = 2,0, Q(s, Phải) = 5,5, Q(s, Lên) = −1. Tác nhân tham lam sẽ chọn hành động nào?",
+ o:["Trái","Phải","Lên","Nó phải chọn ngẫu nhiên"],a:1,
+ e:["2,0 nhỏ hơn 5,5.","Chính xác. Tham lam nghĩa là chọn giá trị Q cao nhất.","−1 là giá trị thấp nhất.","Tác nhân tham lam luôn chọn giá trị cao nhất (Bài 3 giải thích khi nào nên thêm sự ngẫu nhiên)."]},
+{q:"Trong phần demo lưới ô, vì sao các giá trị dưới chính sách ngẫu nhiên thấp hơn dưới chính sách tốt nhất?",
+ o:["Chính sách ngẫu nhiên nhận phần thưởng khác từ môi trường","Người đi ngẫu nhiên lãng phí bước đi và đôi khi rơi vào bẫy, nên tổng phần thưởng kỳ vọng thấp hơn","Hệ số chiết khấu khác nhau","Đích bị dời chỗ"],a:1,
+ e:["Môi trường và phần thưởng của nó giống hệt nhau; chỉ cách hành xử thay đổi.","Chính xác. Giá trị phụ thuộc vào cách tác nhân hành xử từ trạng thái đó trở đi.","γ giống nhau ở cả hai.","Bản đồ không thay đổi."]},
+{q:"Với γ = 0,9, một ô cạnh đích có giá trị 10. Đi từ một ô lân cận tới nó mất −1. Giá trị của ô lân cận đó là bao nhiêu (chính sách tốt nhất)?",
+ o:["9","8","10","−1"],a:1,
+ e:["Bạn phải nhân 10 với γ = 0,9 trước khi cộng −1: −1 + 9 = 8, không phải 9.","Chính xác: −1 + 0,9 × 10 = 8.","Bước đi mất −1 và giá trị kế tiếp bị chiết khấu, nên nó phải thấp hơn 10.","Đáp án này bỏ qua giá trị của ô kế tiếp."]},
+{q:"Tính chất Markov nói gì?",
+ o:["Phần thưởng luôn dương","Trạng thái hiện tại chứa mọi thông tin cần thiết để dự đoán điều xảy ra tiếp theo","Tác nhân phải nhớ toàn bộ lịch sử","Chính sách phải ngẫu nhiên"],a:1,
+ e:["Tính chất Markov nói về trạng thái, không phải phần thưởng.","Chính xác. Biết trạng thái hiện tại rồi thì quá khứ không thêm thông tin nào.","Ý nghĩa là ngược lại: không cần đến lịch sử.","Chính sách có thể tất định hoặc ngẫu nhiên."]}
+];
+</script>
+<script>
+buildTOC();
+renderQuiz(QUIZ);
+</script>
+</body>
+</html>

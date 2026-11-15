@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RL 4: Monte Carlo và học sai khác thời gian (TD)</title>
+<style>:root{
+  --ink:#1c2430;--muted:#5d6878;--bg:#f7f7f3;--card:#ffffff;--line:#e3e6ea;
+  --accent:#2563eb;--accent-soft:#dbeafe;--ok:#15803d;--ok-soft:#dcfce7;--bad:#b91c1c;--bad-soft:#fee2e2;
+  --warn:#b45309;--warn-soft:#fef3c7;--purple:#7c3aed;--purple-soft:#ede9fe;
+  --c1:#2563eb;--c2:#ea580c;--c3:#16a34a;--c4:#7c3aed;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font:16.5px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+main{max-width:860px;margin:0 auto;padding:0 18px 80px}
+header.top{max-width:860px;margin:0 auto;padding:22px 18px 6px}
+.crumbs{font-size:.85rem;color:var(--muted);letter-spacing:.02em;text-transform:uppercase;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.langbtn{flex:none;text-transform:none;letter-spacing:0;font-size:.82rem;font-weight:600;text-decoration:none;color:var(--accent);border:1px solid var(--accent);background:#fff;border-radius:999px;padding:3px 12px;white-space:nowrap}
+.langbtn:hover{background:var(--accent);color:#fff}
+h1{font-size:2rem;line-height:1.2;margin:.25em 0 .35em}
+h2{font-size:1.35rem;margin:2.2em 0 .6em;padding-top:.3em;border-top:1px solid var(--line)}
+h3{font-size:1.08rem;margin:1.5em 0 .4em}
+.lead{color:var(--muted);font-size:1.05rem;margin-top:0}
+nav.course{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
+nav.course a{font-size:.82rem;text-decoration:none;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 10px}
+nav.course a.cur{background:var(--accent);border-color:var(--accent);color:#fff}
+.toc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin:18px 0}
+.toc b{display:block;margin-bottom:4px}
+.toc ol{margin:0;padding-left:20px}
+.toc a{color:var(--accent);text-decoration:none}
+.goals{background:var(--ok-soft);border-radius:12px;padding:12px 18px;margin:16px 0}
+.goals ul{margin:.3em 0 0;padding-left:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:18px 0}
+.demo{background:var(--card);border:2px solid var(--accent-soft);border-radius:14px;padding:16px 18px;margin:20px 0}
+.demo>.tag,.card>.tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.box{border-radius:10px;padding:10px 14px;margin:14px 0}
+.key{background:var(--accent-soft);border-left:4px solid var(--accent)}
+.analogy{background:var(--purple-soft);border-left:4px solid var(--purple)}
+.warn{background:var(--warn-soft);border-left:4px solid var(--warn)}
+.example{background:#f1f5f9;border-left:4px solid #64748b}
+.box b.lbl{display:block;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.analogy b.lbl{color:var(--purple)}.key b.lbl{color:var(--accent)}.warn b.lbl{color:var(--warn)}.example b.lbl{color:#475569}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.95rem;background:#fff}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:#f1f5f9}
+.formula{font-family:ui-monospace,Menlo,Consolas,monospace;background:#fff;border:1px dashed #cbd5e1;border-radius:10px;padding:12px;text-align:center;font-size:1.05rem;margin:14px 0;overflow-x:auto}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92rem}
+.note{color:var(--muted);font-size:.92rem}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.center{text-align:center}
+button{font:inherit;font-size:.95rem;padding:7px 14px;border-radius:9px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+button.alt{background:#fff;color:var(--accent)}
+button:disabled{opacity:.45;cursor:default}
+input[type=range]{width:180px;vertical-align:middle}
+svg{max-width:100%;height:auto;display:block;margin:0 auto}
+svg text{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:.88rem;margin-top:4px}
+.legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+.log{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88rem;background:#f8fafc;border-radius:8px;padding:10px 12px;white-space:pre-wrap;min-height:3.2em}
+.steps{counter-reset:s;list-style:none;padding-left:0}
+.steps li{counter-increment:s;position:relative;padding-left:38px;margin:10px 0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:.85rem;display:flex;align-items:center;justify-content:center}
+pre.code{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow-x:auto;font-size:.86rem;line-height:1.55}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:640px){.grid2{grid-template-columns:1fr}h1{font-size:1.6rem}}
+/* quiz */
+.quiz{background:#fff;border:2px solid var(--line);border-radius:16px;padding:18px 20px;margin-top:40px}
+.quiz h2{border:0;margin-top:0;padding-top:0}
+.q{margin:22px 0;padding-bottom:14px;border-bottom:1px dashed var(--line)}
+.q p.qt{font-weight:600;margin:0 0 8px}
+.opt{display:block;width:100%;text-align:left;margin:6px 0;padding:10px 12px;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:9px}
+.opt:hover{border-color:var(--accent)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt .why{display:none;font-size:.9rem;color:var(--muted);margin-top:4px}
+.q.done .opt .why{display:block}
+.q.done .opt{cursor:default}
+.verdict{display:none;font-weight:700;margin-top:6px}
+.q.done .verdict{display:block}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.scorebar{position:sticky;bottom:10px;background:#0f172a;color:#fff;border-radius:12px;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px}
+.scorebar button{background:#fff;color:#0f172a;border-color:#fff}
+.final{display:none;margin-top:14px;padding:14px;border-radius:12px;background:var(--accent-soft)}
+footer.pn{display:flex;justify-content:space-between;gap:10px;margin-top:30px}
+footer.pn a{flex:1;text-decoration:none;border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px 14px;color:var(--ink)}
+footer.pn a small{display:block;color:var(--muted)}
+footer.pn a.next{text-align:right}
+@media (max-width:640px){nav.course{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}nav.course a{white-space:nowrap}}
+</style>
+</head>
+<body>
+<header class="top">
+<div class="crumbs"><span>Học tăng cường từ con số 0 · Ngày 2 · Bài 4/7</span><a class="langbtn" href="../lesson4.html">🌐 English</a></div>
+<nav class="course"><a href="index.html">Trang chủ</a><a href="lesson1.html" class="">1. Học tăng cường là gì?</a><a href="lesson2.html" class="">2. Phần thưởng, tổng phần thưởng và giá trị</a><a href="lesson3.html" class="">3. Khám phá và khai thác</a><a href="lesson4.html" class="cur">4. Monte Carlo và học sai khác thời gian (TD)</a><a href="lesson5.html" class="">5. Sarsa và Q-learning</a><a href="lesson6.html" class="">6. Học tăng cường dựa vào chính sách</a><a href="lesson7.html" class="">7. Máy trò chơi nhiều cánh tay và ứng dụng</a></nav>
+</header>
+<main>
+<h1>Bài 4: Monte Carlo và học sai khác thời gian (TD)</h1>
+<p class="lead">Bài toán máy trò chơi chỉ có một trạng thái. Bài toán thực có nhiều trạng thái, và phần thưởng thường đến nhiều bước sau những quyết định gây ra nó. Bài này trình bày hai cách cơ bản để học giá trị từ trải nghiệm trong bối cảnh đó: Monte Carlo, chờ đến cuối, và học sai khác thời gian (Temporal Difference, TD), học sau mỗi bước.</p>
+
+<div class="goals"><b>Sau bài học này bạn có thể:</b>
+<ul>
+<li>Giải thích "dự đoán không cần mô hình" nghĩa là gì.</li>
+<li>Cập nhật ước lượng giá trị bằng quy tắc Monte Carlo, dùng tổng phần thưởng tích lũy thực tế.</li>
+<li>Cập nhật ước lượng giá trị bằng quy tắc TD(0), và tính mục tiêu TD cùng sai số TD.</li>
+<li>Giải thích bootstrapping và so sánh MC với TD (khi nào cập nhật được, độ chệch và phương sai).</li>
+</ul></div>
+
+<div class="toc" id="toc"><b>Nội dung</b></div>
+
+<h2>1. Nhiệm vụ: học giá trị từ trải nghiệm</h2>
+<p>Ở Bài 2, ta tính giá trị trong thế giới ô vuông vì ta biết luật của thế giới: mỗi bước đi dẫn đến đâu và cho phần thưởng bao nhiêu. Thường thì tác nhân <b>không</b> biết những luật này. Nó chỉ có trải nghiệm của chính mình: các trạng thái đã thấy, các hành động đã làm và các phần thưởng đã nhận.</p>
+<p>Những phương pháp học trực tiếp từ trải nghiệm mà không biết luật gọi là <b>không cần mô hình</b> (model-free). ("Mô hình" ở đây nghĩa là các luật: "nếu tôi làm thế này thì tôi đến đâu và nhận được phần thưởng bao nhiêu?")</p>
+<p>Trong bài này ta giải <b>bài toán dự đoán</b>: chính sách của tác nhân đã cố định, và ta muốn ước lượng V(s), mỗi trạng thái tốt đến đâu dưới chính sách đó. Ở Bài 5, ta dùng cùng những ý tưởng này cho <b>bài toán điều khiển</b>: tìm một chính sách tốt.</p>
+
+<h2>2. Ví dụ xuyên suốt: bước đi ngẫu nhiên</h2>
+<div class="card"><span class="tag">Sơ đồ</span>
+<svg viewBox="0 0 680 120">
+  <rect x="10" y="40" width="60" height="44" rx="8" fill="#e2e8f0"/><text x="40" y="67" text-anchor="middle" font-size="13">KẾT THÚC</text><text x="40" y="104" text-anchor="middle" font-size="12" fill="#64748b">phần thưởng 0</text>
+  <rect x="610" y="40" width="60" height="44" rx="8" fill="#bbf7d0"/><text x="640" y="67" text-anchor="middle" font-size="13">KẾT THÚC</text><text x="640" y="104" text-anchor="middle" font-size="12" fill="#15803d">phần thưởng +1</text>
+  <g font-size="16" font-weight="700">
+  <circle cx="140" cy="62" r="26" fill="#fff" stroke="#2563eb" stroke-width="2"/><text x="140" y="68" text-anchor="middle">A</text>
+  <circle cx="235" cy="62" r="26" fill="#fff" stroke="#2563eb" stroke-width="2"/><text x="235" y="68" text-anchor="middle">B</text>
+  <circle cx="330" cy="62" r="26" fill="#dbeafe" stroke="#2563eb" stroke-width="3"/><text x="330" y="68" text-anchor="middle">C</text>
+  <circle cx="425" cy="62" r="26" fill="#fff" stroke="#2563eb" stroke-width="2"/><text x="425" y="68" text-anchor="middle">D</text>
+  <circle cx="520" cy="62" r="26" fill="#fff" stroke="#2563eb" stroke-width="2"/><text x="520" y="68" text-anchor="middle">E</text></g>
+  <g stroke="#94a3b8" stroke-width="2"><line x1="70" y1="62" x2="114" y2="62"/><line x1="166" y1="62" x2="209" y2="62"/><line x1="261" y1="62" x2="304" y2="62"/><line x1="356" y1="62" x2="399" y2="62"/><line x1="451" y1="62" x2="494" y2="62"/><line x1="546" y1="62" x2="610" y2="62"/></g>
+  <text x="330" y="22" text-anchor="middle" font-size="12" fill="#2563eb">xuất phát</text>
+</svg>
+</div>
+<p>Năm trạng thái A đến E nằm thành một hàng. Mỗi tập bắt đầu ở giữa, tại C. Ở mỗi bước, tác nhân đi sang trái hoặc sang phải với xác suất bằng nhau (50% mỗi bên). Tập kết thúc khi nó bước ra khỏi một đầu. Bước ra khỏi đầu bên phải cho phần thưởng <b>+1</b>; mọi bước khác cho 0. Ta không dùng chiết khấu (γ = 1).</p>
+<p>Vì phần thưởng duy nhất là +1 ở đầu bên phải, nên giá trị của một trạng thái bằng <b>xác suất kết thúc ở bên phải</b> tính từ đó. Các giá trị thật là:</p>
+<table><tr><th>Trạng thái</th><td>A</td><td>B</td><td>C</td><td>D</td><td>E</td></tr>
+<tr><th>V(s) thật</th><td>1/6 ≈ 0,17</td><td>2/6 ≈ 0,33</td><td>3/6 = 0,5</td><td>4/6 ≈ 0,67</td><td>5/6 ≈ 0,83</td></tr></table>
+<p>Tác nhân không biết những con số này. Liệu nó có thể học được chúng chỉ bằng cách quan sát các tập? Cả hai phương pháp dưới đây đều làm được, và bạn có thể xem chúng làm.</p>
+
+<h2>3. Monte Carlo: học từ các tập hoàn chỉnh</h2>
+<p><b>Ý tưởng:</b> chơi trọn một tập. Khi nó kết thúc, bạn biết tổng phần thưởng tích lũy G thực tế từ mọi trạng thái đã đi qua. Dịch ước lượng của mỗi trạng thái về phía tổng phần thưởng đã thực sự xảy ra.</p>
+<div class="formula">V(s) ← V(s) + α × ( G − V(s) )</div>
+<p>Đây lại là khuôn mẫu từ Bài 3: <b>mục tiêu</b> là tổng phần thưởng tích lũy thật G, còn α (alpha, ví dụ 0,1) là bước cập nhật. Nếu dùng α = 1/(số lần ghé thăm), V(s) đơn giản là trung bình của mọi tổng phần thưởng quan sát được từ s, đó cũng là nguồn gốc cái tên: các phương pháp <i>Monte Carlo</i> ước lượng bằng cách lấy trung bình các mẫu ngẫu nhiên (tên gọi lấy từ sòng bạc ở Monaco).</p>
+<div class="box example"><b class="lbl">Ví dụ minh họa (α = 0,1, mọi ước lượng bắt đầu ở 0,5)</b>
+Tập: C → D → E → ra khỏi đầu bên phải. Phần thưởng: 0, 0, +1. Tổng phần thưởng tích lũy từ mọi trạng thái đã qua: G = 0 + 0 + 1 = 1.<br>
+V(C) ← 0,5 + 0,1 × (1 − 0,5) = <b>0,55</b>. Điều tương tự xảy ra với D và E: mỗi trạng thái thành 0,55.<br>
+Tập kế tiếp: C → B → A → ra khỏi đầu bên trái. G = 0 cho C, B và A.<br>
+V(C) ← 0,55 + 0,1 × (0 − 0,55) = <b>0,495</b>. V(B) và V(A): 0,5 + 0,1 × (0 − 0,5) = <b>0,45</b>.</div>
+<div class="box analogy"><b class="lbl">Ví dụ so sánh: bấm giờ quãng đường về nhà</b>
+Để ước lượng chuyến về nhà mất bao lâu, mỗi ngày bạn ghi lại tổng thời gian sau khi về đến nơi, rồi lấy trung bình. Bạn không bao giờ cập nhật ước lượng trong lúc đi, chỉ cập nhật ở cuối. Đó là Monte Carlo.</div>
+<p><b>Điểm mạnh:</b> mục tiêu G là kết quả thật, nên ước lượng <b>không chệch</b>: trung bình nó nhắm đúng giá trị đúng.<br>
+<b>Điểm yếu:</b> bạn phải chờ đến khi tập kết thúc, nên không dùng được cho nhiệm vụ không bao giờ kết thúc; và G có thể dao động nhiều giữa các tập (<b>phương sai</b> cao), nên việc học có thể chậm và nhiễu.</p>
+
+<h2>4. Học sai khác thời gian (TD): học từ mỗi bước</h2>
+<p><b>Ý tưởng:</b> đừng chờ đến cuối. Sau một bước đơn từ s đến s′ với phần thưởng R, bạn đã có một phỏng đoán tốt hơn về tổng phần thưởng tích lũy: phần thưởng vừa nhận cộng với ước lượng hiện tại của trạng thái kế tiếp.</p>
+<div class="formula">V(s) ← V(s) + α × ( R + γ·V(s′) − V(s) )</div>
+<ul>
+<li><b>Mục tiêu TD:</b> R + γ·V(s′). Nó thay cho tổng phần thưởng tích lũy thật G mà Monte Carlo phải chờ.</li>
+<li><b>Sai số TD</b> (ký hiệu δ, delta): δ = R + γ·V(s′) − V(s). δ dương nghĩa là "mọi thứ tốt hơn tôi nghĩ", nên V(s) tăng. δ âm nghĩa là tệ hơn, nên V(s) giảm.</li>
+</ul>
+<p>Đây là phương pháp gọi là <b>TD(0)</b>. Dùng một ước lượng (V(s′)) để cập nhật một ước lượng khác (V(s)) gọi là <b>bootstrapping</b>, theo câu nói "tự kéo mình lên bằng dây giày của chính mình".</p>
+<div class="box example"><b class="lbl">Ví dụ minh họa (α = 0,1, γ = 1, mọi ước lượng bắt đầu ở 0,5)</b>
+Bước C → D, phần thưởng 0: mục tiêu = 0 + 1 × V(D) = 0,5. δ = 0,5 − 0,5 = 0. Không đổi.<br>
+Bước D → E, phần thưởng 0: mục tiêu = 0 + 0,5 = 0,5. δ = 0. Không đổi.<br>
+Bước E → đầu bên phải, phần thưởng +1: trạng thái kết thúc có giá trị 0, nên mục tiêu = 1 + 0 = 1. δ = 1 − 0,5 = 0,5.<br>
+V(E) ← 0,5 + 0,1 × 0,5 = <b>0,55</b>. Chỉ E thay đổi trong tập này. Ở các tập sau, tin tốt về E lan ngược về D, rồi C, mỗi lần một bước.</div>
+<div class="box analogy"><b class="lbl">Ví dụ so sánh: cập nhật giờ về nhà ngay trên đường</b>
+Bạn rời cơ quan và dự tính đi mất 30 phút. Ra bãi xe bạn thấy trời mưa, nên giờ bạn dự tính 40 phút. Lên đường cao tốc xe chạy nhanh, bạn sửa lại thành 35. Bạn cập nhật dự đoán ở từng chặng, dùng thông tin mới nhất và phỏng đoán hiện tại về thời gian còn lại. Bạn không cần về đến nhà trước. Đó là học TD.</div>
+
+<h2>5. Xem chúng học</h2>
+<div class="demo"><span class="tag">Mô phỏng hoạt hình</span>
+<div class="row">
+  <label><input type="radio" name="m" value="td" checked> TD(0)</label>
+  <label><input type="radio" name="m" value="mc"> Monte Carlo</label>
+  <label>α = <b id="aTxt" class="mono"></b> <input type="range" id="aSl" min="0.01" max="0.5" step="0.01" value="0.1"></label>
+</div>
+<div class="row">
+  <button id="ep1">▶ Chạy một tập (hoạt hình)</button>
+  <button id="ep10" class="alt">+10 tập</button>
+  <button id="ep100" class="alt">+100 tập</button>
+  <button id="epR" class="alt">Đặt lại</button>
+  <span class="note" id="epN"></span>
+</div>
+<svg viewBox="0 0 680 300" id="rwSvg"></svg>
+<div class="log" id="rwLog"></div>
+<p class="note" style="margin-bottom:0">Cột xanh: các ước lượng hiện tại. Đường gạch: giá trị thật. Ở chế độ TD, một trạng thái nhấp nháy ngay lúc nó được cập nhật. Ở chế độ Monte Carlo, không có gì thay đổi cho đến khi tập kết thúc, rồi mọi trạng thái đã đi qua cập nhật cùng lúc.</p>
+</div>
+
+<h2>6. Cách nào học nhanh hơn?</h2>
+<p>Biểu đồ đo <b>sai số</b> của các ước lượng (căn bậc hai của trung bình bình phương hiệu giữa ước lượng và giá trị thật, lấy trung bình trên 5 trạng thái) sau mỗi tập. Mỗi đường cong là trung bình của 100 lượt chạy độc lập, tất cả bắt đầu từ V = 0,5.</p>
+<div class="demo"><span class="tag">Thí nghiệm</span>
+<div class="row"><button id="cmpRun">Chạy so sánh (100 lượt × 100 tập)</button><span class="note" id="cmpProg"></span></div>
+<div id="cmpChart"><p class="note center">Bấm nút để chạy.</p></div>
+</div>
+<p>Với bài toán này, TD đạt sai số thấp sớm hơn nhiều so với Monte Carlo. α lớn học nhanh hơn lúc đầu nhưng nhiễu hơn; α nhỏ chậm hơn nhưng ổn định hơn. Sự đánh đổi này xuất hiện ở mọi phương pháp RL.</p>
+
+<h2>7. Monte Carlo và TD cạnh nhau</h2>
+<table>
+<tr><th></th><th>Monte Carlo</th><th>TD(0)</th></tr>
+<tr><td>Mục tiêu</td><td>Tổng phần thưởng tích lũy thật G</td><td>R + γ·V(s′)</td></tr>
+<tr><td>Khi nào cập nhật</td><td>Sau khi tập kết thúc</td><td>Sau mỗi bước</td></tr>
+<tr><td>Dùng được cho nhiệm vụ không bao giờ kết thúc?</td><td>Không</td><td>Có</td></tr>
+<tr><td>Có bootstrapping?</td><td>Không</td><td>Có</td></tr>
+<tr><td>Độ chệch</td><td>Không (mục tiêu là kết quả thật)</td><td>Có một ít, khi V(s′) còn chưa chính xác</td></tr>
+<tr><td>Phương sai</td><td>Cao (G phụ thuộc vào nhiều bước ngẫu nhiên)</td><td>Thấp (mục tiêu chỉ phụ thuộc vào một bước)</td></tr>
+<tr><td>Tốc độ thường gặp</td><td>Chậm hơn</td><td>Thường nhanh hơn</td></tr>
+</table>
+
+<h3>Mã giả</h3>
+<div class="grid2">
+<pre class="code">Dự đoán bằng Monte Carlo
+với mỗi tập:
+    chơi tập đó theo chính sách π,
+    ghi lại S₀, R₁, S₁, R₂, …, S_T
+    G ← 0
+    với t = T−1 giảm dần đến 0:
+        G ← R_(t+1) + γ·G
+        V(S_t) ← V(S_t) + α·(G − V(S_t))</pre>
+<pre class="code">Dự đoán bằng TD(0)
+với mỗi tập:
+    S ← trạng thái xuất phát
+    trong khi S chưa kết thúc:
+        A ← hành động do π chọn ở S
+        thực hiện A, quan sát R và S′
+        V(S) ← V(S) + α·(R + γ·V(S′) − V(S))
+        S ← S′</pre>
+</div>
+<p class="note">Để ý vòng lặp Monte Carlo dùng tổng phần thưởng tích lũy đệ quy ở Bài 2 (G ← R + γG) để tính mọi tổng chỉ trong một lượt duyệt ngược.</p>
+
+<h2>8. Từ dự đoán đến điều khiển</h2>
+<p>Biết V(s) cho ta biết các trạng thái tốt đến đâu dưới chính sách hiện tại, nhưng để <b>chọn</b> hành động mà không biết luật của thế giới, ta cần biết mỗi <b>hành động</b> tốt đến đâu: Q(s, a). Cả Monte Carlo và TD đều ước lượng được Q(s, a) theo cách giống V(s). Kết hợp với việc chọn hành động ε-tham lam ở Bài 3, ta được các thuật toán cải thiện chính sách khi học. Các phiên bản TD của việc này là <b>Sarsa</b> và <b>Q-learning</b>, chủ đề của bài sau.</p>
+
+<h2>9. Tóm tắt</h2>
+<ul>
+<li>Các phương pháp <b>không cần mô hình</b> học giá trị từ trải nghiệm, mà không biết luật của môi trường.</li>
+<li><b>Monte Carlo</b> chờ đến khi tập kết thúc, rồi dịch V(s) về phía tổng phần thưởng tích lũy thật G.</li>
+<li><b>TD(0)</b> cập nhật sau mỗi bước, dịch V(s) về phía R + γV(s′). Hiệu số đó là sai số TD δ.</li>
+<li>TD có <b>bootstrapping</b> (dùng chính ước lượng của mình), cho phương sai thấp hơn và dùng được cho nhiệm vụ không kết thúc, đổi lại có một ít độ chệch.</li>
+</ul>
+
+
+
+<section class="quiz" id="quiz">
+<h2>Trắc nghiệm: kiểm tra mức hiểu bài</h2>
+<p class="note">10 câu trắc nghiệm. Bấm vào một đáp án: bạn sẽ biết đúng hay sai, kèm giải thích cho <b>từng</b> phương án.</p>
+<div id="quizItems"></div>
+<div class="final" id="finalMsg"></div>
+<div class="scorebar"><span id="scoreText"></span><button id="retry">Làm lại</button></div>
+</section>
+<footer class="pn"><a href="lesson3.html"><small>← Bài trước</small>3. Khám phá và khai thác</a><a class="next" href="lesson5.html"><small>Bài tiếp theo →</small>5. Sarsa và Q-learning</a></footer>
+</main>
+<script>// ---------- small helpers ----------
+const $ = id => document.getElementById(id);
+const NS = 'http://www.w3.org/2000/svg';
+function S(tag, attrs, parent){
+  const e = document.createElementNS(NS, tag);
+  for (const k in (attrs||{})) {
+    if (k === 'text') e.textContent = attrs[k]; else e.setAttribute(k, attrs[k]);
+  }
+  if (parent) parent.appendChild(e);
+  return e;
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const fmt = (x, d=2) => (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toFixed(d).replace('.',',');
+function argmaxRand(arr){
+  const m = Math.max(...arr); const c = [];
+  arr.forEach((v,i)=>{ if (v === m) c.push(i); });
+  return c[Math.floor(Math.random()*c.length)];
+}
+function randn(){ let u=0,v=0; while(!u)u=Math.random(); while(!v)v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+
+// ---------- line chart ----------
+// opts: {w,h,series:[{label,color,data:[y..], dash}], xLabel,yLabel,yMin,yMax,xStart}
+function lineChart(container, opts){
+  const w = opts.w||640, h = opts.h||300, L=56, R=16, T=14, B=44;
+  container.innerHTML = '';
+  const svg = S('svg', {viewBox:`0 0 ${w} ${h}`, role:'img'}, container);
+  let all = []; opts.series.forEach(s => all = all.concat(s.data));
+  const yMin = opts.yMin !== undefined ? opts.yMin : Math.min(...all);
+  const yMax = opts.yMax !== undefined ? opts.yMax : Math.max(...all);
+  const n = Math.max(...opts.series.map(s=>s.data.length));
+  const x0 = opts.xStart||0;
+  const X = i => L + (w-L-R) * (n<=1?0:i/(n-1));
+  const Y = v => T + (h-T-B) * (1 - (v-yMin)/((yMax-yMin)||1));
+  for (let k=0;k<=4;k++){
+    const v = yMin + (yMax-yMin)*k/4, y = Y(v);
+    S('line',{x1:L,x2:w-R,y1:y,y2:y,stroke:'#e5e7eb'},svg);
+    S('text',{x:L-6,y:y+4,'text-anchor':'end','font-size':11,fill:'#64748b',text:(Math.abs(yMax-yMin)<5?fmt(v,2):Math.round(v))},svg);
+  }
+  for (let k=0;k<=4;k++){
+    const i = Math.round((n-1)*k/4), x = X(i);
+    S('text',{x:x,y:h-B+16,'text-anchor':'middle','font-size':11,fill:'#64748b',text:x0+i},svg);
+  }
+  S('line',{x1:L,x2:L,y1:T,y2:h-B,stroke:'#94a3b8'},svg);
+  S('line',{x1:L,x2:w-R,y1:h-B,y2:h-B,stroke:'#94a3b8'},svg);
+  if (opts.xLabel) S('text',{x:(L+w-R)/2,y:h-6,'text-anchor':'middle','font-size':12,fill:'#334155',text:opts.xLabel},svg);
+  if (opts.yLabel) S('text',{x:14,y:(T+h-B)/2,'text-anchor':'middle','font-size':12,fill:'#334155',transform:`rotate(-90 14 ${(T+h-B)/2})`,text:opts.yLabel},svg);
+  opts.series.forEach(s=>{
+    const pts = s.data.map((v,i)=>`${X(i).toFixed(1)},${Y(Math.max(yMin,Math.min(yMax,v))).toFixed(1)}`).join(' ');
+    S('polyline',{points:pts,fill:'none',stroke:s.color,'stroke-width':2.2,'stroke-dasharray':s.dash||'', 'stroke-linejoin':'round'},svg);
+  });
+  const lg = document.createElement('div'); lg.className='legend';
+  opts.series.forEach(s=>{ const sp=document.createElement('span'); sp.style.setProperty('--c',s.color); sp.textContent=s.label; lg.appendChild(sp); });
+  container.appendChild(lg);
+}
+
+// ---------- table of contents ----------
+function buildTOC(){
+  const toc = $('toc'); if (!toc) return;
+  const hs = [...document.querySelectorAll('main > section > h2, main > h2')].filter(h=>!h.closest('.quiz'));
+  const ol = document.createElement('ol');
+  hs.forEach((h,i)=>{ if(!h.id) h.id='sec'+(i+1); const li=document.createElement('li'); li.innerHTML=`<a href="#${h.id}">${h.textContent}</a>`; ol.appendChild(li); });
+  const li=document.createElement('li'); li.innerHTML='<a href="#quiz">Trắc nghiệm (10 câu)</a>'; ol.appendChild(li);
+  toc.appendChild(ol);
+}
+
+// ---------- quiz ----------
+// item: {q, o:[4 options], a:index, e:[4 explanations]}
+function renderQuiz(items){
+  const box = $('quizItems'); box.innerHTML = '';
+  let answered = 0, correct = 0;
+  const bar = $('scoreText'), fin = $('finalMsg');
+  function upd(){
+    bar.textContent = `Đã trả lời ${answered}/${items.length} · Đúng ${correct}`;
+    if (answered === items.length){
+      fin.style.display='block';
+      const pct = correct/items.length;
+      fin.innerHTML = `<b>Bạn đạt ${correct}/${items.length} điểm.</b> ` + (pct===1 ? 'Tuyệt vời! Bạn đã nắm vững bài học này.' : pct>=0.7 ? 'Làm tốt lắm. Hãy đọc phần giải thích của những câu bạn làm sai rồi học tiếp.' : 'Hãy đọc lại các phần trong mục lục phía trên, rồi bấm "Làm lại".');
+    } else fin.style.display='none';
+  }
+  items = items.map(it0=>{ // shuffle option order so the answer is not always in the same place
+    const idx=[0,1,2,3].slice(0,it0.o.length); for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+    return {q:it0.q,o:idx.map(i=>it0.o[i]),e:idx.map(i=>it0.e[i]),a:idx.indexOf(it0.a),orig:it0};
+  });
+  items.forEach((it, qi)=>{
+    const d = document.createElement('div'); d.className='q';
+    d.innerHTML = `<p class="qt">${qi+1}. ${it.q}</p>`;
+    const btns = [];
+    it.o.forEach((t,j)=>{
+      const b = document.createElement('button'); b.className='opt';
+      b.innerHTML = `<b>${String.fromCharCode(65+j)}.</b> ${t}<span class="why">${j===it.a?'✔ ':'✘ '}${it.e[j]}</span>`;
+      b.onclick = ()=>{
+        if (d.classList.contains('done')) return;
+        d.classList.add('done'); answered++;
+        btns[it.a].classList.add('right');
+        if (j===it.a){ correct++; v.innerHTML='<span class="ok">Chính xác!</span> Tất cả các phương án đều được giải thích bên dưới.'; }
+        else { b.classList.add('wrong'); v.innerHTML=`<span class="bad">Chưa đúng.</span> Đáp án là ${String.fromCharCode(65+it.a)}. Hãy đọc vì sao từng phương án đúng hoặc sai.`; }
+        upd();
+      };
+      btns.push(b); d.appendChild(b);
+    });
+    const v = document.createElement('div'); v.className='verdict'; d.insertBefore(v, d.children[1]);
+    box.appendChild(d);
+  });
+  $('retry').onclick = ()=>{ renderQuiz(items.map(x=>x.orig)); $('quiz').scrollIntoView(); };
+  upd();
+}
+</script>
+<script>
+(function(){
+  const TRUEV=[1,2,3,4,5].map(x=>x/6), NAMES=['A','B','C','D','E'];
+  const X=i=>140+i*95, Y0=210;
+  let V, eps=0, busy=false, flash=new Set(), pos=null;
+  const mode=()=>document.querySelector('input[name=m]:checked').value;
+  const alpha=()=>+$('aSl').value;
+  function draw(){
+    $('aTxt').textContent=fmt(alpha(),2);
+    const svg=$('rwSvg'); svg.innerHTML='';
+    S('text',{x:40,y:24,'font-size':12,fill:'#475569',text:'giá trị'},svg);
+    S('line',{x1:90,x2:570,y1:Y0-150,y2:Y0-150,stroke:'#f1f5f9'},svg);
+    S('text',{x:84,y:Y0-146,'text-anchor':'end','font-size':11,fill:'#94a3b8',text:'1,0'},svg);
+    S('text',{x:84,y:Y0-71,'text-anchor':'end','font-size':11,fill:'#94a3b8',text:'0,5'},svg);
+    S('text',{x:84,y:Y0+4,'text-anchor':'end','font-size':11,fill:'#94a3b8',text:'0'},svg);
+    S('line',{x1:90,x2:570,y1:Y0-75,y2:Y0-75,stroke:'#f1f5f9'},svg);
+    for(let i=0;i<5;i++){
+      const h=V[i]*150, fl=flash.has(i);
+      S('rect',{x:X(i)-24,y:Y0-h,width:48,height:h,rx:4,fill:fl?'#f59e0b':'#60a5fa',style:'transition:all .35s'},svg);
+      const ty=Y0-TRUEV[i]*150;
+      S('line',{x1:X(i)-32,x2:X(i)+32,y1:ty,y2:ty,stroke:'#0f172a','stroke-width':2,'stroke-dasharray':'5 3'},svg);
+      S('text',{x:X(i),y:h>24?Y0-h+17:Y0-h-6,'text-anchor':'middle','font-size':12,'font-weight':700,fill:h>24?'#fff':'#1e3a8a',text:fmt(V[i],2)},svg);
+    }
+    S('line',{x1:60,x2:620,y1:Y0,y2:Y0,stroke:'#94a3b8'},svg);
+    // chain
+    const cy=Y0+50;
+    S('rect',{x:30,y:cy-20,width:56,height:40,rx:8,fill:'#e2e8f0'},svg); S('text',{x:58,y:cy+5,'text-anchor':'middle','font-size':12,text:'0'},svg);
+    S('rect',{x:594,y:cy-20,width:56,height:40,rx:8,fill:'#bbf7d0'},svg); S('text',{x:622,y:cy+5,'text-anchor':'middle','font-size':12,text:'+1'},svg);
+    for(let i=0;i<5;i++){ S('circle',{cx:X(i),cy:cy,r:22,fill:flash.has(i)?'#fef3c7':'#fff',stroke:'#2563eb','stroke-width':2},svg); S('text',{x:X(i),y:cy+6,'text-anchor':'middle','font-size':16,'font-weight':700,text:NAMES[i]},svg); }
+    if(pos!==null){ const px=pos<0?58:pos>4?622:X(pos); S('circle',{cx:px,cy:cy-34,r:9,fill:'#dc2626'},svg); S('polygon',{points:`${px-6},${cy-27} ${px+6},${cy-27} ${px},${cy-20}`,fill:'#dc2626'},svg); }
+    $('epN').textContent='Số tập: '+eps;
+  }
+  function genEpisode(){ let s=2; const path=[s]; while(s>=0&&s<=4){ s+=Math.random()<.5?-1:1; path.push(s);} return path; }
+  function applyEpisode(path, log){
+    const a=alpha(), lines=[];
+    if(mode()==='td'){
+      for(let k=0;k<path.length-1;k++){ const s=path[k], n=path[k+1]; const r=n===5?1:0; const vn=(n<0||n>4)?0:V[n]; const old=V[s]; V[s]+=a*(r+vn-V[s]);
+        if(log) lines.push(`${NAMES[s]}→${n<0?'KẾT THÚC(trái)':n>4?'KẾT THÚC(phải)':NAMES[n]}: mục tiêu=${r}+${fmt(vn,2)}=${fmt(r+vn,2)}, δ=${fmt(r+vn-old,2)}, V(${NAMES[s]}) ${fmt(old,2)}→${fmt(V[s],2)}`); }
+    } else {
+      const G=path[path.length-1]===5?1:0; const seen=new Set();
+      for(let k=0;k<path.length-1;k++){ const s=path[k]; if(seen.has(s))continue; seen.add(s); const old=V[s]; V[s]+=a*(G-V[s]); if(log) lines.push(`V(${NAMES[s]}) ${fmt(old,2)} → ${fmt(V[s],2)}  (dịch về phía G = ${G})`); }
+    }
+    eps++; return lines;
+  }
+  async function animate(){
+    if(busy)return; busy=true; document.querySelectorAll('#ep1,#ep10,#ep100,#epR').forEach(b=>b.disabled=true);
+    const path=genEpisode(), a=alpha(), td=mode()==='td', lines=[];
+    const pathTxt=path.map(s=>s<0?'KẾT THÚC(0)':s>4?'KẾT THÚC(+1)':NAMES[s]).join(' → ');
+    for(let k=0;k<path.length;k++){
+      pos=path[k]; flash.clear();
+      if(td&&k>0){ const s=path[k-1], n=path[k]; const r=n===5?1:0; const vn=(n<0||n>4)?0:V[n]; const old=V[s]; V[s]+=a*(r+vn-V[s]); flash.add(s);
+        lines.push(`${NAMES[s]}→${n<0?'KẾT THÚC':n>4?'KẾT THÚC':NAMES[n]}: R=${r}, mục tiêu=${fmt(r+vn,2)}, δ=${fmt(r+vn-old,3)} → V(${NAMES[s]})=${fmt(V[s],3)}`); }
+      draw(); $('rwLog').textContent=`Đường đi của tập: ${path.slice(0,k+1).map(s=>s<0?'KẾT THÚC(0)':s>4?'KẾT THÚC(+1)':NAMES[s]).join(' → ')}\n`+(td?lines.slice(-6).join('\n'):'Monte Carlo: đang chờ tập kết thúc…');
+      await sleep(550);
+    }
+    if(!td){ const G=path[path.length-1]===5?1:0; const seen=new Set(); flash.clear();
+      for(let k=0;k<path.length-1;k++){ const s=path[k]; if(seen.has(s))continue; seen.add(s); const old=V[s]; V[s]+=a*(G-V[s]); flash.add(s); lines.push(`V(${NAMES[s]}): ${fmt(old,3)} → ${fmt(V[s],3)}`);}
+      draw(); $('rwLog').textContent=`Đường đi của tập: ${pathTxt}\nTập kết thúc. Tổng phần thưởng tích lũy G = ${G} cho mọi trạng thái đã qua. Các cập nhật:\n`+lines.join('\n'); }
+    eps++; await sleep(700); flash.clear(); pos=null; draw();
+    busy=false; document.querySelectorAll('#ep1,#ep10,#ep100,#epR').forEach(b=>b.disabled=false);
+  }
+  function many(n){ if(busy)return; for(let i=0;i<n;i++) applyEpisode(genEpisode(),false); flash.clear(); draw();
+    const rms=Math.sqrt(V.reduce((s,v,i)=>s+(v-TRUEV[i])**2,0)/5); $('rwLog').textContent=`Đã chạy ${n} tập bằng ${mode()==='td'?'TD(0)':'Monte Carlo'}. Sai số hiện tại (RMS) = ${fmt(rms,3)}`; }
+  function reset(){ V=Array(5).fill(0.5); eps=0; flash.clear(); pos=null; draw(); $('rwLog').textContent='Mọi ước lượng bắt đầu ở 0,5. Bấm chạy.'; }
+  $('ep1').onclick=animate; $('ep10').onclick=()=>many(10); $('ep100').onclick=()=>many(100); $('epR').onclick=reset;
+  $('aSl').oninput=draw; document.querySelectorAll('input[name=m]').forEach(r=>r.onchange=reset);
+  reset();
+
+  // comparison experiment
+  $('cmpRun').onclick=async()=>{
+    $('cmpRun').disabled=true;
+    const cfg=[{l:'TD, α = 0,05',c:'#2563eb',td:1,a:.05},{l:'TD, α = 0,1',c:'#60a5fa',td:1,a:.1},{l:'MC, α = 0,02',c:'#ea580c',td:0,a:.02},{l:'MC, α = 0,04',c:'#fb923c',td:0,a:.04}];
+    const RUNS=100, EP=100; const err=cfg.map(()=>new Float64Array(EP+1));
+    for(let run=0;run<RUNS;run++){
+      cfg.forEach((c,ci)=>{ const v=Array(5).fill(.5); const rms=()=>Math.sqrt(v.reduce((s,x,i)=>s+(x-TRUEV[i])**2,0)/5); err[ci][0]+=rms();
+        for(let e=1;e<=EP;e++){ const p=genEpisode();
+          if(c.td){ for(let k=0;k<p.length-1;k++){const s=p[k],n=p[k+1];const r=n===5?1:0;const vn=(n<0||n>4)?0:v[n];v[s]+=c.a*(r+vn-v[s]);} }
+          else { const G=p[p.length-1]===5?1:0; const seen=new Set(); for(let k=0;k<p.length-1;k++){const s=p[k];if(seen.has(s))continue;seen.add(s);v[s]+=c.a*(G-v[s]);} }
+          err[ci][e]+=rms(); } });
+      if(run%20===19){$('cmpProg').textContent=`Lượt chạy: ${run+1}/${RUNS}`;await sleep(0);}
+    }
+    lineChart($('cmpChart'),{series:cfg.map((c,i)=>({label:c.l,color:c.c,data:[...err[i]].map(x=>x/RUNS),dash:c.td?'':'6 4'})),xLabel:'Số tập',yLabel:'Sai số (RMS)',yMin:0,yMax:0.25});
+    $('cmpProg').textContent='Xong.'; $('cmpRun').disabled=false;
+  };
+})();
+
+const QUIZ=[
+{q:"\"Không cần mô hình\" (model-free) nghĩa là gì?",
+ o:["Tác nhân học từ trải nghiệm mà không biết luật của môi trường (hành động dẫn đến đâu và cho phần thưởng nào)","Tác nhân không có chính sách","Tác nhân không dùng phần thưởng","Tác nhân dùng mạng nơ-ron"],a:0,
+ e:["Chính xác. Mô hình là tập các luật; phương pháp không cần mô hình không cần chúng.","Tác nhân nào cũng có chính sách; \"không cần mô hình\" nói về luật của môi trường.","Phần thưởng là thiết yếu với học không cần mô hình.","Phương pháp không cần mô hình có thể dùng bảng hoặc mạng; đó là một câu hỏi khác."]},
+{q:"Monte Carlo dùng mục tiêu nào để cập nhật V(s)?",
+ o:["R + γ·V(s′)","Tổng phần thưởng tích lũy G thực tế quan sát được đến cuối tập","Giá trị Q lớn nhất","Một số ngẫu nhiên"],a:1,
+ e:["Đó là mục tiêu TD.","Chính xác. MC dịch V(s) về phía tổng phần thưởng tích lũy thật.","Giá trị max của Q xuất hiện ở Q-learning.","Mục tiêu đến từ trải nghiệm, không phải ngẫu nhiên."]},
+{q:"Vì sao không thể dùng trực tiếp Monte Carlo cho một nhiệm vụ không bao giờ kết thúc?",
+ o:["Nó cần một tập hoàn chỉnh để tính tổng phần thưởng tích lũy G","Nó cần dữ liệu có nhãn","Nó không dùng được bước cập nhật","Nó chỉ chạy với γ = 0"],a:0,
+ e:["Chính xác. Không có hồi kết thì không bao giờ biết G.","MC không cần nhãn.","MC dùng bước cập nhật α (hoặc 1/n).","MC chạy với mọi γ."]},
+{q:"Với α = 0,1, V(s) = 0,4 và tổng phần thưởng tích lũy quan sát được G = 1, ước lượng Monte Carlo mới là bao nhiêu?",
+ o:["0,46","1,0","0,5","0,34"],a:0,
+ e:["Chính xác: 0,4 + 0,1 × (1 − 0,4) = 0,4 + 0,06 = 0,46.","Muốn vậy cần α = 1.","0,4 + 0,1 = 0,5 quên nhân sai số (0,6) với α.","Ước lượng dịch về phía G = 1, nên phải tăng."]},
+{q:"Trong TD(0), mục tiêu TD là gì?",
+ o:["G","R + γ·V(s′)","V(s) − V(s′)","α × R"],a:1,
+ e:["G là mục tiêu của Monte Carlo.","Chính xác. Phần thưởng vừa nhận cộng với ước lượng đã chiết khấu của trạng thái kế tiếp.","Biểu thức này không có phần thưởng và sai dạng.","Bước cập nhật không thuộc mục tiêu."]},
+{q:"R = 0, γ = 1, V(s) = 0,6, V(s′) = 0,8. Sai số TD δ là bao nhiêu?",
+ o:["0,2","−0,2","0,8","1,4"],a:0,
+ e:["Chính xác: δ = 0 + 1 × 0,8 − 0,6 = 0,2.","Dấu bị ngược: mục tiêu (0,8) trừ ước lượng (0,6) là số dương.","Đó là mục tiêu, không phải sai số.","Sai số là trừ ước lượng đi chứ không cộng vào."]},
+{q:"Sai số TD dương nghĩa là:",
+ o:["Kết quả tốt hơn kỳ vọng, nên V(s) cần tăng","Kết quả tệ hơn kỳ vọng, nên V(s) cần giảm","Ước lượng chính xác hoàn toàn","Tập đã kết thúc"],a:0,
+ e:["Chính xác. Mục tiêu nằm trên ước lượng hiện tại.","Đó là mô tả của sai số âm.","Ước lượng chính xác hoàn toàn cho δ = 0.","δ không nói gì về việc tập kết thúc."]},
+{q:"Bootstrapping là gì?",
+ o:["Dùng một ước lượng để cập nhật một ước lượng khác, như V(s′) trong mục tiêu TD","Khởi động lại một tập","Lấy trung bình nhiều tổng phần thưởng tích lũy đầy đủ","Chọn hành động ngẫu nhiên"],a:0,
+ e:["Chính xác. TD dùng phỏng đoán hiện tại về V(s′) làm một phần của mục tiêu.","Khởi động lại tập không phải là bootstrapping.","Đó là việc Monte Carlo làm, và Monte Carlo không bootstrapping.","Đó là khám phá."]},
+{q:"Trong bước đi ngẫu nhiên, vì sao giá trị thật của trạng thái C bằng 0,5?",
+ o:["Vì bước đi đối xứng từ C, nên nó kết thúc ở bên phải (+1) một nửa số lần","Vì mỗi bước cho phần thưởng 0,5","Vì α = 0,5","Vì C là trạng thái thứ ba"],a:0,
+ e:["Chính xác. Giá trị = tổng phần thưởng kỳ vọng = xác suất đến đầu +1, bằng 1/2 từ giữa.","Mọi bước đều cho 0 trừ bước cuối ra khỏi đầu bên phải.","α là một thiết lập học, không thuộc giá trị thật.","Vị trí chỉ quan trọng qua xác suất kết thúc ở bên phải."]},
+{q:"Phát biểu nào về MC và TD là đúng?",
+ o:["MC không chệch nhưng phương sai cao; TD có chệch một ít nhưng phương sai thấp hơn và có thể học ngay trong một tập","TD phải chờ đến khi tập kết thúc","MC có bootstrapping còn TD thì không","Chúng luôn cho các cập nhật giống hệt nhau"],a:0,
+ e:["Chính xác. Đây là sự đánh đổi cốt lõi giữa hai phương pháp.","TD cập nhật sau mỗi bước.","Ngược lại mới đúng: TD có bootstrapping, MC thì không.","Chúng dùng mục tiêu khác nhau, nên cập nhật khác nhau."]}
+];
+</script>
+<script>
+buildTOC();
+renderQuiz(QUIZ);
+</script>
+</body>
+</html>

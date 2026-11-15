@@ -15,7 +15,9 @@ html{scroll-behavior:smooth}
 body{margin:0;font:16.5px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg)}
 main{max-width:860px;margin:0 auto;padding:0 18px 80px}
 header.top{max-width:860px;margin:0 auto;padding:22px 18px 6px}
-.crumbs{font-size:.85rem;color:var(--muted);letter-spacing:.02em;text-transform:uppercase;font-weight:600}
+.crumbs{font-size:.85rem;color:var(--muted);letter-spacing:.02em;text-transform:uppercase;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.langbtn{flex:none;text-transform:none;letter-spacing:0;font-size:.82rem;font-weight:600;text-decoration:none;color:var(--accent);border:1px solid var(--accent);background:#fff;border-radius:999px;padding:3px 12px;white-space:nowrap}
+.langbtn:hover{background:var(--accent);color:#fff}
 h1{font-size:2rem;line-height:1.2;margin:.25em 0 .35em}
 h2{font-size:1.35rem;margin:2.2em 0 .6em;padding-top:.3em;border-top:1px solid var(--line)}
 h3{font-size:1.08rem;margin:1.5em 0 .4em}
@@ -89,7 +91,7 @@ footer.pn a.next{text-align:right}
 </head>
 <body>
 <header class="top">
-<div class="crumbs">Reinforcement Learning from Zero · Day 3 · Lesson 6 of 7</div>
+<div class="crumbs"><span>Reinforcement Learning from Zero · Day 3 · Lesson 6 of 7</span><a class="langbtn" href="vi/lesson6.html">🌐 Tiếng Việt</a></div>
 <nav class="course"><a href="lesson1.html" class="">1. What Is Reinforcement Learning?</a><a href="lesson2.html" class="">2. Rewards, Return and Value</a><a href="lesson3.html" class="">3. Exploration vs. Exploitation</a><a href="lesson4.html" class="">4. Monte Carlo and TD Learning</a><a href="lesson5.html" class="">5. Sarsa and Q-learning</a><a href="lesson6.html" class="cur">6. Policy-based Reinforcement Learning</a><a href="lesson7.html" class="">7. Multi-armed Bandits and Applications</a></nav>
 </header>
 <main>

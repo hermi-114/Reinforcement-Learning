@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Học tăng cường từ con số 0</title>
+<style>
+:root{--ink:#1c2430;--muted:#5d6878;--bg:#f7f7f3;--line:#e3e6ea;--accent:#2563eb;--accent-soft:#dbeafe}
+*{box-sizing:border-box}
+body{margin:0;font:16.5px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+.hero{background:linear-gradient(135deg,#1e3a8a,#2563eb 60%,#7c3aed);color:#fff;padding:48px 18px 56px}
+.wrap{max-width:900px;margin:0 auto;padding:0 18px}
+.hero .wrap{padding:0}
+.hero h1{font-size:2.3rem;line-height:1.15;margin:0 0 10px}
+.hero p{margin:0;max-width:640px;opacity:.92;font-size:1.08rem}
+.langbtn{float:right;color:#fff;border:1px solid rgba(255,255,255,.7);border-radius:999px;padding:3px 14px;font-size:.85rem;font-weight:600;text-decoration:none;background:rgba(255,255,255,.12)}
+.langbtn:hover{background:#fff;color:#1e3a8a}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.pills span{background:rgba(255,255,255,.16);border-radius:999px;padding:3px 12px;font-size:.88rem}
+main{padding-bottom:70px}
+.day{margin-top:36px}
+.day h2{display:flex;align-items:baseline;gap:10px;font-size:1.3rem;margin:0 0 4px}
+.day h2 small{font-size:.8rem;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.05em}
+.day>p{margin:0 0 12px;color:var(--muted)}
+.cards{display:grid;gap:12px}
+a.card{display:flex;gap:14px;align-items:flex-start;text-decoration:none;color:inherit;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;transition:border-color .15s,box-shadow .15s,transform .15s}
+a.card:hover{border-color:var(--accent);box-shadow:0 4px 14px rgba(37,99,235,.12);transform:translateY(-1px)}
+.num{flex:none;width:38px;height:38px;border-radius:50%;background:var(--accent-soft);color:#1e3a8a;font-weight:700;display:flex;align-items:center;justify-content:center}
+.card h3{margin:0 0 2px;font-size:1.08rem}
+.card p{margin:0 0 6px;color:var(--muted);font-size:.95rem}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tags span{font-size:.76rem;background:#f1f5f9;border-radius:6px;padding:1px 8px;color:#475569}
+.go{margin-left:auto;align-self:center;color:var(--accent);font-weight:600;white-space:nowrap}
+.how{margin-top:40px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 20px}
+.how h2{margin:0 0 6px;font-size:1.1rem}
+.how ul{margin:0;padding-left:20px}
+.how li{margin:4px 0}
+@media (max-width:560px){.hero h1{font-size:1.8rem}.go{display:none}}
+</style>
+</head>
+<body>
+<header class="hero"><div class="wrap">
+<a class="langbtn" href="../index.html">🌐 English</a>
+<h1>Học tăng cường từ con số 0</h1>
+<p>Khóa học ba ngày dành cho người hoàn toàn mới bắt đầu. Mỗi bài có phần giải thích rõ ràng, ví dụ minh họa, mô phỏng tương tác và hoạt hình, cùng bài trắc nghiệm 10 câu có giải thích cho từng đáp án.</p>
+<div class="pills"><span>3 ngày</span><span>7 bài học</span><span>Không cần kiến thức nền</span><span>70 câu trắc nghiệm</span></div>
+</div></header>
+
+<main class="wrap">
+
+<section class="day">
+<h2><small>Ngày 1</small> Nền tảng</h2>
+<p>RL là gì, và cách đo hành vi "tốt".</p>
+<div class="cards">
+<a class="card" href="lesson1.html"><div class="num">1</div><div><h3>Học tăng cường là gì?</h3><p>Học bằng thử và sai, vòng lặp tác nhân–môi trường và các thuật ngữ chính. Chơi một trò chơi ô vuông trong vai tác nhân.</p><div class="tags"><span>tác nhân</span><span>môi trường</span><span>trạng thái</span><span>hành động</span><span>phần thưởng</span><span>chính sách</span></div></div><div class="go">Mở →</div></a>
+<a class="card" href="lesson2.html"><div class="num">2</div><div><h3>Phần thưởng, tổng phần thưởng và giá trị</h3><p>Tổng phần thưởng có chiết khấu, chính sách tất định và ngẫu nhiên, V(s) và Q(s, a), cùng ý tưởng Bellman.</p><div class="tags"><span>tổng phần thưởng</span><span>chiết khấu γ</span><span>V và Q</span><span>Bellman</span></div></div><div class="go">Mở →</div></a>
+</div>
+</section>
+
+<section class="day">
+<h2><small>Ngày 2</small> Phương pháp dựa trên giá trị</h2>
+<p>Học xem các hành động tốt đến đâu, rồi chọn hành động tốt nhất.</p>
+<div class="cards">
+<a class="card" href="lesson3.html"><div class="num">3</div><div><h3>Khám phá và khai thác</h3><p>Tình thế lưỡng nan trung tâm, trên các máy đánh bạc: tham lam, ε-tham lam, khởi tạo lạc quan (X = 10) và UCB.</p><div class="tags"><span>ε-tham lam</span><span>khởi đầu lạc quan</span><span>UCB</span></div></div><div class="go">Mở →</div></a>
+<a class="card" href="lesson4.html"><div class="num">4</div><div><h3>Monte Carlo và học sai khác thời gian (TD)</h3><p>Học giá trị từ trải nghiệm mà không cần mô hình: chờ đến khi tập kết thúc, hoặc học sau mỗi bước.</p><div class="tags"><span>Monte Carlo</span><span>TD(0)</span><span>bootstrapping</span></div></div><div class="go">Mở →</div></a>
+<a class="card" href="lesson5.html"><div class="num">5</div><div><h3>Sarsa và Q-learning</h3><p>Học các giá trị Q và hành động theo chúng. On-policy và off-policy trên bài đi bộ qua vách đá, cùng RL dạng bảng và RL xấp xỉ.</p><div class="tags"><span>Sarsa</span><span>Q-learning</span><span>bảng Q</span><span>DQN</span></div></div><div class="go">Mở →</div></a>
+</div>
+</section>
+
+<section class="day">
+<h2><small>Ngày 3</small> Chính sách và ứng dụng</h2>
+<p>Học hành vi trực tiếp, rồi dùng mọi thứ đã học cho các bài toán thực tế.</p>
+<div class="cards">
+<a class="card" href="lesson6.html"><div class="num">6</div><div><h3>Học tăng cường dựa vào chính sách</h3><p>Chính sách softmax, gradient chính sách, REINFORCE với đường cơ sở, và các phương pháp actor–critic.</p><div class="tags"><span>softmax</span><span>gradient chính sách</span><span>REINFORCE</span><span>actor–critic</span></div></div><div class="go">Mở →</div></a>
+<a class="card" href="lesson7.html"><div class="num">7</div><div><h3>Máy trò chơi nhiều cánh tay và ứng dụng</h3><p>Đấu với các tác nhân RL, chạy thí nghiệm X = 10, huấn luyện bộ điều khiển đèn giao thông, và ôn tập toàn khóa học.</p><div class="tags"><span>bandit</span><span>độ hối tiếc</span><span>điều khiển giao thông</span><span>ôn tập khóa học</span></div></div><div class="go">Mở →</div></a>
+</div>
+</section>
+
+<section class="how">
+<h2>Cách dùng khóa học này</h2>
+<ul>
+<li>Học các bài theo thứ tự: mỗi bài xây dựng trên bài trước.</li>
+<li>Thử mọi mô phỏng tương tác: đổi các thiết lập và xem điều gì xảy ra.</li>
+<li>Làm bài trắc nghiệm ở cuối mỗi bài, và đọc phần giải thích cho mọi phương án, kể cả các phương án sai.</li>
+<li>Nhịp học gợi ý: Ngày 1 = bài 1–2, Ngày 2 = bài 3–5, Ngày 3 = bài 6–7.</li>
+</ul>
+</section>
+
+</main>
+</body>
+</html>

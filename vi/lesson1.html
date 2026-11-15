@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RL 1: Học tăng cường là gì?</title>
+<style>:root{
+  --ink:#1c2430;--muted:#5d6878;--bg:#f7f7f3;--card:#ffffff;--line:#e3e6ea;
+  --accent:#2563eb;--accent-soft:#dbeafe;--ok:#15803d;--ok-soft:#dcfce7;--bad:#b91c1c;--bad-soft:#fee2e2;
+  --warn:#b45309;--warn-soft:#fef3c7;--purple:#7c3aed;--purple-soft:#ede9fe;
+  --c1:#2563eb;--c2:#ea580c;--c3:#16a34a;--c4:#7c3aed;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font:16.5px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+main{max-width:860px;margin:0 auto;padding:0 18px 80px}
+header.top{max-width:860px;margin:0 auto;padding:22px 18px 6px}
+.crumbs{font-size:.85rem;color:var(--muted);letter-spacing:.02em;text-transform:uppercase;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.langbtn{flex:none;text-transform:none;letter-spacing:0;font-size:.82rem;font-weight:600;text-decoration:none;color:var(--accent);border:1px solid var(--accent);background:#fff;border-radius:999px;padding:3px 12px;white-space:nowrap}
+.langbtn:hover{background:var(--accent);color:#fff}
+h1{font-size:2rem;line-height:1.2;margin:.25em 0 .35em}
+h2{font-size:1.35rem;margin:2.2em 0 .6em;padding-top:.3em;border-top:1px solid var(--line)}
+h3{font-size:1.08rem;margin:1.5em 0 .4em}
+.lead{color:var(--muted);font-size:1.05rem;margin-top:0}
+nav.course{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
+nav.course a{font-size:.82rem;text-decoration:none;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 10px}
+nav.course a.cur{background:var(--accent);border-color:var(--accent);color:#fff}
+.toc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin:18px 0}
+.toc b{display:block;margin-bottom:4px}
+.toc ol{margin:0;padding-left:20px}
+.toc a{color:var(--accent);text-decoration:none}
+.goals{background:var(--ok-soft);border-radius:12px;padding:12px 18px;margin:16px 0}
+.goals ul{margin:.3em 0 0;padding-left:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:18px 0}
+.demo{background:var(--card);border:2px solid var(--accent-soft);border-radius:14px;padding:16px 18px;margin:20px 0}
+.demo>.tag,.card>.tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.box{border-radius:10px;padding:10px 14px;margin:14px 0}
+.key{background:var(--accent-soft);border-left:4px solid var(--accent)}
+.analogy{background:var(--purple-soft);border-left:4px solid var(--purple)}
+.warn{background:var(--warn-soft);border-left:4px solid var(--warn)}
+.example{background:#f1f5f9;border-left:4px solid #64748b}
+.box b.lbl{display:block;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.analogy b.lbl{color:var(--purple)}.key b.lbl{color:var(--accent)}.warn b.lbl{color:var(--warn)}.example b.lbl{color:#475569}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.95rem;background:#fff}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:#f1f5f9}
+.formula{font-family:ui-monospace,Menlo,Consolas,monospace;background:#fff;border:1px dashed #cbd5e1;border-radius:10px;padding:12px;text-align:center;font-size:1.05rem;margin:14px 0;overflow-x:auto}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92rem}
+.note{color:var(--muted);font-size:.92rem}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.center{text-align:center}
+button{font:inherit;font-size:.95rem;padding:7px 14px;border-radius:9px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+button.alt{background:#fff;color:var(--accent)}
+button:disabled{opacity:.45;cursor:default}
+input[type=range]{width:180px;vertical-align:middle}
+svg{max-width:100%;height:auto;display:block;margin:0 auto}
+svg text{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:.88rem;margin-top:4px}
+.legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+.log{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88rem;background:#f8fafc;border-radius:8px;padding:10px 12px;white-space:pre-wrap;min-height:3.2em}
+.steps{counter-reset:s;list-style:none;padding-left:0}
+.steps li{counter-increment:s;position:relative;padding-left:38px;margin:10px 0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:.85rem;display:flex;align-items:center;justify-content:center}
+pre.code{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow-x:auto;font-size:.86rem;line-height:1.55}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:640px){.grid2{grid-template-columns:1fr}h1{font-size:1.6rem}}
+/* quiz */
+.quiz{background:#fff;border:2px solid var(--line);border-radius:16px;padding:18px 20px;margin-top:40px}
+.quiz h2{border:0;margin-top:0;padding-top:0}
+.q{margin:22px 0;padding-bottom:14px;border-bottom:1px dashed var(--line)}
+.q p.qt{font-weight:600;margin:0 0 8px}
+.opt{display:block;width:100%;text-align:left;margin:6px 0;padding:10px 12px;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:9px}
+.opt:hover{border-color:var(--accent)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt .why{display:none;font-size:.9rem;color:var(--muted);margin-top:4px}
+.q.done .opt .why{display:block}
+.q.done .opt{cursor:default}
+.verdict{display:none;font-weight:700;margin-top:6px}
+.q.done .verdict{display:block}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.scorebar{position:sticky;bottom:10px;background:#0f172a;color:#fff;border-radius:12px;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px}
+.scorebar button{background:#fff;color:#0f172a;border-color:#fff}
+.final{display:none;margin-top:14px;padding:14px;border-radius:12px;background:var(--accent-soft)}
+footer.pn{display:flex;justify-content:space-between;gap:10px;margin-top:30px}
+footer.pn a{flex:1;text-decoration:none;border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px 14px;color:var(--ink)}
+footer.pn a small{display:block;color:var(--muted)}
+footer.pn a.next{text-align:right}
+@media (max-width:640px){nav.course{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}nav.course a{white-space:nowrap}}
+</style>
+</head>
+<body>
+<header class="top">
+<div class="crumbs"><span>Học tăng cường từ con số 0 · Ngày 1 · Bài 1/7</span><a class="langbtn" href="../lesson1.html">🌐 English</a></div>
+<nav class="course"><a href="index.html">Trang chủ</a><a href="lesson1.html" class="cur">1. Học tăng cường là gì?</a><a href="lesson2.html" class="">2. Phần thưởng, tổng phần thưởng và giá trị</a><a href="lesson3.html" class="">3. Khám phá và khai thác</a><a href="lesson4.html" class="">4. Monte Carlo và học sai khác thời gian (TD)</a><a href="lesson5.html" class="">5. Sarsa và Q-learning</a><a href="lesson6.html" class="">6. Học tăng cường dựa vào chính sách</a><a href="lesson7.html" class="">7. Máy trò chơi nhiều cánh tay và ứng dụng</a></nav>
+</header>
+<main>
+<h1>Bài 1: Học tăng cường là gì?</h1>
+<p class="lead">Hãy bắt đầu từ đây. Bạn không cần biết toán hay học máy trước đó. Sau bài này, bạn sẽ biết học tăng cường là gì, các thuật ngữ thường dùng và nó khác các loại học máy khác như thế nào.</p>
+
+<div class="goals"><b>Sau bài học này bạn có thể:</b>
+<ul>
+<li>Giải thích học tăng cường (RL) bằng một câu, kèm một ví dụ đời thường.</li>
+<li>Gọi tên các thành phần của một bài toán RL: tác nhân, môi trường, trạng thái, hành động, phần thưởng, chính sách và giá trị.</li>
+<li>Mô tả vòng lặp tác nhân – môi trường và viết ra một quỹ đạo.</li>
+<li>Nói được RL khác học có giám sát và học không giám sát ở điểm nào.</li>
+</ul></div>
+
+<div class="toc" id="toc"><b>Nội dung</b></div>
+
+<h2>1. Học bằng cách thử và sửa sai</h2>
+<p>Hãy nghĩ về cách một em bé học đi xe đạp. Không ai đưa cho em danh sách động tác cơ bắp đúng ở từng khoảnh khắc. Em thử, loạng choạng, ngã, thử lại, rồi dần dần tìm ra điều gì giữ cho xe thẳng. Thế giới phản hồi lại: ngã thì đau, đi êm thì thích. Sau nhiều lần thử, cách đi của em tốt dần lên.</p>
+<p><b>Học tăng cường</b> (reinforcement learning) là nhánh của học máy bắt chước ý tưởng này. Một chương trình máy tính, gọi là <b>tác nhân</b> (agent), học cách hành xử bằng việc <b>tương tác</b> với một thế giới, gọi là <b>môi trường</b> (environment). Không ai nói cho tác nhân biết hành động nào đúng. Thay vào đó, sau mỗi hành động nó nhận được một con số, gọi là <b>phần thưởng</b> (reward), cho biết kết quả tốt đến đâu. Nhiệm vụ của tác nhân là tự khám phá, bằng cách thử và sửa sai, xem những hành động nào mang lại nhiều phần thưởng nhất về lâu dài.</p>
+
+<div class="box analogy"><b class="lbl">Ví dụ so sánh: huấn luyện chú chó con</b>
+Bạn nói "ngồi xuống". Chú chó làm một việc ngẫu nhiên: nhảy, sủa, nằm xuống hoặc ngồi. Khi tình cờ ngồi, chú được thưởng một miếng bánh. Sau đủ nhiều lần lặp lại, chú học được rằng ngồi khi nghe "ngồi xuống" thì có bánh. Chú chó là <b>tác nhân</b>, bạn và căn phòng là <b>môi trường</b>, miếng bánh là <b>phần thưởng</b>, còn "phải làm gì khi nghe một lệnh" là <b>chính sách</b> (policy) mà chú chó học được.</div>
+
+<p>Richard Sutton và Andrew Barto, hai tác giả của cuốn giáo trình kinh điển về lĩnh vực này, mô tả RL là học <i>cần làm gì</i> (cách ánh xạ tình huống sang hành động) để cực đại hoá một tín hiệu phần thưởng dạng số. Có hai đặc điểm làm RL trở nên đặc biệt:</p>
+<ul>
+<li><b>Thử và sửa sai:</b> tác nhân không được cho biết hành động nào tốt nhất. Nó phải thử các hành động và xem điều gì xảy ra.</li>
+<li><b>Phần thưởng bị trễ:</b> một hành động có thể ảnh hưởng không chỉ đến phần thưởng kế tiếp mà còn đến mọi tình huống và phần thưởng sau đó. Một nước đi tốt bây giờ có thể chỉ được đền đáp rất lâu sau.</li>
+</ul>
+
+<h2>2. Vòng lặp tác nhân – môi trường</h2>
+<p>Mọi bài toán RL đều có cùng một hình dạng cơ bản: một vòng lặp giữa tác nhân và môi trường. Hãy xem hoạt ảnh: các chấm tròn mang thông tin đi quanh vòng lặp.</p>
+
+<div class="demo"><span class="tag">Hoạt ảnh</span>
+<svg viewBox="0 0 680 305" id="loopSvg">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker>
+  </defs>
+  <!-- agent -->
+  <rect x="30" y="95" width="180" height="110" rx="16" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <rect x="95" y="112" width="50" height="40" rx="8" fill="#2563eb"/>
+  <circle cx="110" cy="130" r="5" fill="#fff"/><circle cx="130" cy="130" r="5" fill="#fff"/>
+  <line x1="120" y1="104" x2="120" y2="112" stroke="#2563eb" stroke-width="3"/><circle cx="120" cy="102" r="4" fill="#ea580c"/>
+  <text x="120" y="178" text-anchor="middle" font-size="17" font-weight="700" fill="#1e3a8a">Tác nhân</text>
+  <text x="120" y="196" text-anchor="middle" font-size="12" fill="#334155">(người học / ra quyết định)</text>
+  <!-- environment -->
+  <rect x="470" y="95" width="180" height="110" rx="16" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <g transform="translate(530,108)">
+    <rect width="60" height="45" fill="#fff" stroke="#16a34a"/>
+    <line x1="20" y1="0" x2="20" y2="45" stroke="#86efac"/><line x1="40" y1="0" x2="40" y2="45" stroke="#86efac"/>
+    <line x1="0" y1="15" x2="60" y2="15" stroke="#86efac"/><line x1="0" y1="30" x2="60" y2="30" stroke="#86efac"/>
+    <rect x="41" y="1" width="18" height="13" fill="#16a34a"/>
+  </g>
+  <text x="560" y="178" text-anchor="middle" font-size="17" font-weight="700" fill="#14532d">Môi trường</text>
+  <text x="560" y="196" text-anchor="middle" font-size="12" fill="#334155">(thế giới mà nó hành động trong đó)</text>
+  <!-- arrows -->
+  <path id="pAct" d="M210,120 C300,40 380,40 470,120" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#ah)"/>
+  <path id="pRew" d="M470,165 C380,235 300,235 210,165" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#ah)"/>
+  <path id="pSt" d="M470,190 C380,290 300,290 210,190" fill="none" stroke="#64748b" stroke-width="2.5" stroke-dasharray="5 4" marker-end="url(#ah)"/>
+  <text x="340" y="48" text-anchor="middle" font-size="15" font-weight="700" fill="#ea580c">hành động Aₜ</text>
+  <text x="340" y="178" text-anchor="middle" font-size="15" font-weight="700" fill="#7c3aed">phần thưởng Rₜ₊₁</text>
+  <text x="340" y="298" text-anchor="middle" font-size="15" font-weight="700" fill="#2563eb">trạng thái mới Sₜ₊₁</text>
+  <circle r="8" fill="#ea580c"><animateMotion dur="3s" repeatCount="indefinite" keyPoints="0;1;1" keyTimes="0;0.33;1" calcMode="linear"><mpath href="#pAct"/></animateMotion></circle>
+  <circle r="8" fill="#7c3aed"><animateMotion dur="3s" repeatCount="indefinite" keyPoints="0;0;1;1" keyTimes="0;0.33;0.66;1" calcMode="linear"><mpath href="#pRew"/></animateMotion></circle>
+  <circle r="8" fill="#2563eb"><animateMotion dur="3s" repeatCount="indefinite" keyPoints="0;0;1;1" keyTimes="0;0.33;0.66;1" calcMode="linear"><mpath href="#pSt"/></animateMotion></circle>
+</svg>
+</div>
+
+<p>Ở mỗi bước thời gian <b>t</b> = 0, 1, 2, …</p>
+<ol class="steps">
+<li>Tác nhân quan sát <b>trạng thái</b> (state) hiện tại Sₜ (tình huống lúc này trông như thế nào).</li>
+<li>Dựa vào <b>chính sách</b> của mình, tác nhân chọn một <b>hành động</b> (action) Aₜ.</li>
+<li>Môi trường phản ứng. Nó chuyển sang <b>trạng thái mới</b> Sₜ₊₁ và trả về một <b>phần thưởng</b> Rₜ₊₁ (một con số duy nhất).</li>
+<li>Tác nhân dùng trải nghiệm này để <b>học</b>: nó điều chỉnh chính sách để những kết quả tốt có nhiều khả năng xảy ra hơn. Sau đó vòng lặp lặp lại.</li>
+</ol>
+<p>Viết ra mọi thứ đã xảy ra sẽ được một chuỗi gọi là <b>quỹ đạo</b> (trajectory):</p>
+<div class="formula">S₀, A₀, R₁, S₁, A₁, R₂, S₂, A₂, R₃, …</div>
+<p class="note">Vì sao phần thưởng được đánh số t+1? Vì nó đến <i>sau</i> hành động thực hiện ở thời điểm t, cùng với trạng thái kế tiếp. Đây là quy ước dùng trong giáo trình của Sutton và Barto.</p>
+
+<h2>3. Thử ngay: bạn là tác nhân</h2>
+<p>Dưới đây là một thế giới nhỏ gồm 4×4 ô vuông. Bạn điều khiển con rô-bốt. Bạn <b>không</b> biết ô nào tốt, ô nào xấu: các ô bị ẩn cho đến khi bạn bước lên, đúng như tình huống của một tác nhân thật lúc mới bắt đầu học.</p>
+<ul>
+<li>Mỗi lần di chuyển mất <b>−1</b> (nên đường đi ngắn hơn thì tốt hơn).</li>
+<li>Ở đâu đó có một <b>đích trị giá +10</b> và một <b>cái bẫy trị giá −10</b>. Cả hai đều kết thúc lượt chơi.</li>
+<li>Đi vào tường ngoài thì bạn đứng nguyên chỗ (và vẫn mất −1).</li>
+</ul>
+
+<div class="demo"><span class="tag">Trò chơi tương tác</span>
+<div class="grid2">
+  <div>
+    <svg viewBox="0 0 300 300" id="gw" style="max-width:300px"></svg>
+    <div class="center" style="margin-top:8px">
+      <div><button class="alt" data-a="0">↑ Lên</button></div>
+      <div style="margin:6px 0"><button class="alt" data-a="3">← Trái</button> <button class="alt" data-a="1">Phải →</button></div>
+      <div><button class="alt" data-a="2">↓ Xuống</button></div>
+    </div>
+  </div>
+  <div>
+    <div class="row"><button id="gwReset">Lượt chơi mới</button> <label><input type="checkbox" id="gwShow"> Hiện bản đồ</label></div>
+    <p class="mono" id="gwStat"></p>
+    <div class="log" id="gwLog" style="max-height:260px;overflow:auto"></div>
+  </div>
+</div>
+<p class="note">Hãy chơi vài lượt. Ở lượt đầu bạn phải khám phá. Khi đã biết bản đồ, bạn có thể đi thẳng đến đích. Sự chuyển đổi từ khám phá sang tận dụng điều đã học chính là điều các thuật toán RL làm một cách tự động.</p>
+</div>
+
+<p>Bạn vừa làm gì? Bạn đã đóng vai một tác nhân RL:</p>
+<ul>
+<li><b>Trạng thái</b> là ô bạn đang đứng (hàng, cột).</li>
+<li><b>Hành động</b> của bạn là Lên, Xuống, Trái, Phải.</li>
+<li><b>Phần thưởng</b> là −1, +10 hoặc −10.</li>
+<li><b>Tập</b> (episode) là một ván chơi, từ lúc bắt đầu đến khi bạn tới đích hoặc rơi vào bẫy.</li>
+<li><b>Tổng phần thưởng tích lũy</b> (return) là tổng phần thưởng của bạn trong tập đó. Tổng tốt nhất có thể ở đây là <b>+5</b>: đường an toàn ngắn nhất mất sáu bước, năm bước đầu mất −1 và bước cuối bước lên đích được +10.</li>
+<li>Sau vài tập, bạn đã có một <b>chính sách</b>: một quy tắc trong đầu như "từ đây, đi lên".</li>
+</ul>
+
+<h2>4. Từ vựng của RL</h2>
+<p>Bảy thuật ngữ này xuất hiện trong mọi bài sau. Hãy dành thời gian hiểu rõ từng thuật ngữ.</p>
+<table>
+<tr><th style="width:20%">Thuật ngữ</th><th>Ý nghĩa</th><th style="width:30%">Trong trò chơi ô vuông</th></tr>
+<tr><td><b>Tác nhân</b> (agent)</td><td>Người học và ra quyết định. Nó quan sát, hành động và học.</td><td>Con rô-bốt (chính bạn)</td></tr>
+<tr><td><b>Môi trường</b> (environment)</td><td>Mọi thứ bên ngoài tác nhân. Nó đáp lại hành động bằng trạng thái mới và phần thưởng. Tác nhân không thể thay đổi luật của nó.</td><td>Thế giới 4×4 với các ô ẩn</td></tr>
+<tr><td><b>Trạng thái</b> (s)</td><td>Toàn bộ thông tin hữu ích để chọn hành động tiếp theo.</td><td>Ô bạn đang đứng</td></tr>
+<tr><td><b>Hành động</b> (a)</td><td>Một trong các lựa chọn của tác nhân. Tập mọi hành động gọi là <i>không gian hành động</i>.</td><td>Lên, Xuống, Trái, Phải</td></tr>
+<tr><td><b>Phần thưởng</b> (r)</td><td>Một con số (một <i>vô hướng</i>) mà môi trường gửi sau mỗi hành động. Nó đo mức tốt của bước đó. Có thể dương, bằng không hoặc âm.</td><td>−1 mỗi bước, +10 đích, −10 bẫy</td></tr>
+<tr><td><b>Chính sách</b> (π)</td><td>Chiến lược của tác nhân: quy tắc ánh xạ mỗi trạng thái sang một hành động (hoặc sang xác suất của các hành động). Học được chính sách tốt là mục tiêu.</td><td>"Ở góc dưới bên trái, đi sang phải"</td></tr>
+<tr><td><b>Giá trị</b> (value)</td><td>Tổng phần thưởng mà tác nhân có thể kỳ vọng thu được từ bây giờ trở đi. Phần thưởng nói về <i>hiện tại</i>; giá trị nói về <i>lâu dài</i>.</td><td>Ô cạnh đích có giá trị cao</td></tr>
+</table>
+
+<div class="box key"><b class="lbl">Phần thưởng và giá trị</b>
+Phần thưởng giống như niềm vui hay nỗi đau bạn cảm nhận ngay bây giờ. Giá trị giống như nhận định của bạn về toàn bộ hoàn cảnh hiện tại tốt đến đâu. Đóng học phí đại học cho phần thưởng âm hôm nay nhưng đưa bạn vào một trạng thái có giá trị cao. Tác nhân RL chọn hành động dựa trên giá trị, không chỉ dựa trên phần thưởng tức thời.</div>
+
+<h3>Cùng những thuật ngữ ấy ở các bài toán khác</h3>
+<table>
+<tr><th>Bài toán</th><th>Trạng thái</th><th>Hành động</th><th>Phần thưởng</th></tr>
+<tr><td>Cờ vua</td><td>Vị trí của mọi quân cờ</td><td>Một nước đi hợp lệ</td><td>+1 thắng, −1 thua, 0 trong các trường hợp còn lại</td></tr>
+<tr><td>Điều khiển đèn giao thông</td><td>Số xe đang chờ ở mỗi hướng</td><td>Hướng nào được đèn xanh</td><td>Âm tổng thời gian chờ</td></tr>
+<tr><td>Máy trò chơi nhiều cánh tay (multi-armed bandit)</td><td>Chỉ một tình huống, luôn giống nhau</td><td>Kéo máy (cánh tay) nào</td><td>Số điểm trả về ở lần kéo đó</td></tr>
+<tr><td>Rô-bốt tập đi</td><td>Góc và tốc độ các khớp</td><td>Lực tác dụng lên mỗi động cơ</td><td>Quãng đường tiến về phía trước, trừ phạt khi ngã</td></tr>
+</table>
+
+<h2>5. Mục tiêu: nhiều phần thưởng nhất về lâu dài</h2>
+<p>RL được xây dựng trên <b>giả thuyết phần thưởng</b> (reward hypothesis): mọi mục tiêu ta quan tâm đều có thể mô tả bằng việc cực đại hoá <i>giá trị kỳ vọng của tổng phần thưởng tích lũy</i>, nghĩa là tổng phần thưởng thu được theo thời gian, tính trung bình.</p>
+<p>Từ <b>tích lũy</b> rất quan trọng. Một tác nhân chỉ chộp lấy phần thưởng lớn nhất ngay lúc này thường không phải tác nhân tốt nhất. Trong cờ vua, hy sinh quân hậu làm mất lực lượng bây giờ nhưng có thể thắng cả ván. Trong trò chơi ô vuông, một bước mất −1 vẫn đáng giá nếu nó đưa bạn đến gần +10.</p>
+
+<div class="box warn"><b class="lbl">Bài toán phân bổ công trạng</b>
+Khi một ván cờ thắng sau 40 nước đi, nước đi nào đáng được ghi công? Phần thưởng chỉ đến ở cuối, nhưng các quyết định được đưa ra sớm hơn nhiều. Truyền công trạng ngược về các hành động trước đó đã gây ra phần thưởng là một trong những khó khăn trung tâm của RL, và phần lớn Ngày 2 nói về cách các thuật toán giải quyết nó.</div>
+
+<h3>Tập và nhiệm vụ liên tục</h3>
+<ul>
+<li><b>Nhiệm vụ theo tập</b> kết thúc một cách tự nhiên: ván chơi xong, rô-bốt tới đích. Mỗi lần chạy từ đầu đến cuối là một <b>tập</b>, rồi mọi thứ được đặt lại.</li>
+<li><b>Nhiệm vụ liên tục</b> diễn ra không có hồi kết: đèn giao thông chạy suốt ngày đêm. Bài 2 sẽ cho thấy <i>hệ số chiết khấu</i> giữ cho tổng phần thưởng hữu hạn trong trường hợp này như thế nào.</li>
+</ul>
+
+<h2>6. RL khác các loại học máy khác thế nào</h2>
+<p>Học máy thường được chia thành ba họ. Hãy so sánh mỗi họ nhận gì và cố gắng làm gì.</p>
+
+<div class="card"><span class="tag">Sơ đồ</span>
+<svg viewBox="0 0 690 250">
+  <g>
+    <rect x="5" y="5" width="220" height="240" rx="14" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="115" y="30" text-anchor="middle" font-weight="700" font-size="15">Có giám sát</text>
+    <g font-size="12">
+      <rect x="25" y="50" width="70" height="50" rx="6" fill="#fde68a"/><text x="60" y="80" text-anchor="middle">ảnh</text>
+      <text x="110" y="80">→</text><rect x="130" y="58" width="72" height="34" rx="6" fill="#bbf7d0"/><text x="166" y="80" text-anchor="middle">"mèo" ✔</text>
+      <rect x="25" y="115" width="70" height="50" rx="6" fill="#fde68a"/><text x="60" y="145" text-anchor="middle">ảnh</text>
+      <text x="110" y="145">→</text><rect x="130" y="123" width="72" height="34" rx="6" fill="#bbf7d0"/><text x="166" y="145" text-anchor="middle">"chó" ✔</text>
+    </g>
+    <text x="115" y="198" text-anchor="middle" font-size="12" fill="#334155">Học từ các ví dụ có sẵn</text>
+    <text x="115" y="215" text-anchor="middle" font-size="12" fill="#334155">đáp án đúng (nhãn)</text>
+  </g>
+  <g transform="translate(235,0)">
+    <rect x="5" y="5" width="220" height="240" rx="14" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="115" y="30" text-anchor="middle" font-weight="700" font-size="15">Không giám sát</text>
+    <g fill="#2563eb"><circle cx="50" cy="70" r="6"/><circle cx="65" cy="85" r="6"/><circle cx="45" cy="95" r="6"/><circle cx="70" cy="62" r="6"/></g>
+    <g fill="#ea580c"><circle cx="160" cy="80" r="6"/><circle cx="175" cy="95" r="6"/><circle cx="150" cy="100" r="6"/><circle cx="180" cy="72" r="6"/></g>
+    <g fill="#16a34a"><circle cx="105" cy="150" r="6"/><circle cx="120" cy="160" r="6"/><circle cx="95" cy="165" r="6"/><circle cx="118" cy="140" r="6"/></g>
+    <circle cx="58" cy="80" r="30" fill="none" stroke="#2563eb" stroke-dasharray="4 3"/>
+    <circle cx="165" cy="86" r="30" fill="none" stroke="#ea580c" stroke-dasharray="4 3"/>
+    <circle cx="110" cy="154" r="28" fill="none" stroke="#16a34a" stroke-dasharray="4 3"/>
+    <text x="115" y="208" text-anchor="middle" font-size="12" fill="#334155">Tìm cấu trúc ẩn</text>
+    <text x="115" y="225" text-anchor="middle" font-size="12" fill="#334155">trong dữ liệu không nhãn</text>
+  </g>
+  <g transform="translate(470,0)">
+    <rect x="5" y="5" width="215" height="240" rx="14" fill="#eff6ff" stroke="#2563eb"/>
+    <text x="112" y="30" text-anchor="middle" font-weight="700" font-size="15" fill="#1e3a8a">Học tăng cường</text>
+    <rect x="25" y="70" width="60" height="44" rx="8" fill="#dbeafe" stroke="#2563eb"/><text x="55" y="97" text-anchor="middle" font-size="12">tác nhân</text>
+    <rect x="135" y="70" width="65" height="44" rx="8" fill="#dcfce7" stroke="#16a34a"/><text x="167" y="97" text-anchor="middle" font-size="12">thế giới</text>
+    <path d="M85,80 L133,80" stroke="#ea580c" stroke-width="2" marker-end="url(#ah)"/>
+    <path d="M135,105 L87,105" stroke="#7c3aed" stroke-width="2" marker-end="url(#ah)"/>
+    <text x="110" y="74" text-anchor="middle" font-size="11" fill="#ea580c">hành động</text>
+    <text x="110" y="124" text-anchor="middle" font-size="11" fill="#7c3aed">phần thưởng</text>
+    <text x="112" y="170" text-anchor="middle" font-size="12" fill="#334155">Học từ tương tác và</text>
+    <text x="112" y="187" text-anchor="middle" font-size="12" fill="#334155">phần thưởng; không có</text>
+    <text x="112" y="204" text-anchor="middle" font-size="12" fill="#334155">đáp án đúng nào được cho</text>
+  </g>
+</svg>
+</div>
+
+<table>
+<tr><th></th><th>Học có giám sát</th><th>Học không giám sát</th><th>Học tăng cường</th></tr>
+<tr><td><b>Dữ liệu</b></td><td>Đầu vào kèm đáp án đúng (nhãn)</td><td>Chỉ có đầu vào</td><td>Trải nghiệm do tác nhân tự tạo ra khi hành động</td></tr>
+<tr><td><b>Phản hồi</b></td><td>"Đáp án đúng là X"</td><td>Không có</td><td>"Việc đó đáng +3", nhưng không cho biết điều gì mới là tốt nhất</td></tr>
+<tr><td><b>Mục tiêu</b></td><td>Dự đoán nhãn của đầu vào mới</td><td>Tìm nhóm hoặc quy luật</td><td>Cực đại hoá tổng phần thưởng theo thời gian</td></tr>
+<tr><td><b>Quyết định có ảnh hưởng dữ liệu về sau?</b></td><td>Không</td><td>Không</td><td>Có: hành động của tác nhân quyết định nó thấy gì tiếp theo</td></tr>
+</table>
+
+<div class="box warn"><b class="lbl">Lỗi thường gặp</b>
+"Phần thưởng chỉ là nhãn." Không phải vậy. Nhãn cho biết đáp án <i>nào</i> là đúng. Phần thưởng chỉ cho biết hành động đã chọn <i>tốt đến đâu</i>. Tác nhân không bao giờ biết điều gì sẽ xảy ra với các hành động khác trừ khi nó thử chúng. Đó là lý do RL cần khám phá (Bài 3).</div>
+
+<h2>7. Hai họ phương pháp RL chính</h2>
+<p>Tác nhân RL phải trả lời đi trả lời lại một câu hỏi: <b>làm sao để chọn một hành động tốt?</b> Có hai cách tiếp cận chính, và khóa học này nói về cả hai.</p>
+<div class="card">
+<svg viewBox="0 0 680 230">
+  <rect x="230" y="10" width="220" height="50" rx="12" fill="#0f172a"/>
+  <text x="340" y="41" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">Chọn hành động tốt thế nào?</text>
+  <path d="M300,60 L170,105" stroke="#64748b" stroke-width="2" marker-end="url(#ah)"/>
+  <path d="M380,60 L510,105" stroke="#64748b" stroke-width="2" marker-end="url(#ah)"/>
+  <rect x="20" y="108" width="300" height="110" rx="12" fill="#dbeafe" stroke="#2563eb"/>
+  <text x="170" y="134" text-anchor="middle" font-weight="700" font-size="14" fill="#1e3a8a">RL dựa vào giá trị (Ngày 2)</text>
+  <text x="170" y="157" text-anchor="middle" font-size="12">Đánh giá mỗi hành động tốt đến đâu</text>
+  <text x="170" y="175" text-anchor="middle" font-size="12">(giá trị của nó), rồi chọn hành động tốt nhất.</text>
+  <text x="170" y="200" text-anchor="middle" font-size="12" fill="#475569">Monte Carlo, TD, Sarsa, Q-learning</text>
+  <rect x="360" y="108" width="300" height="110" rx="12" fill="#ede9fe" stroke="#7c3aed"/>
+  <text x="510" y="134" text-anchor="middle" font-weight="700" font-size="14" fill="#4c1d95">RL dựa vào chính sách (Ngày 3)</text>
+  <text x="510" y="157" text-anchor="middle" font-size="12">Học thẳng chính sách: điều chỉnh</text>
+  <text x="510" y="175" text-anchor="middle" font-size="12">xác suất của từng hành động.</text>
+  <text x="510" y="200" text-anchor="middle" font-size="12" fill="#475569">Chính sách softmax, REINFORCE</text>
+</svg>
+</div>
+<p>RL được dùng ở đâu trong thực tế? Các chương trình học chơi cờ vây, cờ vua và trò chơi điện tử giỏi hơn con người, rô-bốt học đi hoặc cầm nắm đồ vật, bộ điều khiển đèn giao thông, và các hệ thống chọn quảng cáo hay bài báo để hiển thị (một dạng của bài toán máy trò chơi nhiều cánh tay ở Bài 7).</p>
+
+<h2>8. Tóm tắt</h2>
+<ul>
+<li>RL là học <b>cần làm gì</b> bằng cách thử và sửa sai, được dẫn dắt bởi tín hiệu phần thưởng.</li>
+<li>Tác nhân quan sát một <b>trạng thái</b>, thực hiện một <b>hành động</b>, rồi nhận một <b>phần thưởng</b> và trạng thái mới. Vòng lặp này lặp lại mãi.</li>
+<li>Chiến lược của tác nhân là <b>chính sách</b>. Mục tiêu của nó là cực đại hoá <b>tổng phần thưởng tích lũy</b>, không chỉ phần thưởng kế tiếp.</li>
+<li>Khác học có giám sát, RL không bao giờ được cho biết hành động đúng, và chính các lựa chọn của nó quyết định nó thấy dữ liệu gì.</li>
+<li>Bài sau: cách đo "tổng phần thưởng theo thời gian" một cách chính xác (tổng phần thưởng tích lũy, chiết khấu, giá trị).</li>
+</ul>
+
+
+
+<section class="quiz" id="quiz">
+<h2>Trắc nghiệm: kiểm tra mức hiểu bài</h2>
+<p class="note">10 câu trắc nghiệm. Bấm vào một đáp án: bạn sẽ biết đúng hay sai, kèm giải thích cho <b>từng</b> phương án.</p>
+<div id="quizItems"></div>
+<div class="final" id="finalMsg"></div>
+<div class="scorebar"><span id="scoreText"></span><button id="retry">Làm lại</button></div>
+</section>
+<footer class="pn"><span></span><a class="next" href="lesson2.html"><small>Bài tiếp theo →</small>2. Phần thưởng, tổng phần thưởng và giá trị</a></footer>
+</main>
+<script>// ---------- small helpers ----------
+const $ = id => document.getElementById(id);
+const NS = 'http://www.w3.org/2000/svg';
+function S(tag, attrs, parent){
+  const e = document.createElementNS(NS, tag);
+  for (const k in (attrs||{})) {
+    if (k === 'text') e.textContent = attrs[k]; else e.setAttribute(k, attrs[k]);
+  }
+  if (parent) parent.appendChild(e);
+  return e;
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const fmt = (x, d=2) => (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toFixed(d).replace('.',',');
+function argmaxRand(arr){
+  const m = Math.max(...arr); const c = [];
+  arr.forEach((v,i)=>{ if (v === m) c.push(i); });
+  return c[Math.floor(Math.random()*c.length)];
+}
+function randn(){ let u=0,v=0; while(!u)u=Math.random(); while(!v)v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+
+// ---------- line chart ----------
+// opts: {w,h,series:[{label,color,data:[y..], dash}], xLabel,yLabel,yMin,yMax,xStart}
+function lineChart(container, opts){
+  const w = opts.w||640, h = opts.h||300, L=56, R=16, T=14, B=44;
+  container.innerHTML = '';
+  const svg = S('svg', {viewBox:`0 0 ${w} ${h}`, role:'img'}, container);
+  let all = []; opts.series.forEach(s => all = all.concat(s.data));
+  const yMin = opts.yMin !== undefined ? opts.yMin : Math.min(...all);
+  const yMax = opts.yMax !== undefined ? opts.yMax : Math.max(...all);
+  const n = Math.max(...opts.series.map(s=>s.data.length));
+  const x0 = opts.xStart||0;
+  const X = i => L + (w-L-R) * (n<=1?0:i/(n-1));
+  const Y = v => T + (h-T-B) * (1 - (v-yMin)/((yMax-yMin)||1));
+  for (let k=0;k<=4;k++){
+    const v = yMin + (yMax-yMin)*k/4, y = Y(v);
+    S('line',{x1:L,x2:w-R,y1:y,y2:y,stroke:'#e5e7eb'},svg);
+    S('text',{x:L-6,y:y+4,'text-anchor':'end','font-size':11,fill:'#64748b',text:(Math.abs(yMax-yMin)<5?fmt(v,2):Math.round(v))},svg);
+  }
+  for (let k=0;k<=4;k++){
+    const i = Math.round((n-1)*k/4), x = X(i);
+    S('text',{x:x,y:h-B+16,'text-anchor':'middle','font-size':11,fill:'#64748b',text:x0+i},svg);
+  }
+  S('line',{x1:L,x2:L,y1:T,y2:h-B,stroke:'#94a3b8'},svg);
+  S('line',{x1:L,x2:w-R,y1:h-B,y2:h-B,stroke:'#94a3b8'},svg);
+  if (opts.xLabel) S('text',{x:(L+w-R)/2,y:h-6,'text-anchor':'middle','font-size':12,fill:'#334155',text:opts.xLabel},svg);
+  if (opts.yLabel) S('text',{x:14,y:(T+h-B)/2,'text-anchor':'middle','font-size':12,fill:'#334155',transform:`rotate(-90 14 ${(T+h-B)/2})`,text:opts.yLabel},svg);
+  opts.series.forEach(s=>{
+    const pts = s.data.map((v,i)=>`${X(i).toFixed(1)},${Y(Math.max(yMin,Math.min(yMax,v))).toFixed(1)}`).join(' ');
+    S('polyline',{points:pts,fill:'none',stroke:s.color,'stroke-width':2.2,'stroke-dasharray':s.dash||'', 'stroke-linejoin':'round'},svg);
+  });
+  const lg = document.createElement('div'); lg.className='legend';
+  opts.series.forEach(s=>{ const sp=document.createElement('span'); sp.style.setProperty('--c',s.color); sp.textContent=s.label; lg.appendChild(sp); });
+  container.appendChild(lg);
+}
+
+// ---------- table of contents ----------
+function buildTOC(){
+  const toc = $('toc'); if (!toc) return;
+  const hs = [...document.querySelectorAll('main > section > h2, main > h2')].filter(h=>!h.closest('.quiz'));
+  const ol = document.createElement('ol');
+  hs.forEach((h,i)=>{ if(!h.id) h.id='sec'+(i+1); const li=document.createElement('li'); li.innerHTML=`<a href="#${h.id}">${h.textContent}</a>`; ol.appendChild(li); });
+  const li=document.createElement('li'); li.innerHTML='<a href="#quiz">Trắc nghiệm (10 câu)</a>'; ol.appendChild(li);
+  toc.appendChild(ol);
+}
+
+// ---------- quiz ----------
+// item: {q, o:[4 options], a:index, e:[4 explanations]}
+function renderQuiz(items){
+  const box = $('quizItems'); box.innerHTML = '';
+  let answered = 0, correct = 0;
+  const bar = $('scoreText'), fin = $('finalMsg');
+  function upd(){
+    bar.textContent = `Đã trả lời ${answered}/${items.length} · Đúng ${correct}`;
+    if (answered === items.length){
+      fin.style.display='block';
+      const pct = correct/items.length;
+      fin.innerHTML = `<b>Bạn đạt ${correct}/${items.length} điểm.</b> ` + (pct===1 ? 'Tuyệt vời! Bạn đã nắm vững bài học này.' : pct>=0.7 ? 'Làm tốt lắm. Hãy đọc phần giải thích của những câu bạn làm sai rồi học tiếp.' : 'Hãy đọc lại các phần trong mục lục phía trên, rồi bấm "Làm lại".');
+    } else fin.style.display='none';
+  }
+  items = items.map(it0=>{ // shuffle option order so the answer is not always in the same place
+    const idx=[0,1,2,3].slice(0,it0.o.length); for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+    return {q:it0.q,o:idx.map(i=>it0.o[i]),e:idx.map(i=>it0.e[i]),a:idx.indexOf(it0.a),orig:it0};
+  });
+  items.forEach((it, qi)=>{
+    const d = document.createElement('div'); d.className='q';
+    d.innerHTML = `<p class="qt">${qi+1}. ${it.q}</p>`;
+    const btns = [];
+    it.o.forEach((t,j)=>{
+      const b = document.createElement('button'); b.className='opt';
+      b.innerHTML = `<b>${String.fromCharCode(65+j)}.</b> ${t}<span class="why">${j===it.a?'✔ ':'✘ '}${it.e[j]}</span>`;
+      b.onclick = ()=>{
+        if (d.classList.contains('done')) return;
+        d.classList.add('done'); answered++;
+        btns[it.a].classList.add('right');
+        if (j===it.a){ correct++; v.innerHTML='<span class="ok">Chính xác!</span> Tất cả các phương án đều được giải thích bên dưới.'; }
+        else { b.classList.add('wrong'); v.innerHTML=`<span class="bad">Chưa đúng.</span> Đáp án là ${String.fromCharCode(65+it.a)}. Hãy đọc vì sao từng phương án đúng hoặc sai.`; }
+        upd();
+      };
+      btns.push(b); d.appendChild(b);
+    });
+    const v = document.createElement('div'); v.className='verdict'; d.insertBefore(v, d.children[1]);
+    box.appendChild(d);
+  });
+  $('retry').onclick = ()=>{ renderQuiz(items.map(x=>x.orig)); $('quiz').scrollIntoView(); };
+  upd();
+}
+</script>
+<script>
+(function(){
+  const N=4, C=70, OFF=10;
+  const GOAL=[0,3], TRAP=[1,2], START=[3,0];
+  const svg=$('gw'); let pos, seen, total, t, done, logLines;
+  const eq=(a,b)=>a[0]===b[0]&&a[1]===b[1];
+  const names=['Lên','Phải','Xuống','Trái'], D=[[-1,0],[0,1],[1,0],[0,-1]];
+  function draw(){
+    svg.innerHTML='';
+    const show=$('gwShow').checked;
+    for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+      const k=r+','+c, vis=show||seen.has(k);
+      let fill=vis?'#fff':'#cbd5e1', label='';
+      if(vis&&eq([r,c],GOAL)){fill='#bbf7d0';label='+10';}
+      if(vis&&eq([r,c],TRAP)){fill='#fecaca';label='−10';}
+      if(vis&&eq([r,c],START)){label=label||'xuất phát';}
+      if(!vis)label='?';
+      S('rect',{x:OFF+c*C,y:OFF+r*C,width:C-4,height:C-4,rx:8,fill:fill,stroke:'#94a3b8'},svg);
+      S('text',{x:OFF+c*C+(C-4)/2,y:OFF+r*C+(C-4)/2+5,'text-anchor':'middle','font-size':label==='xuất phát'?11:16,fill:'#475569',text:label},svg);
+    }
+    const g=S('g',{style:`transform:translate(${OFF+pos[1]*C+(C-4)/2}px,${OFF+pos[0]*C+(C-4)/2}px);transition:transform .25s`},svg);
+    S('circle',{r:20,fill:'#2563eb'},g);
+    S('circle',{cx:-7,cy:-3,r:4,fill:'#fff'},g);S('circle',{cx:7,cy:-3,r:4,fill:'#fff'},g);
+    $('gwStat').textContent=`Bước t = ${t} · Trạng thái = (hàng ${pos[0]}, cột ${pos[1]}) · Tổng phần thưởng đến giờ = ${total}`+(done?' · Tập kết thúc':'');
+    $('gwLog').textContent=logLines.join('\n')||'Dùng các nút mũi tên (hoặc phím mũi tên) để di chuyển.';
+  }
+  function reset(){pos=START.slice();seen=new Set([START.join(',')]);total=0;t=0;done=false;logLines=[];draw();}
+  function act(a){
+    if(done)return;
+    const s0=pos.slice();
+    const r1=pos[0]+D[a][0], c1=pos[1]+D[a][1];
+    if(r1>=0&&r1<N&&c1>=0&&c1<N) pos=[r1,c1];
+    seen.add(pos.join(','));
+    let r=-1, end='';
+    if(eq(pos,GOAL)){r=10;done=true;end='  → đã tới ĐÍCH. Tập kết thúc.';}
+    else if(eq(pos,TRAP)){r=-10;done=true;end='  → rơi vào BẪY. Tập kết thúc.';}
+    total+=r;
+    logLines.push(`t=${t}: S=(${s0}) A=${names[a]} → R=${r>0?'+':''}${r}, S kế tiếp=(${pos})${end}`);
+    t++;
+    if(done) logLines.push(`Tổng phần thưởng tích lũy của tập này G = ${total}`);
+    draw();
+  }
+  document.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>act(+b.dataset.a));
+  document.addEventListener('keydown',e=>{const m={ArrowUp:0,ArrowRight:1,ArrowDown:2,ArrowLeft:3}[e.key]; if(m!==undefined && document.activeElement.tagName!=='INPUT'){const r=$('gw').getBoundingClientRect(); if(r.top<innerHeight&&r.bottom>0){e.preventDefault();act(m);}}});
+  $('gwReset').onclick=reset; $('gwShow').onchange=draw;
+  reset();
+})();
+
+const QUIZ=[
+{q:"Câu nào mô tả đúng nhất học tăng cường?",
+ o:["Học từ một tập dữ liệu trong đó mọi ví dụ đều có đáp án đúng","Học xem nên thực hiện hành động nào bằng cách thử và sửa sai, dưới sự dẫn dắt của tín hiệu phần thưởng","Gom dữ liệu không nhãn thành các cụm","Sao chép chính xác các hành động của một chuyên gia"],a:1,
+ e:["Đây là học có giám sát. Trong RL không ai cung cấp đáp án đúng.","Tác nhân RL hành động, quan sát phần thưởng và cải thiện cách hành xử để thu được nhiều phần thưởng hơn theo thời gian.","Đây là học không giám sát (phân cụm).","Sao chép chuyên gia gọi là học bắt chước. Tác nhân RL thuần túy học từ phần thưởng của chính nó."]},
+{q:"Trong ví dụ huấn luyện chú chó con, đâu là phần thưởng?",
+ o:["Chú chó con","Miếng bánh","Từ \"ngồi xuống\"","Căn phòng"],a:1,
+ e:["Chú chó con là tác nhân: nó ra quyết định và học.","Miếng bánh là tín hiệu phản hồi cho chú chó biết hành động đó tốt.","Lời nói là một phần của trạng thái: đó là thông tin chú chó dùng để quyết định.","Căn phòng là một phần của môi trường."]},
+{q:"Trong ký hiệu S₀, A₀, R₁, S₁, A₁, R₂, …, vì sao phần thưởng đầu tiên gọi là R₁ mà không phải R₀?",
+ o:["Vì phần thưởng luôn luôn dương","Vì phần thưởng đến sau hành động A₀, cùng với trạng thái kế tiếp S₁","Vì R₀ luôn bằng không theo định nghĩa nên bị bỏ qua","Đó là lỗi đánh máy trong giáo trình"],a:1,
+ e:["Phần thưởng có thể âm hoặc bằng không. Chỉ số của nó không liên quan đến dấu.","Môi trường đáp lại hành động Aₜ bằng cả Rₜ₊₁ và Sₜ₊₁, nên phần thưởng mang chỉ số thời gian kế tiếp.","Không có gì bị bỏ qua: đơn giản là chưa có phần thưởng nào trước hành động đầu tiên.","Đây là một quy ước có chủ đích (Sutton và Barto)."]},
+{q:"Chính sách là gì?",
+ o:["Phần thưởng mà tác nhân nhận được ở mỗi bước","Quy tắc cho tác nhân biết nên thực hiện hành động nào ở mỗi trạng thái","Tập hợp mọi trạng thái","Thế giới vật lý mà tác nhân sống trong đó"],a:1,
+ e:["Đó là tín hiệu phần thưởng, đến từ môi trường.","Chính xác. Chính sách π ánh xạ trạng thái sang hành động (hoặc sang xác suất hành động). Học được chính sách tốt là mục tiêu của RL.","Đó là không gian trạng thái.","Đó là môi trường."]},
+{q:"Khác biệt chính giữa phần thưởng và giá trị là gì?",
+ o:["Phần thưởng là phản hồi tức thời cho một bước; giá trị là tổng phần thưởng kỳ vọng về lâu dài","Chúng là hai tên gọi của cùng một thứ","Giá trị do môi trường cung cấp; phần thưởng do tác nhân tính","Phần thưởng luôn lớn hơn giá trị"],a:0,
+ e:["Chính xác. Phần thưởng = bây giờ; giá trị = tổng dài hạn từ một trạng thái trở đi.","Chúng khác nhau: một trạng thái có thể cho phần thưởng thấp bây giờ nhưng có giá trị cao.","Ngược lại mới đúng: môi trường gửi phần thưởng; tác nhân ước lượng giá trị.","Không có quan hệ lớn nhỏ cố định. Giá trị cộng nhiều phần thưởng nên thường lớn hơn, nhưng cũng có thể nhỏ hơn hoặc âm."]},
+{q:"Trong trò chơi ô vuông, mỗi bước đi mất −1. Điều này khuyến khích hành vi nào?",
+ o:["Di chuyển càng nhiều càng tốt","Tới đích với số bước ít nhất có thể","Đứng yên ở ô xuất phát mãi mãi","Đâm vào tường"],a:1,
+ e:["Mỗi bước làm giảm tổng, nên đi thêm bước là không tốt.","Chi phí mỗi bước làm đường ngắn hơn có tổng phần thưởng cao hơn, nên tác nhân học cách làm cho hiệu quả.","Đứng yên không phải một lựa chọn, và đi lang thang mãi chỉ cộng thêm các phần thưởng −1.","Đâm vào tường mất −1 mà chẳng đi đến đâu."]},
+{q:"RL khác học có giám sát như thế nào?",
+ o:["RL cần dữ liệu có nhãn","Trong RL tác nhân không bao giờ được cho biết hành động tốt nhất, và hành động của nó ảnh hưởng đến dữ liệu nó thấy tiếp theo","Học có giám sát tương tác với môi trường theo thời gian","Không có khác biệt"],a:1,
+ e:["Dữ liệu có nhãn là đặc trưng của học có giám sát, không phải RL.","Chính xác. RL học từ phản hồi đánh giá (phần thưởng) và các quyết định của nó định hình trải nghiệm về sau.","Học có giám sát thường học từ một tập dữ liệu cố định.","Chúng khác nhau về dữ liệu, phản hồi và mục tiêu."]},
+{q:"Một chương trình cờ vua chỉ nhận +1 khi thắng ở cuối ván. Điều này gây ra khó khăn nào?",
+ o:["Bài toán phân bổ công trạng: xác định những nước đi trước đó nào đã gây ra chiến thắng","Chương trình không nhìn thấy bàn cờ","Không gian hành động trở nên rỗng","Phần thưởng trở thành nhãn"],a:0,
+ e:["Chính xác. Với phần thưởng bị trễ, tác nhân phải tìm ra trong rất nhiều quyết định trước đó, quyết định nào đáng được ghi công.","Bàn cờ hoàn toàn nhìn thấy được; đó chính là trạng thái.","Các nước đi hợp lệ vẫn còn đó.","Thắng/thua cuối cùng vẫn là phản hồi đánh giá, không phải nhãn cho từng nước đi."]},
+{q:"Nhiệm vụ nào sau đây là nhiệm vụ liên tục (không theo tập)?",
+ o:["Một ván cờ vua","Một rô-bốt tìm lối ra của mê cung","Bộ điều khiển đèn giao thông chạy mỗi ngày không ngừng","Một vòng chơi bài"],a:2,
+ e:["Một ván cờ vua kết thúc, nên nó theo tập.","Nhiệm vụ kết thúc khi tới lối ra, nên nó theo tập.","Chính xác. Nó không bao giờ tự nhiên kết thúc, nên là nhiệm vụ liên tục.","Một vòng chơi kết thúc, nên nó theo tập."]},
+{q:"RL dựa vào giá trị và RL dựa vào chính sách khác nhau ở chỗ:",
+ o:["Phương pháp dựa vào giá trị ước lượng mức tốt của các hành động rồi chọn hành động tốt nhất; phương pháp dựa vào chính sách học thẳng xác suất của các hành động","Phương pháp dựa vào giá trị không dùng phần thưởng","Phương pháp dựa vào chính sách cần dữ liệu có nhãn","Phương pháp dựa vào giá trị không có hành động"],a:0,
+ e:["Chính xác. Đây là sự phân chia chính bạn sẽ học ở Ngày 2 (dựa vào giá trị) và Ngày 3 (dựa vào chính sách).","Cả hai họ đều học từ phần thưởng.","Không họ nào cần nhãn; cả hai đều là RL.","Mọi phương pháp RL đều chọn hành động."]}
+];
+</script>
+<script>
+buildTOC();
+renderQuiz(QUIZ);
+</script>
+</body>
+</html>

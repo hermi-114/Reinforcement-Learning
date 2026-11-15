@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RL 5: Sarsa và Q-learning</title>
+<style>:root{
+  --ink:#1c2430;--muted:#5d6878;--bg:#f7f7f3;--card:#ffffff;--line:#e3e6ea;
+  --accent:#2563eb;--accent-soft:#dbeafe;--ok:#15803d;--ok-soft:#dcfce7;--bad:#b91c1c;--bad-soft:#fee2e2;
+  --warn:#b45309;--warn-soft:#fef3c7;--purple:#7c3aed;--purple-soft:#ede9fe;
+  --c1:#2563eb;--c2:#ea580c;--c3:#16a34a;--c4:#7c3aed;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font:16.5px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+main{max-width:860px;margin:0 auto;padding:0 18px 80px}
+header.top{max-width:860px;margin:0 auto;padding:22px 18px 6px}
+.crumbs{font-size:.85rem;color:var(--muted);letter-spacing:.02em;text-transform:uppercase;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.langbtn{flex:none;text-transform:none;letter-spacing:0;font-size:.82rem;font-weight:600;text-decoration:none;color:var(--accent);border:1px solid var(--accent);background:#fff;border-radius:999px;padding:3px 12px;white-space:nowrap}
+.langbtn:hover{background:var(--accent);color:#fff}
+h1{font-size:2rem;line-height:1.2;margin:.25em 0 .35em}
+h2{font-size:1.35rem;margin:2.2em 0 .6em;padding-top:.3em;border-top:1px solid var(--line)}
+h3{font-size:1.08rem;margin:1.5em 0 .4em}
+.lead{color:var(--muted);font-size:1.05rem;margin-top:0}
+nav.course{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
+nav.course a{font-size:.82rem;text-decoration:none;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 10px}
+nav.course a.cur{background:var(--accent);border-color:var(--accent);color:#fff}
+.toc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin:18px 0}
+.toc b{display:block;margin-bottom:4px}
+.toc ol{margin:0;padding-left:20px}
+.toc a{color:var(--accent);text-decoration:none}
+.goals{background:var(--ok-soft);border-radius:12px;padding:12px 18px;margin:16px 0}
+.goals ul{margin:.3em 0 0;padding-left:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:18px 0}
+.demo{background:var(--card);border:2px solid var(--accent-soft);border-radius:14px;padding:16px 18px;margin:20px 0}
+.demo>.tag,.card>.tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.box{border-radius:10px;padding:10px 14px;margin:14px 0}
+.key{background:var(--accent-soft);border-left:4px solid var(--accent)}
+.analogy{background:var(--purple-soft);border-left:4px solid var(--purple)}
+.warn{background:var(--warn-soft);border-left:4px solid var(--warn)}
+.example{background:#f1f5f9;border-left:4px solid #64748b}
+.box b.lbl{display:block;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.analogy b.lbl{color:var(--purple)}.key b.lbl{color:var(--accent)}.warn b.lbl{color:var(--warn)}.example b.lbl{color:#475569}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.95rem;background:#fff}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:#f1f5f9}
+.formula{font-family:ui-monospace,Menlo,Consolas,monospace;background:#fff;border:1px dashed #cbd5e1;border-radius:10px;padding:12px;text-align:center;font-size:1.05rem;margin:14px 0;overflow-x:auto}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92rem}
+.note{color:var(--muted);font-size:.92rem}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.center{text-align:center}
+button{font:inherit;font-size:.95rem;padding:7px 14px;border-radius:9px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+button.alt{background:#fff;color:var(--accent)}
+button:disabled{opacity:.45;cursor:default}
+input[type=range]{width:180px;vertical-align:middle}
+svg{max-width:100%;height:auto;display:block;margin:0 auto}
+svg text{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:.88rem;margin-top:4px}
+.legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+.log{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88rem;background:#f8fafc;border-radius:8px;padding:10px 12px;white-space:pre-wrap;min-height:3.2em}
+.steps{counter-reset:s;list-style:none;padding-left:0}
+.steps li{counter-increment:s;position:relative;padding-left:38px;margin:10px 0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:.85rem;display:flex;align-items:center;justify-content:center}
+pre.code{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow-x:auto;font-size:.86rem;line-height:1.55}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:640px){.grid2{grid-template-columns:1fr}h1{font-size:1.6rem}}
+/* quiz */
+.quiz{background:#fff;border:2px solid var(--line);border-radius:16px;padding:18px 20px;margin-top:40px}
+.quiz h2{border:0;margin-top:0;padding-top:0}
+.q{margin:22px 0;padding-bottom:14px;border-bottom:1px dashed var(--line)}
+.q p.qt{font-weight:600;margin:0 0 8px}
+.opt{display:block;width:100%;text-align:left;margin:6px 0;padding:10px 12px;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:9px}
+.opt:hover{border-color:var(--accent)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt .why{display:none;font-size:.9rem;color:var(--muted);margin-top:4px}
+.q.done .opt .why{display:block}
+.q.done .opt{cursor:default}
+.verdict{display:none;font-weight:700;margin-top:6px}
+.q.done .verdict{display:block}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.scorebar{position:sticky;bottom:10px;background:#0f172a;color:#fff;border-radius:12px;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px}
+.scorebar button{background:#fff;color:#0f172a;border-color:#fff}
+.final{display:none;margin-top:14px;padding:14px;border-radius:12px;background:var(--accent-soft)}
+footer.pn{display:flex;justify-content:space-between;gap:10px;margin-top:30px}
+footer.pn a{flex:1;text-decoration:none;border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px 14px;color:var(--ink)}
+footer.pn a small{display:block;color:var(--muted)}
+footer.pn a.next{text-align:right}
+@media (max-width:640px){nav.course{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}nav.course a{white-space:nowrap}}
+</style>
+</head>
+<body>
+<header class="top">
+<div class="crumbs"><span>Học tăng cường từ con số 0 · Ngày 2 · Bài 5/7</span><a class="langbtn" href="../lesson5.html">🌐 English</a></div>
+<nav class="course"><a href="index.html">Trang chủ</a><a href="lesson1.html" class="">1. Học tăng cường là gì?</a><a href="lesson2.html" class="">2. Phần thưởng, tổng phần thưởng và giá trị</a><a href="lesson3.html" class="">3. Khám phá và khai thác</a><a href="lesson4.html" class="">4. Monte Carlo và học sai khác thời gian (TD)</a><a href="lesson5.html" class="cur">5. Sarsa và Q-learning</a><a href="lesson6.html" class="">6. Học tăng cường dựa vào chính sách</a><a href="lesson7.html" class="">7. Máy trò chơi nhiều cánh tay và ứng dụng</a></nav>
+</header>
+<main>
+<h1>Bài 5: Sarsa và Q-learning</h1>
+<p class="lead">Giờ tác nhân học cách <i>hành động</i>, không chỉ dự đoán. Sarsa và Q-learning học giá trị hành động Q(s, a) bằng ý tưởng TD ở Bài 4, và chọn hành động bằng ε-tham lam ở Bài 3. Chúng là hai thuật toán RL dựa trên giá trị nổi tiếng nhất. Bài học kết thúc bằng việc nên làm gì khi bảng giá trị Q trở nên quá lớn.</p>
+
+<div class="goals"><b>Sau bài học này bạn có thể:</b>
+<ul>
+<li>Đọc và điền bảng Q, rồi chọn hành động từ nó.</li>
+<li>Áp dụng thủ công các quy tắc cập nhật Sarsa và Q-learning.</li>
+<li>Giải thích học on-policy và off-policy, và vì sao Sarsa và Q-learning cư xử khác nhau gần vách đá.</li>
+<li>Giải thích sự khác nhau giữa RL dạng bảng và RL xấp xỉ (học sâu).</li>
+</ul></div>
+
+<div class="toc" id="toc"><b>Nội dung</b></div>
+
+<h2>1. Từ dự đoán đến điều khiển</h2>
+<p>Ở Bài 4, chính sách được cố định và ta chỉ học V(s). Giờ ta muốn tác nhân tự tìm ra một <b>chính sách tốt</b>, mà không biết luật của môi trường. Công thức gồm hai phần chạy cùng nhau, từng bước một:</p>
+<ol class="steps">
+<li><b>Đánh giá:</b> học Q(s, a), "hành động a tốt đến đâu ở trạng thái s", từ trải nghiệm, bằng cập nhật TD.</li>
+<li><b>Cải thiện:</b> chọn hành động theo ε-tham lam đối với Q: thường là hành động trông tốt nhất, thỉnh thoảng một hành động ngẫu nhiên để tiếp tục khám phá.</li>
+</ol>
+<p>Khi Q chính xác hơn, các lựa chọn tham lam tốt hơn; lựa chọn tốt hơn tạo ra trải nghiệm tốt hơn; trải nghiệm tốt hơn làm Q chính xác hơn. Vòng lặp này gọi là <b>lặp chính sách tổng quát</b> (generalized policy iteration).</p>
+<p>Vì sao dùng Q mà không dùng V? Với V, bạn cần biết mỗi hành động dẫn đến đâu để so sánh chúng. Với Q, việc so sánh là trực tiếp: chỉ cần tra Q(s, a) của từng hành động và chọn giá trị lớn nhất. Không cần mô hình của thế giới.</p>
+
+<h2>2. Bảng Q</h2>
+<p>Trong <b>RL dạng bảng</b>, tác nhân lưu một con số cho mỗi cặp trạng thái và hành động, trong một bảng:</p>
+<table>
+<tr><th>Trạng thái ↓ / Hành động →</th><th>A₁ (Lên)</th><th>A₂ (Phải)</th><th>…</th><th>Aₙ (Trái)</th></tr>
+<tr><td><b>S₁</b></td><td>Q(S₁, A₁) = −3,2</td><td>Q(S₁, A₂) = <b>−1,0</b></td><td>…</td><td>Q(S₁, Aₙ) = −5,4</td></tr>
+<tr><td><b>S₂</b></td><td>Q(S₂, A₁) = <b>4,1</b></td><td>Q(S₂, A₂) = 2,0</td><td>…</td><td>Q(S₂, Aₙ) = 0,3</td></tr>
+<tr><td>…</td><td>…</td><td>…</td><td>…</td><td>…</td></tr>
+<tr><td><b>Sₘ</b></td><td>Q(Sₘ, A₁)</td><td>Q(Sₘ, A₂)</td><td>…</td><td>Q(Sₘ, Aₙ)</td></tr>
+</table>
+<p>Để hành động tham lam ở S₁, nhìn dọc theo hàng của nó và chọn số lớn nhất (Phải, −1,0). Mọi giá trị thường bắt đầu ở 0, và <b>một ô được cập nhật sau mỗi hành động</b>.</p>
+
+<h2>3. Sarsa</h2>
+<p>Sarsa áp dụng ý tưởng TD(0) cho các giá trị Q. Sau khi thực hiện hành động A ở trạng thái S, tác nhân nhận phần thưởng R, đến S′, và <b>chọn hành động kế tiếp A′</b> (bằng ε-tham lam). Rồi nó cập nhật:</p>
+<div class="formula" style="line-height:1.4">
+<span style="display:inline-block;text-align:center;vertical-align:top">Q(S,A) ←<br><small style="color:#64748b">giá trị mới</small></span>
+<span style="display:inline-block;text-align:center;vertical-align:top;color:#475569">Q(S,A)<br><small>ước lượng cũ</small></span> +
+<span style="display:inline-block;text-align:center;vertical-align:top;color:#7c3aed">α<br><small>bước cập nhật</small></span> ×
+<span style="display:inline-block;text-align:center;vertical-align:top">[ <span style="color:#16a34a">R + γ·Q(S′,A′)</span> − Q(S,A) ]<br><small style="color:#16a34a">mục tiêu TD</small> <small style="color:#ea580c">— cả ngoặc là sai số TD</small></span>
+</div>
+<p>Cái tên đến từ năm thứ mà phép cập nhật dùng: <b>S</b>tate (trạng thái), <b>A</b>ction (hành động), <b>R</b>eward (phần thưởng), <b>S</b>tate kế tiếp, <b>A</b>ction kế tiếp: (S, A, R, S′, A′).</p>
+<pre class="code">Sarsa
+khởi tạo Q(s, a) = 0 với mọi s, a
+với mỗi tập:
+    S ← trạng thái xuất phát
+    A ← hành động ε-tham lam từ Q ở S
+    trong khi S chưa kết thúc:
+        thực hiện A, quan sát R và S′
+        A′ ← hành động ε-tham lam từ Q ở S′      # chọn hành động kế tiếp TRƯỚC
+        Q(S,A) ← Q(S,A) + α·(R + γ·Q(S′,A′) − Q(S,A))
+        S ← S′ ;  A ← A′                         # và thật sự thực hiện A′ ở bước sau</pre>
+
+<h2>4. Q-learning</h2>
+<p>Q-learning chỉ đổi một điều: trong mục tiêu, thay vì dùng hành động A′ mà tác nhân thực sự sẽ thực hiện, nó dùng hành động <b>tốt nhất</b> ở S′:</p>
+<div class="formula">Q(S,A) ← Q(S,A) + α × [ R + γ · max<sub>a</sub> Q(S′, a) − Q(S,A) ]</div>
+<pre class="code">Q-learning
+khởi tạo Q(s, a) = 0 với mọi s, a
+với mỗi tập:
+    S ← trạng thái xuất phát
+    trong khi S chưa kết thúc:
+        A ← hành động ε-tham lam từ Q ở S
+        thực hiện A, quan sát R và S′
+        Q(S,A) ← Q(S,A) + α·(R + γ·max_a Q(S′,a) − Q(S,A))
+        S ← S′</pre>
+
+<div class="box example"><b class="lbl">Ví dụ minh họa: cùng một trải nghiệm, hai cách cập nhật (α = 0,5, γ = 1)</b>
+Ước lượng hiện tại Q(S, Phải) = −2. Tác nhân đi Phải, nhận R = −1, và đến S′ nơi:<br>
+Q(S′, Lên) = −4, Q(S′, Phải) = −3, Q(S′, Xuống) = −100, Q(S′, Trái) = −5.<br>
+Do có khám phá, hành động kế tiếp tác nhân chọn là A′ = <b>Lên</b>.<br><br>
+<b>Sarsa</b> dùng hành động thực sự được chọn: mục tiêu = −1 + 1 × Q(S′, Lên) = −1 − 4 = −5.<br>
+Q(S, Phải) ← −2 + 0,5 × (−5 − (−2)) = −2 − 1,5 = <b>−3,5</b><br><br>
+<b>Q-learning</b> dùng hành động tốt nhất ở S′ (Phải, −3): mục tiêu = −1 + (−3) = −4.<br>
+Q(S, Phải) ← −2 + 0,5 × (−4 − (−2)) = −2 − 1 = <b>−3</b></div>
+
+<h2>5. On-policy và off-policy</h2>
+<div class="grid2">
+<div class="box key" style="margin:0"><b class="lbl">Sarsa là on-policy</b>Nó học giá trị của chính sách mà nó <b>thực sự đang theo</b>, kể cả khám phá ngẫu nhiên. Nếu tác nhân thỉnh thoảng vấp ngã, các giá trị của Sarsa đã tính cả cái giá của việc vấp ngã.</div>
+<div class="box analogy" style="margin:0"><b class="lbl">Q-learning là off-policy</b>Nó học giá trị của chính sách <b>tốt nhất</b> (tham lam), ngay cả khi hành xử khác đi (đang khám phá). Các giá trị của nó giả định "từ bước kế tiếp trở đi, tôi sẽ hành động hoàn hảo".</div>
+</div>
+<p>Thông thường cả hai đều học được chính sách tốt. Sự khác biệt lộ rõ khi khám phá <b>nguy hiểm</b>, như trong thế giới vách đá dưới đây.</p>
+
+<h2>6. Thử ngay: đi bộ qua vách đá</h2>
+<div class="demo"><span class="tag">Mô phỏng song song</span>
+<p class="note" style="margin-top:0">Đi từ <b>S</b> đến <b>G</b>. Mỗi bước tốn −1. Các ô đỏ sẫm là <b>vách đá</b>: bước vào thì mất −100 và bị đưa về S. Cả hai tác nhân dùng ε-tham lam với ε = 0,1, α = 0,5, γ = 1, và huấn luyện trên cùng một thế giới. Màu sắc cho biết giá trị Q tốt nhất ở mỗi ô (nhạt hơn = tốt hơn); mũi tên cho hành động tham lam; đường kẻ là lộ trình tác nhân sẽ đi nếu hành động tham lam.</p>
+<div class="row">
+  <button id="cw1">▶ Huấn luyện 1 tập (hoạt hình)</button>
+  <button id="cw50" class="alt">+50 tập</button>
+  <button id="cw300" class="alt">+300 tập</button>
+  <button id="cwR" class="alt">Đặt lại</button>
+  <span class="note" id="cwN"></span>
+</div>
+<div class="grid2">
+  <div><h3 class="center" style="margin:6px 0">Sarsa</h3><svg id="cwS" viewBox="0 0 360 200"></svg><p class="mono center" id="cwSt"></p></div>
+  <div><h3 class="center" style="margin:6px 0">Q-learning</h3><svg id="cwQ" viewBox="0 0 360 200"></svg><p class="mono center" id="cwQt"></p></div>
+</div>
+<div class="log" id="cwLog">Bấm "+300 tập" để huấn luyện nhanh cả hai, hoặc xem từng tập một. Bấm vào bất kỳ ô nào để xem bốn giá trị Q của nó.</div>
+</div>
+
+<p><b>Điều bạn nên thấy sau vài trăm tập:</b></p>
+<ul>
+<li><b>Q-learning</b> học <b>lộ trình ngắn nhất, đi sát mép vách đá</b>. Đó là lộ trình tốt nhất cho một tác nhân hoàn hảo. Nhưng tác nhân này vẫn khám phá 10% số lần, và một bước ngẫu nhiên đi xuống là mất −100. Vì vậy khi đang học, Q-learning hay bị rơi.</li>
+<li><b>Sarsa</b> học một <b>lộ trình an toàn hơn</b>, xa mép hơn. Các giá trị của nó đã tính cả rủi ro từ những bước ngẫu nhiên của chính nó, nên nó giữ khoảng cách. Lộ trình dài hơn, nhưng nó rơi ít hơn nhiều.</li>
+</ul>
+
+<div class="demo"><span class="tag">Thí nghiệm</span>
+<p class="note" style="margin-top:0">Tổng phần thưởng mỗi tập <b>trong lúc học</b> (ε = 0,1 suốt thời gian), lấy trung bình trên 40 lượt chạy độc lập và làm mượt.</p>
+<div class="row"><button id="cwExp">Chạy thí nghiệm (40 lượt × 300 tập)</button><span class="note" id="cwExpP"></span></div>
+<div id="cwChart"><p class="note center">Bấm nút để chạy.</p></div>
+</div>
+<p>Sau vài chục tập đầu, đường cong của Sarsa luôn nằm trên của Q-learning: Sarsa thu được nhiều phần thưởng hơn mỗi tập trong lúc học, vì lộ trình sát mép của Q-learning bị phạt bởi những lần rơi do khám phá. (Cả hai đường đều nhiễu; hãy chạy thí nghiệm hai lần để thấy khoảng cách này nhất quán.) Nếu tắt khám phá sau khi học (ε = 0), lộ trình của Q-learning sẽ tốt hơn. Dùng cái nào tùy vào việc những sai lầm <i>trong lúc học</i> có quan trọng hay không, như với một robot thật đứng gần cầu thang thật.</p>
+
+<h2>7. Khi bảng quá lớn: RL xấp xỉ</h2>
+<p>Bảng Q cần một hàng cho mỗi trạng thái. Với lưới 32 ô thì ổn. Nhưng không ổn với:</p>
+<ul>
+<li><b>Trò chơi cờ:</b> cờ vây 9×9 có khoảng 10³⁸ thế cờ có thể xảy ra; cờ vua có hơn 10⁴⁰.</li>
+<li><b>Hình ảnh:</b> một màn hình trò chơi điện tử 84×84 điểm ảnh xám có nhiều ảnh khả dĩ hơn số nguyên tử trong vũ trụ.</li>
+<li><b>Trạng thái liên tục:</b> các góc và tốc độ của cánh tay robot là số thực, nên có vô hạn trạng thái.</li>
+</ul>
+<p>Hai vấn đề xuất hiện: bảng không vừa bộ nhớ, và hầu hết các trạng thái không bao giờ được ghé thăm dù chỉ một lần, nên giá trị của chúng sẽ không bao giờ được học.</p>
+<p>Giải pháp là <b>RL xấp xỉ</b> (còn gọi là xấp xỉ hàm): thay bảng bằng một <b>mô hình</b> — thường là mạng nơ-ron — nhận trạng thái làm đầu vào và cho ra giá trị Q của mọi hành động.</p>
+<div class="card"><span class="tag">Sơ đồ: dạng bảng và xấp xỉ</span>
+<svg viewBox="0 0 680 250">
+  <defs><marker id="ah5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+  <text x="150" y="20" text-anchor="middle" font-weight="700" font-size="14">RL dạng bảng</text>
+  <g font-size="11">
+    <rect x="40" y="35" width="220" height="150" fill="#fff" stroke="#94a3b8"/>
+    <line x1="40" y1="60" x2="260" y2="60" stroke="#94a3b8"/><line x1="90" y1="35" x2="90" y2="185" stroke="#94a3b8"/>
+    <text x="65" y="52" text-anchor="middle">s</text><text x="125" y="52" text-anchor="middle">Lên</text><text x="175" y="52" text-anchor="middle">Phải</text><text x="225" y="52" text-anchor="middle">Xuống</text>
+    <text x="65" y="80" text-anchor="middle">S1</text><text x="125" y="80" text-anchor="middle">−3,2</text><text x="175" y="80" text-anchor="middle">−1,0</text><text x="225" y="80" text-anchor="middle">−5,1</text>
+    <text x="65" y="105" text-anchor="middle">S2</text><text x="125" y="105" text-anchor="middle">4,1</text><text x="175" y="105" text-anchor="middle">2,0</text><text x="225" y="105" text-anchor="middle">0,3</text>
+    <text x="65" y="130" text-anchor="middle">S3</text><text x="125" y="130" text-anchor="middle">0,7</text><text x="175" y="130" text-anchor="middle">6,2</text><text x="225" y="130" text-anchor="middle">1,9</text>
+    <text x="65" y="155" text-anchor="middle">…</text><text x="175" y="155" text-anchor="middle">…</text>
+    <text x="65" y="177" text-anchor="middle">Sₘ</text>
+  </g>
+  <text x="150" y="210" text-anchor="middle" font-size="12" fill="#475569">một số được lưu cho mỗi (trạng thái, hành động)</text>
+  <text x="150" y="228" text-anchor="middle" font-size="12" fill="#475569">tra cứu · cập nhật một ô</text>
+  <text x="500" y="20" text-anchor="middle" font-weight="700" font-size="14">RL xấp xỉ (ví dụ mạng nơ-ron)</text>
+  <rect x="330" y="95" width="70" height="44" rx="8" fill="#dbeafe" stroke="#2563eb"/><text x="365" y="122" text-anchor="middle" font-size="12">trạng thái s</text>
+  <g fill="#ede9fe" stroke="#7c3aed">
+    <circle cx="450" cy="70" r="11"/><circle cx="450" cy="105" r="11"/><circle cx="450" cy="140" r="11"/><circle cx="450" cy="175" r="11"/>
+    <circle cx="510" cy="85" r="11"/><circle cx="510" cy="120" r="11"/><circle cx="510" cy="155" r="11"/>
+  </g>
+  <g stroke="#c4b5fd" stroke-width="1">
+    <line x1="400" y1="117" x2="439" y2="70"/><line x1="400" y1="117" x2="439" y2="105"/><line x1="400" y1="117" x2="439" y2="140"/><line x1="400" y1="117" x2="439" y2="175"/>
+    <line x1="461" y1="70" x2="499" y2="85"/><line x1="461" y1="70" x2="499" y2="120"/><line x1="461" y1="105" x2="499" y2="85"/><line x1="461" y1="105" x2="499" y2="155"/><line x1="461" y1="140" x2="499" y2="120"/><line x1="461" y1="140" x2="499" y2="155"/><line x1="461" y1="175" x2="499" y2="155"/><line x1="461" y1="175" x2="499" y2="120"/>
+    <line x1="521" y1="85" x2="570" y2="75"/><line x1="521" y1="120" x2="570" y2="117"/><line x1="521" y1="155" x2="570" y2="160"/><line x1="521" y1="85" x2="570" y2="117"/><line x1="521" y1="155" x2="570" y2="117"/>
+  </g>
+  <g font-size="12"><rect x="572" y="62" width="100" height="26" rx="6" fill="#dcfce7" stroke="#16a34a"/><text x="622" y="80" text-anchor="middle">Q(s, Lên)</text>
+  <rect x="572" y="104" width="100" height="26" rx="6" fill="#dcfce7" stroke="#16a34a"/><text x="622" y="122" text-anchor="middle">Q(s, Phải)</text>
+  <rect x="572" y="146" width="100" height="26" rx="6" fill="#dcfce7" stroke="#16a34a"/><text x="622" y="164" text-anchor="middle">Q(s, Xuống)</text></g>
+  <text x="500" y="210" text-anchor="middle" font-size="12" fill="#475569">mô hình tính mọi giá trị Q từ trạng thái</text>
+  <text x="500" y="228" text-anchor="middle" font-size="12" fill="#475569">trạng thái giống nhau → giá trị giống nhau (khái quát hóa)</text>
+</svg>
+</div>
+<p>Ý tưởng cập nhật vẫn như cũ: tính mục tiêu TD R + γ·max Q(S′, a), rồi điều chỉnh các trọng số của mạng sao cho đầu ra Q(S, A) dịch về phía mục tiêu đó. Lợi ích lớn là <b>khái quát hóa</b>: học về một trạng thái cũng cải thiện ước lượng cho các trạng thái tương tự mà tác nhân chưa từng thấy. <b>Deep Q-Network (DQN)</b> nổi tiếng, do DeepMind công bố năm 2015, đã dùng đúng ý tưởng này để học hàng chục trò chơi Atari trực tiếp từ điểm ảnh trên màn hình.</p>
+<table>
+<tr><th></th><th>RL dạng bảng</th><th>RL xấp xỉ</th></tr>
+<tr><td>Lưu</td><td>Một giá trị cho mỗi (trạng thái, hành động)</td><td>Các tham số (trọng số) của một mô hình</td></tr>
+<tr><td>Phù hợp với</td><td>Bài toán nhỏ, rời rạc</td><td>Không gian trạng thái khổng lồ hoặc liên tục</td></tr>
+<tr><td>Trạng thái chưa thấy</td><td>Không có thông tin</td><td>Ước lượng từ các trạng thái tương tự</td></tr>
+<tr><td>Độ ổn định</td><td>Đơn giản, được hiểu rõ</td><td>Khó hơn; cần thêm kỹ thuật để huấn luyện ổn định</td></tr>
+</table>
+
+<h2>8. Tóm tắt</h2>
+<ul>
+<li>Điều khiển = học Q(s, a) + hành động ε-tham lam theo Q; hai việc này cải thiện lẫn nhau.</li>
+<li>Mục tiêu của <b>Sarsa</b>: R + γ·Q(S′, A′), dùng hành động kế tiếp thực sự được thực hiện. <b>On-policy</b>.</li>
+<li>Mục tiêu của <b>Q-learning</b>: R + γ·max<sub>a</sub> Q(S′, a), dùng hành động kế tiếp tốt nhất. <b>Off-policy</b>.</li>
+<li>Gần chỗ nguy hiểm, Sarsa học hành vi an toàn hơn; Q-learning học lộ trình tối ưu nhưng chịu thiệt nhiều hơn trong lúc khám phá.</li>
+<li>Khi có quá nhiều trạng thái cho một bảng, một mô hình như mạng nơ-ron sẽ xấp xỉ Q (ví dụ DQN).</li>
+<li>Bài sau (Ngày 3): một cách tiếp cận hoàn toàn khác, học thẳng chính sách.</li>
+</ul>
+
+
+
+<section class="quiz" id="quiz">
+<h2>Trắc nghiệm: kiểm tra mức hiểu bài</h2>
+<p class="note">10 câu trắc nghiệm. Bấm vào một đáp án: bạn sẽ biết đúng hay sai, kèm giải thích cho <b>từng</b> phương án.</p>
+<div id="quizItems"></div>
+<div class="final" id="finalMsg"></div>
+<div class="scorebar"><span id="scoreText"></span><button id="retry">Làm lại</button></div>
+</section>
+<footer class="pn"><a href="lesson4.html"><small>← Bài trước</small>4. Monte Carlo và học sai khác thời gian (TD)</a><a class="next" href="lesson6.html"><small>Bài tiếp theo →</small>6. Học tăng cường dựa vào chính sách</a></footer>
+</main>
+<script>// ---------- small helpers ----------
+const $ = id => document.getElementById(id);
+const NS = 'http://www.w3.org/2000/svg';
+function S(tag, attrs, parent){
+  const e = document.createElementNS(NS, tag);
+  for (const k in (attrs||{})) {
+    if (k === 'text') e.textContent = attrs[k]; else e.setAttribute(k, attrs[k]);
+  }
+  if (parent) parent.appendChild(e);
+  return e;
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const fmt = (x, d=2) => (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toFixed(d).replace('.',',');
+function argmaxRand(arr){
+  const m = Math.max(...arr); const c = [];
+  arr.forEach((v,i)=>{ if (v === m) c.push(i); });
+  return c[Math.floor(Math.random()*c.length)];
+}
+function randn(){ let u=0,v=0; while(!u)u=Math.random(); while(!v)v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+
+// ---------- line chart ----------
+// opts: {w,h,series:[{label,color,data:[y..], dash}], xLabel,yLabel,yMin,yMax,xStart}
+function lineChart(container, opts){
+  const w = opts.w||640, h = opts.h||300, L=56, R=16, T=14, B=44;
+  container.innerHTML = '';
+  const svg = S('svg', {viewBox:`0 0 ${w} ${h}`, role:'img'}, container);
+  let all = []; opts.series.forEach(s => all = all.concat(s.data));
+  const yMin = opts.yMin !== undefined ? opts.yMin : Math.min(...all);
+  const yMax = opts.yMax !== undefined ? opts.yMax : Math.max(...all);
+  const n = Math.max(...opts.series.map(s=>s.data.length));
+  const x0 = opts.xStart||0;
+  const X = i => L + (w-L-R) * (n<=1?0:i/(n-1));
+  const Y = v => T + (h-T-B) * (1 - (v-yMin)/((yMax-yMin)||1));
+  for (let k=0;k<=4;k++){
+    const v = yMin + (yMax-yMin)*k/4, y = Y(v);
+    S('line',{x1:L,x2:w-R,y1:y,y2:y,stroke:'#e5e7eb'},svg);
+    S('text',{x:L-6,y:y+4,'text-anchor':'end','font-size':11,fill:'#64748b',text:(Math.abs(yMax-yMin)<5?fmt(v,2):Math.round(v))},svg);
+  }
+  for (let k=0;k<=4;k++){
+    const i = Math.round((n-1)*k/4), x = X(i);
+    S('text',{x:x,y:h-B+16,'text-anchor':'middle','font-size':11,fill:'#64748b',text:x0+i},svg);
+  }
+  S('line',{x1:L,x2:L,y1:T,y2:h-B,stroke:'#94a3b8'},svg);
+  S('line',{x1:L,x2:w-R,y1:h-B,y2:h-B,stroke:'#94a3b8'},svg);
+  if (opts.xLabel) S('text',{x:(L+w-R)/2,y:h-6,'text-anchor':'middle','font-size':12,fill:'#334155',text:opts.xLabel},svg);
+  if (opts.yLabel) S('text',{x:14,y:(T+h-B)/2,'text-anchor':'middle','font-size':12,fill:'#334155',transform:`rotate(-90 14 ${(T+h-B)/2})`,text:opts.yLabel},svg);
+  opts.series.forEach(s=>{
+    const pts = s.data.map((v,i)=>`${X(i).toFixed(1)},${Y(Math.max(yMin,Math.min(yMax,v))).toFixed(1)}`).join(' ');
+    S('polyline',{points:pts,fill:'none',stroke:s.color,'stroke-width':2.2,'stroke-dasharray':s.dash||'', 'stroke-linejoin':'round'},svg);
+  });
+  const lg = document.createElement('div'); lg.className='legend';
+  opts.series.forEach(s=>{ const sp=document.createElement('span'); sp.style.setProperty('--c',s.color); sp.textContent=s.label; lg.appendChild(sp); });
+  container.appendChild(lg);
+}
+
+// ---------- table of contents ----------
+function buildTOC(){
+  const toc = $('toc'); if (!toc) return;
+  const hs = [...document.querySelectorAll('main > section > h2, main > h2')].filter(h=>!h.closest('.quiz'));
+  const ol = document.createElement('ol');
+  hs.forEach((h,i)=>{ if(!h.id) h.id='sec'+(i+1); const li=document.createElement('li'); li.innerHTML=`<a href="#${h.id}">${h.textContent}</a>`; ol.appendChild(li); });
+  const li=document.createElement('li'); li.innerHTML='<a href="#quiz">Trắc nghiệm (10 câu)</a>'; ol.appendChild(li);
+  toc.appendChild(ol);
+}
+
+// ---------- quiz ----------
+// item: {q, o:[4 options], a:index, e:[4 explanations]}
+function renderQuiz(items){
+  const box = $('quizItems'); box.innerHTML = '';
+  let answered = 0, correct = 0;
+  const bar = $('scoreText'), fin = $('finalMsg');
+  function upd(){
+    bar.textContent = `Đã trả lời ${answered}/${items.length} · Đúng ${correct}`;
+    if (answered === items.length){
+      fin.style.display='block';
+      const pct = correct/items.length;
+      fin.innerHTML = `<b>Bạn đạt ${correct}/${items.length} điểm.</b> ` + (pct===1 ? 'Tuyệt vời! Bạn đã nắm vững bài học này.' : pct>=0.7 ? 'Làm tốt lắm. Hãy đọc phần giải thích của những câu bạn làm sai rồi học tiếp.' : 'Hãy đọc lại các phần trong mục lục phía trên, rồi bấm "Làm lại".');
+    } else fin.style.display='none';
+  }
+  items = items.map(it0=>{ // shuffle option order so the answer is not always in the same place
+    const idx=[0,1,2,3].slice(0,it0.o.length); for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+    return {q:it0.q,o:idx.map(i=>it0.o[i]),e:idx.map(i=>it0.e[i]),a:idx.indexOf(it0.a),orig:it0};
+  });
+  items.forEach((it, qi)=>{
+    const d = document.createElement('div'); d.className='q';
+    d.innerHTML = `<p class="qt">${qi+1}. ${it.q}</p>`;
+    const btns = [];
+    it.o.forEach((t,j)=>{
+      const b = document.createElement('button'); b.className='opt';
+      b.innerHTML = `<b>${String.fromCharCode(65+j)}.</b> ${t}<span class="why">${j===it.a?'✔ ':'✘ '}${it.e[j]}</span>`;
+      b.onclick = ()=>{
+        if (d.classList.contains('done')) return;
+        d.classList.add('done'); answered++;
+        btns[it.a].classList.add('right');
+        if (j===it.a){ correct++; v.innerHTML='<span class="ok">Chính xác!</span> Tất cả các phương án đều được giải thích bên dưới.'; }
+        else { b.classList.add('wrong'); v.innerHTML=`<span class="bad">Chưa đúng.</span> Đáp án là ${String.fromCharCode(65+it.a)}. Hãy đọc vì sao từng phương án đúng hoặc sai.`; }
+        upd();
+      };
+      btns.push(b); d.appendChild(b);
+    });
+    const v = document.createElement('div'); v.className='verdict'; d.insertBefore(v, d.children[1]);
+    box.appendChild(d);
+  });
+  $('retry').onclick = ()=>{ renderQuiz(items.map(x=>x.orig)); $('quiz').scrollIntoView(); };
+  upd();
+}
+</script>
+<script>
+(function(){
+  const R=4,C=8,START=[3,0],GOAL=[3,7],CW=44,OX=4,OY=4,ALPHA=0.5,EPS=0.1;
+  const D=[[-1,0],[0,1],[1,0],[0,-1]], AN=['Lên','Phải','Xuống','Trái'];
+  const isCliff=(r,c)=>r===3&&c>=1&&c<=6, isGoal=(r,c)=>r===GOAL[0]&&c===GOAL[1];
+  function newQ(){return [...Array(R)].map(()=>[...Array(C)].map(()=>[0,0,0,0]));}
+  function egreedy(Q,r,c,eps){return Math.random()<eps?Math.floor(Math.random()*4):argmaxRand(Q[r][c]);}
+  function step(r,c,a){let r1=Math.max(0,Math.min(R-1,r+D[a][0])),c1=Math.max(0,Math.min(C-1,c+D[a][1])); if(isCliff(r1,c1)) return {r:START[0],c:START[1],rw:-100,fell:true,done:false}; return {r:r1,c:c1,rw:-1,fell:false,done:isGoal(r1,c1)};}
+  function* episode(Q,algo,eps){ // yields positions; updates Q in place
+    let r=START[0],c=START[1],a=egreedy(Q,r,c,eps),total=0,falls=0,n=0;
+    while(n<1000){ n++;
+      const s=step(r,c,a); total+=s.rw; if(s.fell)falls++;
+      let a2=s.done?0:egreedy(Q,s.r,s.c,eps);
+      const nextV=s.done?0:(algo==='q'?Math.max(...Q[s.r][s.c]):Q[s.r][s.c][a2]);
+      Q[r][c][a]+=ALPHA*(s.rw+nextV-Q[r][c][a]);
+      if(algo==='q'&&!s.done) a2=egreedy(Q,s.r,s.c,eps); // Q-learning chooses its next action independently
+      yield {r:s.r,c:s.c,fell:s.fell,total,falls,done:s.done};
+      if(s.done)break; r=s.r;c=s.c;a=a2;
+    }
+  }
+  function runEpisode(Q,algo){let last; for(const x of episode(Q,algo,EPS)) last=x; return last;}
+  function greedyPath(Q){const p=[[START[0],START[1]]];let r=START[0],c=START[1],seen=new Set();for(let k=0;k<40;k++){const a=argmaxFirst(Q[r][c]);const s=step(r,c,a);if(s.fell){p.push([3,Math.max(1,Math.min(6,c+D[a][1]))]);break;}r=s.r;c=s.c;p.push([r,c]);if(s.done)break;const key=r+','+c;if(seen.has(key))break;seen.add(key);}return p;}
+  function argmaxFirst(a){let b=0;for(let i=1;i<a.length;i++)if(a[i]>a[b])b=i;return b;}
+  const A={s:{Q:newQ(),algo:'s',svg:'cwS',st:'cwSt',last:null},q:{Q:newQ(),algo:'q',svg:'cwQ',st:'cwQt',last:null}};
+  let eps=0,busy=false,sel=null;
+  const cx=c=>OX+c*CW+CW/2, cy=r=>OY+r*CW+CW/2;
+  function shade(v){const t=Math.max(0,Math.min(1,(v+25)/25)); const l=Math.round(55+t*40); return `hsl(214,80%,${l}%)`;}
+  function draw(key,agentPos){
+    const ag=A[key], svg=$(ag.svg); svg.innerHTML='';
+    for(let r=0;r<R;r++)for(let c=0;c<C;c++){
+      let fill;
+      if(isCliff(r,c)) fill='#7f1d1d'; else if(isGoal(r,c)) fill='#86efac'; else fill=eps?shade(Math.max(...ag.Q[r][c])):'#f8fafc';
+      const rc=S('rect',{x:OX+c*CW+1,y:OY+r*CW+1,width:CW-2,height:CW-2,rx:5,fill:fill,stroke:sel&&sel[0]===r&&sel[1]===c?'#0f172a':'#e2e8f0','stroke-width':sel&&sel[0]===r&&sel[1]===c?3:1,style:'cursor:pointer'},svg);
+      rc.onclick=()=>{sel=[r,c];drawAll();showQ();};
+      if(r===3&&c===0) S('text',{x:cx(c),y:cy(r)-8,'text-anchor':'middle','font-size':12,'font-weight':700,fill:'#0f172a',text:'S'},svg);
+      if(isGoal(r,c)) S('text',{x:cx(c),y:cy(r)+5,'text-anchor':'middle','font-size':14,'font-weight':700,fill:'#14532d',text:'G'},svg);
+      if(eps&&!isCliff(r,c)&&!isGoal(r,c)){const a=argmaxFirst(ag.Q[r][c]); if(ag.Q[r][c].some(v=>v!==0)){const ux=D[a][1],uy=D[a][0],px=-uy,py=ux,tx=cx(c)+ux*10,ty=cy(r)+uy*10+(r===3&&c===0?6:0);
+        S('polygon',{points:`${tx+ux*6},${ty+uy*6} ${tx+px*5},${ty+py*5} ${tx-px*5},${ty-py*5}`,fill:'#0f172a',opacity:.55,style:'pointer-events:none'},svg);}}
+    }
+    S('text',{x:OX+4*CW,y:cy(3)+5,'text-anchor':'middle','font-size':12,'font-weight':700,fill:'#fecaca',text:'VÁCH ĐÁ −100',style:'pointer-events:none'},svg);
+    if(eps){const p=greedyPath(ag.Q); S('polyline',{points:p.map(([r,c])=>cx(c)+','+cy(r)).join(' '),fill:'none',stroke:'#f59e0b','stroke-width':4,'stroke-linejoin':'round',opacity:.9,style:'pointer-events:none'},svg);}
+    if(agentPos){S('circle',{cx:cx(agentPos.c),cy:cy(agentPos.r),r:11,fill:agentPos.fell?'#dc2626':'#1d4ed8',stroke:'#fff','stroke-width':2},svg);}
+    $(ag.st).textContent=ag.last?`tập gần nhất: phần thưởng ${ag.last.total}, số lần rơi ${ag.last.falls}`:'chưa huấn luyện';
+  }
+  function drawAll(){draw('s');draw('q');$('cwN').textContent='Số tập đã huấn luyện: '+eps;}
+  function showQ(){ if(!sel)return; const [r,c]=sel; if(isCliff(r,c)){$('cwLog').textContent='Ô vách đá: tác nhân không bao giờ ở lại đây (nó bị đưa về S).';return;}
+    const f=Q=>Q[r][c].map((v,i)=>`${AN[i]}: ${fmt(v,1)}`).join('   ');
+    $('cwLog').textContent=`Giá trị Q của ô (hàng ${r}, cột ${c})\nSarsa:      ${f(A.s.Q)}\nQ-learning: ${f(A.q.Q)}`; }
+  function train(n){ if(busy)return; for(let i=0;i<n;i++){A.s.last=runEpisode(A.s.Q,'s');A.q.last=runEpisode(A.q.Q,'q');eps++;} drawAll(); showQ(); }
+  async function animate(){ if(busy)return; busy=true; document.querySelectorAll('#cw1,#cw50,#cw300,#cwR').forEach(b=>b.disabled=true);
+    eps++; const gs=episode(A.s.Q,'s',EPS), gq=episode(A.q.Q,'q',EPS); let ds=false,dq=false,ps=null,pq=null;
+    while(!ds||!dq){ if(!ds){const x=gs.next(); if(x.done)ds=true; else {ps=x.value;A.s.last=ps; if(ps.done)ds=true;}}
+      if(!dq){const x=gq.next(); if(x.done)dq=true; else {pq=x.value;A.q.last=pq; if(pq.done)dq=true;}}
+      draw('s',ps); draw('q',pq); $('cwN').textContent='Số tập đã huấn luyện: '+eps; await sleep(eps<5?90:45); }
+    await sleep(400); drawAll(); showQ(); busy=false; document.querySelectorAll('#cw1,#cw50,#cw300,#cwR').forEach(b=>b.disabled=false); }
+  $('cw1').onclick=animate; $('cw50').onclick=()=>train(50); $('cw300').onclick=()=>train(300);
+  $('cwR').onclick=()=>{A.s.Q=newQ();A.q.Q=newQ();A.s.last=A.q.last=null;eps=0;sel=null;drawAll();$('cwLog').textContent='Đã đặt lại. Mọi giá trị Q bằng 0.';};
+  drawAll();
+
+  $('cwExp').onclick=async()=>{ $('cwExp').disabled=true; const RUNS=40,EPN=300; const sumS=new Float64Array(EPN),sumQ=new Float64Array(EPN);
+    for(let run=0;run<RUNS;run++){ const qs=newQ(),qq=newQ(); for(let e=0;e<EPN;e++){ sumS[e]+=Math.max(-150,runEpisode(qs,'s').total); sumQ[e]+=Math.max(-150,runEpisode(qq,'q').total);} if(run%8===7){$('cwExpP').textContent=`Lượt chạy: ${run+1}/${RUNS}`;await sleep(0);} }
+    const sm=a=>a.map((_,i)=>{let s=0,c=0;for(let j=Math.max(0,i-9);j<=i;j++){s+=a[j];c++;}return s/c;});
+    lineChart($('cwChart'),{series:[{label:'Sarsa',color:'#2563eb',data:sm([...sumS].map(x=>x/RUNS))},{label:'Q-learning',color:'#ea580c',data:sm([...sumQ].map(x=>x/RUNS))}],xLabel:'Tập',yLabel:'Phần thưởng mỗi tập',yMin:-100,yMax:0,xStart:1});
+    $('cwExpP').textContent='Xong. (Các tập đầu rất tệ được cắt ở −150 trước khi lấy trung bình.)'; $('cwExp').disabled=false; };
+})();
+
+const QUIZ=[
+{q:"Vì sao các thuật toán điều khiển như Sarsa học Q(s, a) thay vì V(s)?",
+ o:["Với Q, tác nhân có thể so sánh trực tiếp các hành động mà không cần biết mỗi hành động dẫn đến đâu","Giá trị Q luôn dương","Không thể học V(s) từ trải nghiệm","Q cần ít bộ nhớ hơn V"],a:0,
+ e:["Chính xác. Chọn Q(s, a) lớn nhất không cần mô hình của môi trường.","Giá trị Q có thể âm.","Bài 4 đã cho thấy V(s) có thể học từ trải nghiệm.","Q lưu một giá trị cho mỗi cặp trạng thái–hành động, nhiều hơn V."]},
+{q:"Trong bảng Q, hàng của trạng thái S₂ là: Lên = 4,1, Phải = 2,0, Trái = 0,3. Tác nhân tham lam chọn hành động nào?",
+ o:["Lên","Phải","Trái","Một hành động ngẫu nhiên"],a:0,
+ e:["Chính xác. 4,1 là giá trị lớn nhất trong hàng.","2,0 nhỏ hơn 4,1.","0,3 là giá trị nhỏ nhất.","Tác nhân tham lam luôn chọn giá trị cao nhất; tính ngẫu nhiên chỉ đến từ ε."]},
+{q:"SARSA viết tắt của gì?",
+ o:["State, Action, Reward, next State, next Action (trạng thái, hành động, phần thưởng, trạng thái kế, hành động kế)","State, Average, Reward, Step, Action","Sample, Action, Return, State, Average","Search, Act, Reward, Search, Act"],a:0,
+ e:["Chính xác. Phép cập nhật dùng bộ (S, A, R, S′, A′).","Trong tên không có trung bình hay bước nào.","Tổng phần thưởng tích lũy (return) và mẫu (sample) không thuộc tên gọi.","Sarsa không tìm kiếm."]},
+{q:"Mục tiêu của Q-learning là gì?",
+ o:["R + γ · max theo a của Q(S′, a)","R + γ · Q(S′, A′) với hành động kế tiếp thực sự được chọn","Tổng phần thưởng tích lũy G đầy đủ","Q(S, A) − R"],a:0,
+ e:["Chính xác. Q-learning dùng hành động kế tiếp tốt nhất.","Đó là mục tiêu của Sarsa.","Đó là mục tiêu của Monte Carlo.","Đây không phải mục tiêu của phương pháp nào ở đây."]},
+{q:"Q(S, A) = 2, R = 1, γ = 1, max Q(S′, ·) = 5, α = 0,5. Q(S, A) sau một lần cập nhật Q-learning là bao nhiêu?",
+ o:["4","6","3,5","2"],a:0,
+ e:["Chính xác: mục tiêu = 1 + 5 = 6; sai số = 6 − 2 = 4; mới = 2 + 0,5 × 4 = 4.","6 là mục tiêu. Với α = 0,5 ước lượng chỉ dịch được nửa đường.","Kiểm tra lại phép tính: 0,5 × 4 = 2, nên 2 + 2 = 4.","Ước lượng thay đổi vì sai số khác không."]},
+{q:"Vì sao Sarsa được gọi là on-policy?",
+ o:["Nó học giá trị của chính sách nó thực sự đi theo, kể cả khám phá","Nó không dùng chính sách","Nó luôn hành động tham lam","Nó chỉ học sau khi tập kết thúc"],a:0,
+ e:["Chính xác. Mục tiêu của nó dùng hành động kế tiếp do chính sách ε-tham lam của chính nó chọn.","Sarsa đi theo một chính sách ε-tham lam.","Sarsa khám phá với xác suất ε.","Sarsa cập nhật sau mỗi bước."]},
+{q:"Vì sao Q-learning được gọi là off-policy?",
+ o:["Nó học giá trị của chính sách tham lam (tốt nhất) trong khi hành xử theo một chính sách khác, có khám phá","Nó không dùng phần thưởng","Nó không bao giờ khám phá","Nó cần mô hình của môi trường"],a:0,
+ e:["Chính xác. Phép max trong mục tiêu giả định hành vi tham lam từ bước kế tiếp trở đi.","Nó dùng phần thưởng ở mọi lần cập nhật.","Nó khám phá bằng ε-tham lam; chỉ là nó không học giá trị của việc khám phá đó.","Q-learning không cần mô hình."]},
+{q:"Trong bài đi bộ qua vách đá với ε = 0,1, vì sao Q-learning thu được ít phần thưởng mỗi tập hơn Sarsa trong lúc học?",
+ o:["Nó học lộ trình dọc mép vách đá, và những bước khám phá ngẫu nhiên của nó đôi khi làm nó rơi (−100)","Nó không bao giờ đến đích","Nó dùng bước cập nhật lớn hơn","Các giá trị của nó luôn bằng không"],a:0,
+ e:["Chính xác. Lộ trình sát mép là tối ưu cho tác nhân hoàn hảo, nhưng tốn kém cho tác nhân còn khám phá.","Nó có đến đích; chỉ là nó rơi nhiều hơn trên đường đi.","Cả hai đều dùng α = 0,5 trong mô phỏng.","Các giá trị của nó được học và trở nên khác không."]},
+{q:"Vì sao không thể dùng bảng Q cho một trò chơi như cờ vây?",
+ o:["Có quá nhiều trạng thái để lưu, và hầu hết sẽ không bao giờ được ghé thăm","Cờ vây không có phần thưởng","Cờ vây chỉ có một hành động","Bảng Q không lưu được số âm"],a:0,
+ e:["Chính xác. Với khoảng 10³⁸ thế cờ ngay cả trên bàn 9×9, bảng là bất khả thi.","Thắng hay thua đều cho phần thưởng.","Cờ vây có nhiều nước đi hợp lệ ở mỗi thế cờ.","Bảng Q lưu được mọi số."]},
+{q:"Lợi thế chính của RL xấp xỉ, như mạng nơ-ron cho ra các giá trị Q, là gì?",
+ o:["Nó khái quát hóa: học về một trạng thái cải thiện ước lượng cho các trạng thái tương tự chưa từng thấy","Nó không bao giờ cần phần thưởng","Nó luôn huấn luyện ổn định hơn bảng","Nó loại bỏ nhu cầu khám phá"],a:0,
+ e:["Chính xác. Đầu vào giống nhau cho đầu ra giống nhau, nên kiến thức được chuyển giữa các trạng thái.","Phần thưởng vẫn là tín hiệu học.","Xấp xỉ hàm thường khó huấn luyện ổn định hơn bảng.","Tác nhân vẫn phải khám phá."]}
+];
+</script>
+<script>
+buildTOC();
+renderQuiz(QUIZ);
+</script>
+</body>
+</html>

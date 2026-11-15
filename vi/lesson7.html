@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RL 7: Máy trò chơi nhiều cánh tay và ứng dụng</title>
+<style>:root{
+  --ink:#1c2430;--muted:#5d6878;--bg:#f7f7f3;--card:#ffffff;--line:#e3e6ea;
+  --accent:#2563eb;--accent-soft:#dbeafe;--ok:#15803d;--ok-soft:#dcfce7;--bad:#b91c1c;--bad-soft:#fee2e2;
+  --warn:#b45309;--warn-soft:#fef3c7;--purple:#7c3aed;--purple-soft:#ede9fe;
+  --c1:#2563eb;--c2:#ea580c;--c3:#16a34a;--c4:#7c3aed;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font:16.5px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+main{max-width:860px;margin:0 auto;padding:0 18px 80px}
+header.top{max-width:860px;margin:0 auto;padding:22px 18px 6px}
+.crumbs{font-size:.85rem;color:var(--muted);letter-spacing:.02em;text-transform:uppercase;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.langbtn{flex:none;text-transform:none;letter-spacing:0;font-size:.82rem;font-weight:600;text-decoration:none;color:var(--accent);border:1px solid var(--accent);background:#fff;border-radius:999px;padding:3px 12px;white-space:nowrap}
+.langbtn:hover{background:var(--accent);color:#fff}
+h1{font-size:2rem;line-height:1.2;margin:.25em 0 .35em}
+h2{font-size:1.35rem;margin:2.2em 0 .6em;padding-top:.3em;border-top:1px solid var(--line)}
+h3{font-size:1.08rem;margin:1.5em 0 .4em}
+.lead{color:var(--muted);font-size:1.05rem;margin-top:0}
+nav.course{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
+nav.course a{font-size:.82rem;text-decoration:none;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 10px}
+nav.course a.cur{background:var(--accent);border-color:var(--accent);color:#fff}
+.toc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin:18px 0}
+.toc b{display:block;margin-bottom:4px}
+.toc ol{margin:0;padding-left:20px}
+.toc a{color:var(--accent);text-decoration:none}
+.goals{background:var(--ok-soft);border-radius:12px;padding:12px 18px;margin:16px 0}
+.goals ul{margin:.3em 0 0;padding-left:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:18px 0}
+.demo{background:var(--card);border:2px solid var(--accent-soft);border-radius:14px;padding:16px 18px;margin:20px 0}
+.demo>.tag,.card>.tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.box{border-radius:10px;padding:10px 14px;margin:14px 0}
+.key{background:var(--accent-soft);border-left:4px solid var(--accent)}
+.analogy{background:var(--purple-soft);border-left:4px solid var(--purple)}
+.warn{background:var(--warn-soft);border-left:4px solid var(--warn)}
+.example{background:#f1f5f9;border-left:4px solid #64748b}
+.box b.lbl{display:block;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.analogy b.lbl{color:var(--purple)}.key b.lbl{color:var(--accent)}.warn b.lbl{color:var(--warn)}.example b.lbl{color:#475569}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.95rem;background:#fff}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:#f1f5f9}
+.formula{font-family:ui-monospace,Menlo,Consolas,monospace;background:#fff;border:1px dashed #cbd5e1;border-radius:10px;padding:12px;text-align:center;font-size:1.05rem;margin:14px 0;overflow-x:auto}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92rem}
+.note{color:var(--muted);font-size:.92rem}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.center{text-align:center}
+button{font:inherit;font-size:.95rem;padding:7px 14px;border-radius:9px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+button.alt{background:#fff;color:var(--accent)}
+button:disabled{opacity:.45;cursor:default}
+input[type=range]{width:180px;vertical-align:middle}
+svg{max-width:100%;height:auto;display:block;margin:0 auto}
+svg text{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:.88rem;margin-top:4px}
+.legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+.log{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88rem;background:#f8fafc;border-radius:8px;padding:10px 12px;white-space:pre-wrap;min-height:3.2em}
+.steps{counter-reset:s;list-style:none;padding-left:0}
+.steps li{counter-increment:s;position:relative;padding-left:38px;margin:10px 0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:.85rem;display:flex;align-items:center;justify-content:center}
+pre.code{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow-x:auto;font-size:.86rem;line-height:1.55}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:640px){.grid2{grid-template-columns:1fr}h1{font-size:1.6rem}}
+/* quiz */
+.quiz{background:#fff;border:2px solid var(--line);border-radius:16px;padding:18px 20px;margin-top:40px}
+.quiz h2{border:0;margin-top:0;padding-top:0}
+.q{margin:22px 0;padding-bottom:14px;border-bottom:1px dashed var(--line)}
+.q p.qt{font-weight:600;margin:0 0 8px}
+.opt{display:block;width:100%;text-align:left;margin:6px 0;padding:10px 12px;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:9px}
+.opt:hover{border-color:var(--accent)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt .why{display:none;font-size:.9rem;color:var(--muted);margin-top:4px}
+.q.done .opt .why{display:block}
+.q.done .opt{cursor:default}
+.verdict{display:none;font-weight:700;margin-top:6px}
+.q.done .verdict{display:block}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.scorebar{position:sticky;bottom:10px;background:#0f172a;color:#fff;border-radius:12px;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px}
+.scorebar button{background:#fff;color:#0f172a;border-color:#fff}
+.final{display:none;margin-top:14px;padding:14px;border-radius:12px;background:var(--accent-soft)}
+footer.pn{display:flex;justify-content:space-between;gap:10px;margin-top:30px}
+footer.pn a{flex:1;text-decoration:none;border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px 14px;color:var(--ink)}
+footer.pn a small{display:block;color:var(--muted)}
+footer.pn a.next{text-align:right}
+@media (max-width:640px){nav.course{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}nav.course a{white-space:nowrap}}
+</style>
+</head>
+<body>
+<header class="top">
+<div class="crumbs"><span>Học tăng cường từ con số 0 · Ngày 3 · Bài 7/7</span><a class="langbtn" href="../lesson7.html">🌐 English</a></div>
+<nav class="course"><a href="index.html">Trang chủ</a><a href="lesson1.html" class="">1. Học tăng cường là gì?</a><a href="lesson2.html" class="">2. Phần thưởng, tổng phần thưởng và giá trị</a><a href="lesson3.html" class="">3. Khám phá và khai thác</a><a href="lesson4.html" class="">4. Monte Carlo và học sai khác thời gian (TD)</a><a href="lesson5.html" class="">5. Sarsa và Q-learning</a><a href="lesson6.html" class="">6. Học tăng cường dựa vào chính sách</a><a href="lesson7.html" class="cur">7. Máy trò chơi nhiều cánh tay và ứng dụng</a></nav>
+</header>
+<main>
+<h1>Bài 7: Máy trò chơi nhiều cánh tay và ứng dụng</h1>
+<p class="lead">Bài cuối cùng gom mọi thứ lại. Trước hết là bài toán máy trò chơi nhiều cánh tay trong slide của khóa học, giải từng bước và so với cách chơi của chính bạn. Sau đó là các ứng dụng thực tế, gồm một bộ điều khiển đèn giao thông mà bạn sẽ huấn luyện bằng Q-learning ngay trong trình duyệt. Cuối cùng là ôn tập toàn khóa học.</p>
+
+<div class="goals"><b>Sau bài học này bạn có thể:</b>
+<ul>
+<li>Phát biểu một bài toán dưới dạng RL bằng cách gọi tên mục tiêu, hành động, trạng thái và phần thưởng của nó.</li>
+<li>Giải bài toán máy trò chơi nhiều cánh tay bằng ε-tham lam và khởi tạo lạc quan (X = 10), và giải thích kết quả.</li>
+<li>Giải thích độ hối tiếc (regret), và vì sao bài toán máy trò chơi được dùng cho quảng cáo, gợi ý và thử nghiệm.</li>
+<li>Giải thích cách điều khiển đèn giao thông bằng Q-learning.</li>
+<li>Tóm tắt mọi ý chính của khóa học bằng lời của chính bạn.</li>
+</ul></div>
+
+<div class="toc" id="toc"><b>Nội dung</b></div>
+
+<h2>1. Bài toán máy trò chơi nhiều cánh tay</h2>
+<p>Cái tên đến từ các máy đánh bạc ở sòng bài, từng được gọi đùa là "tên cướp một tay" vì chúng lấy tiền của bạn. Hãy hình dung một hàng gồm <b>k</b> chiếc máy như vậy. Mỗi lượt bạn kéo một cánh tay và nhận một số điểm. Mỗi máy trả thưởng ngẫu nhiên quanh mức trung bình riêng của nó, và bạn không biết các mức trung bình đó.</p>
+<table>
+<tr><th>Thành phần RL</th><th>Trong trò chơi máy</th></tr>
+<tr><td><b>Mục tiêu</b></td><td>Cực đại hoá tổng số điểm sau tất cả các lượt</td></tr>
+<tr><td><b>Hành động</b></td><td>Kéo cánh tay nào (k lựa chọn)</td></tr>
+<tr><td><b>Phần thưởng</b></td><td>Số điểm nhận được ở lượt đó</td></tr>
+<tr><td><b>Trạng thái</b></td><td>Chỉ một: các máy không bao giờ đổi, nên kéo một cánh tay không làm thay đổi điều gì đến sau</td></tr>
+<tr><td><b>Giá trị</b></td><td>q*(a), mức trả trung bình thật của cánh tay a; ước lượng của tác nhân là Q(a)</td></tr>
+</table>
+<p>Vì chỉ có một trạng thái, nên không có phần thưởng bị trì hoãn và không có bài toán gán công trạng. Phần còn lại là tình thế lưỡng nan thuần túy <b>khám phá và khai thác</b> ở Bài 3. Đó là lý do bài toán máy trò chơi là bài toán đầu tiên chuẩn của RL.</p>
+<div class="box key"><b class="lbl">Độ hối tiếc: đo mức bạn chơi tốt đến đâu</b>
+Nếu bạn biết cánh tay tốt nhất ngay từ đầu, bạn sẽ kéo nó mọi lần. <b>Độ hối tiếc</b> (regret) là hiệu giữa tổng lý tưởng đó và những gì bạn thực sự kỳ vọng nhận được. Khám phá gây ra hối tiếc ở hiện tại (bạn kéo các cánh tay kém hơn để học) nhưng giảm hối tiếc về sau (bạn tìm ra cánh tay tốt nhất). Chiến lược tốt giữ tổng hối tiếc nhỏ.</div>
+
+<h2>2. Tự chơi thử</h2>
+<div class="demo"><span class="tag">Trò chơi: bạn đấu với các tác nhân RL</span>
+<p class="note" style="margin-top:0">Năm máy, <b>25 lần kéo</b>. Mỗi máy trả một số nguyên ngẫu nhiên quanh một mức trung bình ẩn. Bấm vào một máy để kéo. Cuối trò chơi, các mức trung bình được hé lộ và điểm của bạn được so với các tác nhân RL trên cùng những máy đó.</p>
+<svg viewBox="0 0 680 210" id="ygSvg"></svg>
+<div class="row"><button id="ygNew">Ván mới</button><span class="mono" id="ygStat"></span></div>
+<div class="log" id="ygLog"></div>
+</div>
+<p>Hãy để ý bạn đã làm gì. Ở những lần kéo đầu, có lẽ bạn đã thử mọi máy (khám phá). Khi một máy có vẻ tốt, bạn tiếp tục kéo nó (khai thác), thỉnh thoảng có thể kiểm tra máy khác. Các thuật toán RL thực hiện đúng sự đánh đổi này, nhưng theo một quy tắc chính xác.</p>
+
+<h2>3. Giải bài toán máy trò chơi bằng RL, từng bước</h2>
+<ol class="steps">
+<li><b>Khởi tạo</b> một ước lượng Q(a) và một bộ đếm N(a) = 0 cho mỗi cánh tay. Thường Q(a) = 0, hoặc một giá trị cao X nếu khởi đầu lạc quan.</li>
+<li><b>Chọn</b> một cánh tay bằng một chiến lược: ε-tham lam, tham lam lạc quan, UCB hoặc chính sách softmax.</li>
+<li><b>Kéo</b> cánh tay đó và quan sát phần thưởng R.</li>
+<li><b>Cập nhật</b>: N(a) ← N(a) + 1; Q(a) ← Q(a) + (1/N(a)) × (R − Q(a)). (Hoặc dùng bước cập nhật cố định α.)</li>
+<li><b>Lặp lại</b> cho đến khi hết lượt.</li>
+</ol>
+<p>Một bảng lưu một Q(a) cho mỗi cánh tay là ví dụ đơn giản nhất của <b>RL dạng bảng</b>: một bảng Q chỉ có một hàng.</p>
+
+<h2>4. Chiến lược lạc quan với X = 10</h2>
+<p>Slide khóa học của bạn dùng chiến lược <b>khởi tạo giá trị lạc quan</b> với <b>X = 10</b>. "X" là giá trị khởi đầu gán cho mọi ước lượng Q(a) trước khi kéo lần nào. Ở đây các máy trả trung bình từ 2 đến 8 điểm, nên 10 cao hơn mức mà bất kỳ máy nào thực sự có thể đem lại: mọi máy lúc đầu đều trông tuyệt vời.</p>
+<div class="box example"><b class="lbl">Ví dụ minh họa (cập nhật trung bình mẫu)</b>
+Cả năm ước lượng bắt đầu ở Q = 10. Tác nhân tham lam chọn (giả sử) máy 1 và nhận 4 điểm. Q(1) = 10 + (1/1)(4 − 10) = <b>4</b>.<br>
+Các máy 2–5 vẫn hiện 10, nên tác nhân tham lam thử máy 2 kế tiếp; nó trả 7, nên Q(2) = 7. Rồi lần lượt các máy 3, 4 và 5.<br>
+Sau năm lần kéo, mọi máy đã được thử một lần, mà không hề có khám phá ngẫu nhiên nào. Từ đó tác nhân kéo máy nào trông tốt nhất, và các ước lượng của nó tiếp tục được cải thiện.<br>
+Nếu dùng bước cập nhật cố định α = 0,1, Q(1) = 10 + 0,1 × (4 − 10) = 9,4: sự lạc quan phai đi chậm, nên mỗi máy được thử <i>nhiều</i> lần trước khi tác nhân ổn định. Đó là khám phá nhiều hơn, với chi phí ban đầu cao hơn.</div>
+
+<div class="demo"><span class="tag">Thí nghiệm: bốn chiến lược trên cùng năm máy</span>
+<p class="note" style="margin-top:0">Các mức trung bình thật là 2, 3,5, 5, 6,5 và 8 (thứ tự ngẫu nhiên mỗi lượt chạy), nhiễu ±2,5. 200 lần kéo mỗi lượt chạy, lấy trung bình trên 1.000 lượt.</p>
+<div class="row"><button id="xRun">Chạy thí nghiệm</button><span class="note" id="xProg"></span></div>
+<h3 style="margin-top:4px">Tần suất máy tốt nhất được chọn (%)</h3>
+<div id="xChart"><p class="note center">Bấm nút để chạy.</p></div>
+<div id="xTable"></div>
+</div>
+<p>Kết quả cho thấy:</p>
+<ul>
+<li><b>Tham lam bắt đầu từ 0</b> kẹt ở khoảng 20%: mọi máy đều trả hơn 0, nên sau lần kéo đầu, ước lượng của máy đó dương trong khi các máy khác vẫn ở 0. Tác nhân không bao giờ thử gì khác, và chỉ chọn máy tốt nhất khi lựa chọn đầu tiên của nó tình cờ là máy tốt nhất (1 trên 5).</li>
+<li><b>ε-tham lam</b> cải thiện đều đặn, nhưng 10% số lần kéo của nó luôn ngẫu nhiên, nên nó học chậm và cứ phải trả giá cho khám phá.</li>
+<li><b>Tham lam lạc quan với X = 10</b> thử mọi máy trong năm lần kéo đầu, rồi khai thác. Nó tìm ra máy tốt nhanh nhất và thường thu được nhiều điểm nhất, đó là lý do các slide dùng chiến lược này.</li>
+<li><b>X = 10 với α = 0,1</b> khám phá lâu hơn, nên bắt đầu chậm hơn, nhưng cuối cùng chọn máy tốt nhất nhiều nhất.</li>
+</ul>
+
+<h2>5. Các ứng dụng thực tế của máy trò chơi nhiều cánh tay</h2>
+<div class="grid2">
+<div class="card" style="margin:0"><span class="tag">Quảng cáo trực tuyến và A/B test</span><br>Mỗi phiên bản của một quảng cáo hay trang web là một cánh tay; một lượt nhấp là phần thưởng 1. Thuật toán bandit đưa nhiều người xem hơn đến các phiên bản tốt hơn mà vẫn tiếp tục thử nghiệm, thay vì chia lưu lượng 50/50 trong nhiều tuần như A/B test cổ điển.</div>
+<div class="card" style="margin:0"><span class="tag">Tin tức và gợi ý</span><br>Mỗi bài viết hay sản phẩm là một cánh tay. Hệ thống học xem người đọc tương tác với cái nào. Khi còn dùng thêm thông tin về người đọc, nó gọi là bandit <i>có ngữ cảnh</i>.</div>
+<div class="card" style="margin:0"><span class="tag">Thử nghiệm lâm sàng</span><br>Mỗi phương pháp điều trị là một cánh tay và một kết quả thành công là phần thưởng. Các thiết kế thích ứng chuyển nhiều bệnh nhân hơn sang các phương pháp trông tốt hơn khi bằng chứng tăng lên.</div>
+<div class="card" style="margin:0"><span class="tag">Trò chơi và điểm số</span><br>Trò chơi máy đánh bạc trong slide của bạn: mục tiêu là tổng điểm sau tất cả các lượt, và phần thưởng là số điểm mỗi lượt.</div>
+</div>
+
+<h2>6. Một ứng dụng RL đầy đủ: điều khiển đèn giao thông</h2>
+<p>Khác với bài toán máy trò chơi, các hành động của đèn giao thông <b>làm thay đổi tương lai</b>: giữ đèn xanh bây giờ ảnh hưởng đến độ dài hàng xe về sau. Vì vậy đây là một bài toán RL đầy đủ có các trạng thái, như ở Bài 4 và 5.</p>
+<table>
+<tr><th>Thành phần RL</th><th>Đèn giao thông</th></tr>
+<tr><td><b>Mục tiêu</b></td><td>Giảm tắc nghẽn</td></tr>
+<tr><td><b>Trạng thái</b></td><td>Độ dài hàng xe bắc–nam, độ dài hàng xe đông–tây, hướng nào đang xanh</td></tr>
+<tr><td><b>Hành động</b></td><td>Giữ đèn xanh hiện tại, hoặc chuyển (chuyển làm mất một bước thời gian, như pha đèn vàng)</td></tr>
+<tr><td><b>Phần thưởng</b></td><td>Trừ tổng số xe đang chờ ở mỗi bước thời gian: ít xe chờ hơn → phần thưởng cao hơn</td></tr>
+</table>
+<p>Trong mô phỏng này, xe đến từ đường bắc–nam thường xuyên hơn (xác suất 40% mỗi bước) so với đường đông–tây (20%). Mỗi bước có một xe qua được khi đèn xanh. Bộ điều khiển đơn giản cứ 10 bước lại chuyển, bất kể tình hình. Bộ điều khiển RL học bằng <b>Q-learning</b> (Bài 5) dùng một bảng Q: khoảng 240 trạng thái × 2 hành động.</p>
+
+<div class="demo"><span class="tag">Tương tác: huấn luyện và xem</span>
+<div class="row">
+  <button id="tTrain">1. Huấn luyện bộ điều khiển RL (Q-learning, 200.000 bước)</button>
+  <span class="note" id="tTrainP"></span>
+</div>
+<div class="row">
+  <button id="tFixed" class="alt">▶ Xem bộ hẹn giờ cố định</button>
+  <button id="tRL" class="alt" disabled>▶ Xem bộ điều khiển RL</button>
+  <button id="tStop" class="alt">⏸ Dừng</button>
+</div>
+<div class="grid2">
+  <svg viewBox="0 0 320 320" id="tSvg" style="max-width:330px"></svg>
+  <div><div class="log" id="tLog">Hãy huấn luyện bộ điều khiển trước, hoặc xem bộ hẹn giờ cố định.</div><div id="tEval"></div></div>
+</div>
+</div>
+<p>Sau khi huấn luyện, bộ điều khiển RL cho đường bắc–nam đông xe hơn những pha xanh dài hơn và chuyển khi hàng xe ở đường kia dài ra. Không ai lập trình quy tắc đó: nó tự xuất hiện từ việc cực đại hoá phần thưởng (ít xe chờ hơn). Các hệ thống nghiên cứu thực tế dùng cùng ý tưởng với trạng thái phong phú hơn, như ảnh từ camera và nhiều ngã tư nối với nhau, và dùng mạng nơ-ron thay cho bảng (RL xấp xỉ, Bài 5).</p>
+
+<h2>7. Ôn tập khóa học</h2>
+<table>
+<tr><th>Bài</th><th>Ý chính</th><th>Công thức hoặc quy tắc chính</th></tr>
+<tr><td>1. RL là gì</td><td>Tác nhân học bằng thử và sai để cực đại hoá tổng phần thưởng</td><td>Vòng lặp: trạng thái → hành động → phần thưởng + trạng thái kế</td></tr>
+<tr><td>2. Tổng phần thưởng tích lũy và giá trị</td><td>Tổng phần thưởng tích lũy = tổng phần thưởng có chiết khấu; giá trị = tổng phần thưởng tích lũy kỳ vọng</td><td>Gₜ = Rₜ₊₁ + γGₜ₊₁ ; Q(s,a) = r + γV(s′)</td></tr>
+<tr><td>3. Khám phá</td><td>Cân bằng giữa thử hành động mới và dùng cái tốt nhất đã biết</td><td>ε-tham lam; khởi đầu lạc quan X; UCB; Q ← Q + (1/n)(R − Q)</td></tr>
+<tr><td>4. MC và TD</td><td>Học giá trị từ trải nghiệm mà không cần mô hình</td><td>MC: V ← V + α(G − V) ; TD: V ← V + α(R + γV(s′) − V)</td></tr>
+<tr><td>5. Sarsa và Q-learning</td><td>Học Q(s,a) và hành động ε-tham lam; bảng hoặc mạng nơ-ron</td><td>Sarsa: R + γQ(S′,A′) ; Q-learning: R + γ max Q(S′,·)</td></tr>
+<tr><td>6. Dựa trên chính sách</td><td>Học trực tiếp các xác suất hành động bằng gradient ascent</td><td>Softmax; θₖ ← θₖ + η(R − b)(1[k=a] − π(k))</td></tr>
+<tr><td>7. Ứng dụng</td><td>Máy trò chơi nhiều cánh tay, điều khiển giao thông, gợi ý, trò chơi</td><td>Mục tiêu + hành động + trạng thái + phần thưởng = một bài toán RL</td></tr>
+</table>
+<div class="box key"><b class="lbl">Một khuôn mẫu cần nhớ</b>
+Hầu như mọi thuật toán trong khóa học này cập nhật một ước lượng bằng:<br><span class="mono">ước lượng ← ước lượng + bước cập nhật × (mục tiêu − ước lượng)</span><br>Các phương pháp chỉ khác nhau ở thứ chúng dùng làm mục tiêu: một phần thưởng (máy trò chơi), một tổng phần thưởng tích lũy đầy đủ (Monte Carlo), một phần thưởng cộng một ước lượng bootstrapping (TD, Sarsa, Q-learning), hay một phần thưởng so với đường cơ sở (REINFORCE).</div>
+<p><b>Mã nguồn khóa học:</b> notebook Colab được liên kết trong slide của bạn chứa cài đặt bài toán máy trò chơi: <a href="https://colab.research.google.com/drive/1-_6DVuOjJWBp2V5x53uTZC9U5Z1IoYiT" target="_blank" rel="noopener">mở notebook trong Google Colab</a>.</p>
+<p><b>Nên đi tiếp ở đâu:</b> giáo trình trực tuyến miễn phí <i>Reinforcement Learning: An Introduction</i> của Sutton và Barto (ấn bản 2, 2018), các chương 2 (bandit), 6 (TD, Sarsa, Q-learning) và 13 (gradient chính sách); và thư viện Python <i>Gymnasium</i>, có sẵn các môi trường như CliffWalking và FrozenLake để bạn tự cài đặt Q-learning.</p>
+
+
+
+<section class="quiz" id="quiz">
+<h2>Trắc nghiệm: kiểm tra mức hiểu bài</h2>
+<p class="note">10 câu trắc nghiệm. Bấm vào một đáp án: bạn sẽ biết đúng hay sai, kèm giải thích cho <b>từng</b> phương án.</p>
+<div id="quizItems"></div>
+<div class="final" id="finalMsg"></div>
+<div class="scorebar"><span id="scoreText"></span><button id="retry">Làm lại</button></div>
+</section>
+<footer class="pn"><a href="lesson6.html"><small>← Bài trước</small>6. Học tăng cường dựa vào chính sách</a><span></span></footer>
+</main>
+<script>// ---------- small helpers ----------
+const $ = id => document.getElementById(id);
+const NS = 'http://www.w3.org/2000/svg';
+function S(tag, attrs, parent){
+  const e = document.createElementNS(NS, tag);
+  for (const k in (attrs||{})) {
+    if (k === 'text') e.textContent = attrs[k]; else e.setAttribute(k, attrs[k]);
+  }
+  if (parent) parent.appendChild(e);
+  return e;
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const fmt = (x, d=2) => (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toFixed(d).replace('.',',');
+function argmaxRand(arr){
+  const m = Math.max(...arr); const c = [];
+  arr.forEach((v,i)=>{ if (v === m) c.push(i); });
+  return c[Math.floor(Math.random()*c.length)];
+}
+function randn(){ let u=0,v=0; while(!u)u=Math.random(); while(!v)v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+
+// ---------- line chart ----------
+// opts: {w,h,series:[{label,color,data:[y..], dash}], xLabel,yLabel,yMin,yMax,xStart}
+function lineChart(container, opts){
+  const w = opts.w||640, h = opts.h||300, L=56, R=16, T=14, B=44;
+  container.innerHTML = '';
+  const svg = S('svg', {viewBox:`0 0 ${w} ${h}`, role:'img'}, container);
+  let all = []; opts.series.forEach(s => all = all.concat(s.data));
+  const yMin = opts.yMin !== undefined ? opts.yMin : Math.min(...all);
+  const yMax = opts.yMax !== undefined ? opts.yMax : Math.max(...all);
+  const n = Math.max(...opts.series.map(s=>s.data.length));
+  const x0 = opts.xStart||0;
+  const X = i => L + (w-L-R) * (n<=1?0:i/(n-1));
+  const Y = v => T + (h-T-B) * (1 - (v-yMin)/((yMax-yMin)||1));
+  for (let k=0;k<=4;k++){
+    const v = yMin + (yMax-yMin)*k/4, y = Y(v);
+    S('line',{x1:L,x2:w-R,y1:y,y2:y,stroke:'#e5e7eb'},svg);
+    S('text',{x:L-6,y:y+4,'text-anchor':'end','font-size':11,fill:'#64748b',text:(Math.abs(yMax-yMin)<5?fmt(v,2):Math.round(v))},svg);
+  }
+  for (let k=0;k<=4;k++){
+    const i = Math.round((n-1)*k/4), x = X(i);
+    S('text',{x:x,y:h-B+16,'text-anchor':'middle','font-size':11,fill:'#64748b',text:x0+i},svg);
+  }
+  S('line',{x1:L,x2:L,y1:T,y2:h-B,stroke:'#94a3b8'},svg);
+  S('line',{x1:L,x2:w-R,y1:h-B,y2:h-B,stroke:'#94a3b8'},svg);
+  if (opts.xLabel) S('text',{x:(L+w-R)/2,y:h-6,'text-anchor':'middle','font-size':12,fill:'#334155',text:opts.xLabel},svg);
+  if (opts.yLabel) S('text',{x:14,y:(T+h-B)/2,'text-anchor':'middle','font-size':12,fill:'#334155',transform:`rotate(-90 14 ${(T+h-B)/2})`,text:opts.yLabel},svg);
+  opts.series.forEach(s=>{
+    const pts = s.data.map((v,i)=>`${X(i).toFixed(1)},${Y(Math.max(yMin,Math.min(yMax,v))).toFixed(1)}`).join(' ');
+    S('polyline',{points:pts,fill:'none',stroke:s.color,'stroke-width':2.2,'stroke-dasharray':s.dash||'', 'stroke-linejoin':'round'},svg);
+  });
+  const lg = document.createElement('div'); lg.className='legend';
+  opts.series.forEach(s=>{ const sp=document.createElement('span'); sp.style.setProperty('--c',s.color); sp.textContent=s.label; lg.appendChild(sp); });
+  container.appendChild(lg);
+}
+
+// ---------- table of contents ----------
+function buildTOC(){
+  const toc = $('toc'); if (!toc) return;
+  const hs = [...document.querySelectorAll('main > section > h2, main > h2')].filter(h=>!h.closest('.quiz'));
+  const ol = document.createElement('ol');
+  hs.forEach((h,i)=>{ if(!h.id) h.id='sec'+(i+1); const li=document.createElement('li'); li.innerHTML=`<a href="#${h.id}">${h.textContent}</a>`; ol.appendChild(li); });
+  const li=document.createElement('li'); li.innerHTML='<a href="#quiz">Trắc nghiệm (10 câu)</a>'; ol.appendChild(li);
+  toc.appendChild(ol);
+}
+
+// ---------- quiz ----------
+// item: {q, o:[4 options], a:index, e:[4 explanations]}
+function renderQuiz(items){
+  const box = $('quizItems'); box.innerHTML = '';
+  let answered = 0, correct = 0;
+  const bar = $('scoreText'), fin = $('finalMsg');
+  function upd(){
+    bar.textContent = `Đã trả lời ${answered}/${items.length} · Đúng ${correct}`;
+    if (answered === items.length){
+      fin.style.display='block';
+      const pct = correct/items.length;
+      fin.innerHTML = `<b>Bạn đạt ${correct}/${items.length} điểm.</b> ` + (pct===1 ? 'Tuyệt vời! Bạn đã nắm vững bài học này.' : pct>=0.7 ? 'Làm tốt lắm. Hãy đọc phần giải thích của những câu bạn làm sai rồi học tiếp.' : 'Hãy đọc lại các phần trong mục lục phía trên, rồi bấm "Làm lại".');
+    } else fin.style.display='none';
+  }
+  items = items.map(it0=>{ // shuffle option order so the answer is not always in the same place
+    const idx=[0,1,2,3].slice(0,it0.o.length); for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+    return {q:it0.q,o:idx.map(i=>it0.o[i]),e:idx.map(i=>it0.e[i]),a:idx.indexOf(it0.a),orig:it0};
+  });
+  items.forEach((it, qi)=>{
+    const d = document.createElement('div'); d.className='q';
+    d.innerHTML = `<p class="qt">${qi+1}. ${it.q}</p>`;
+    const btns = [];
+    it.o.forEach((t,j)=>{
+      const b = document.createElement('button'); b.className='opt';
+      b.innerHTML = `<b>${String.fromCharCode(65+j)}.</b> ${t}<span class="why">${j===it.a?'✔ ':'✘ '}${it.e[j]}</span>`;
+      b.onclick = ()=>{
+        if (d.classList.contains('done')) return;
+        d.classList.add('done'); answered++;
+        btns[it.a].classList.add('right');
+        if (j===it.a){ correct++; v.innerHTML='<span class="ok">Chính xác!</span> Tất cả các phương án đều được giải thích bên dưới.'; }
+        else { b.classList.add('wrong'); v.innerHTML=`<span class="bad">Chưa đúng.</span> Đáp án là ${String.fromCharCode(65+it.a)}. Hãy đọc vì sao từng phương án đúng hoặc sai.`; }
+        upd();
+      };
+      btns.push(b); d.appendChild(b);
+    });
+    const v = document.createElement('div'); v.className='verdict'; d.insertBefore(v, d.children[1]);
+    box.appendChild(d);
+  });
+  $('retry').onclick = ()=>{ renderQuiz(items.map(x=>x.orig)); $('quiz').scrollIntoView(); };
+  upd();
+}
+</script>
+<script>
+// ----- play yourself -----
+(function(){
+  const MEANS=[2,3.5,5,6.5,8], SD=2.5, T=25, K=5, COL=['#2563eb','#ea580c','#16a34a','#7c3aed','#db2777'];
+  let mu,cnt,sum,turn,total,lastA,lastR,over,log;
+  const pay=a=>Math.round(mu[a]+SD*randn());
+  function agentAvg(kind){ let tot=0; const RUNS=2000; for(let r=0;r<RUNS;r++){ const Q=Array(K).fill(kind==='opt'?10:0),N=Array(K).fill(0); for(let t=0;t<T;t++){ const a=(kind==='eps'&&Math.random()<0.1)?Math.floor(Math.random()*K):argmaxRand(Q); const x=pay(a); N[a]++; Q[a]+=(x-Q[a])/N[a]; tot+=x; } } return tot/RUNS; }
+  function draw(){
+    const svg=$('ygSvg'); svg.innerHTML='';
+    for(let a=0;a<K;a++){ const x=15+a*133, act=lastA===a;
+      const g=S('g',{style:over?'':'cursor:pointer'},svg);
+      S('rect',{x:x,y:10,width:118,height:150,rx:14,fill:act?'#fef3c7':'#f8fafc',stroke:COL[a],'stroke-width':act?4:2},g);
+      S('rect',{x:x+14,y:28,width:90,height:42,rx:6,fill:'#0f172a'},g);
+      S('text',{x:x+59,y:56,'text-anchor':'middle','font-size':18,'font-weight':700,fill:act?'#fde047':'#64748b',text:act?(lastR>0?'+':'')+lastR:'?'},g);
+      S('text',{x:x+59,y:94,'text-anchor':'middle','font-size':14,'font-weight':700,fill:COL[a],text:'Máy '+(a+1)},g);
+      S('text',{x:x+59,y:116,'text-anchor':'middle','font-size':12,fill:'#475569',text:'đã kéo '+cnt[a]+' lần'},g);
+      S('text',{x:x+59,y:136,'text-anchor':'middle','font-size':12,fill:'#475569',text:cnt[a]?'TB của bạn '+fmt(sum[a]/cnt[a],1):'chưa thử'},g);
+      if(over) S('text',{x:x+59,y:190,'text-anchor':'middle','font-size':13,'font-weight':700,fill:mu[a]===8?'#15803d':'#334155',text:'TB thật '+String(mu[a]).replace('.',',')+(mu[a]===8?' ★':'')},svg);
+      g.onclick=()=>pull(a);
+    }
+    $('ygStat').textContent=`Lần kéo ${turn}/${T} · Tổng của bạn: ${total}`;
+    $('ygLog').textContent=log;
+  }
+  function pull(a){ if(over)return; const r=pay(a); cnt[a]++; sum[a]+=r; total+=r; turn++; lastA=a; lastR=r;
+    log=`Lần kéo ${turn}: máy ${a+1} trả ${r}.`;
+    if(turn>=T){ over=true; const best=8*T, e=agentAvg('eps'), o=agentAvg('opt'), g=agentAvg('greedy');
+      log=`Kết thúc! Tổng của bạn: ${total} điểm.\nNếu bạn biết máy tốt nhất (trung bình 8) ngay từ đầu: trung bình khoảng ${best} điểm. Độ hối tiếc của bạn ≈ ${best-total}.\n\nCác tác nhân RL trên cùng những máy này (trung bình qua 2.000 ván mỗi loại):\n  Tham lam bắt đầu từ 0:           ${fmt(g,1)}\n  ε-tham lam (ε = 0,1):            ${fmt(e,1)}\n  Tham lam lạc quan (X = 10):      ${fmt(o,1)}\n\nChỉ với 25 lần kéo thì có rất ít thời gian để khám phá, đó là lý do khám phá có hệ thống (X = 10) hoạt động tốt.`; }
+    draw(); }
+  function newGame(){ mu=MEANS.slice().sort(()=>Math.random()-.5); cnt=Array(K).fill(0); sum=Array(K).fill(0); turn=0; total=0; lastA=null; over=false; log='Bấm vào một máy để kéo cánh tay của nó.'; draw(); }
+  $('ygNew').onclick=newGame; newGame();
+})();
+
+// ----- X = 10 experiment -----
+$('xRun').onclick=async()=>{
+  $('xRun').disabled=true; const MEANS=[2,3.5,5,6.5,8], SD=2.5, K=5, T=200, RUNS=1000;
+  const ags=[{l:'Tham lam, bắt đầu từ 0',c:'#94a3b8',eps:0,x:0,al:0},{l:'ε-tham lam (0,1), bắt đầu từ 0',c:'#2563eb',eps:.1,x:0,al:0},{l:'Tham lam lạc quan, X = 10',c:'#16a34a',eps:0,x:10,al:0},{l:'Tham lam lạc quan, X = 10, α = 0,1',c:'#ea580c',eps:0,x:10,al:.1}];
+  const opt=ags.map(()=>new Float64Array(T)), tot=ags.map(()=>0);
+  for(let run=0;run<RUNS;run++){ const mu=MEANS.slice().sort(()=>Math.random()-.5), best=mu.indexOf(8);
+    ags.forEach((ag,i)=>{ const Q=Array(K).fill(ag.x),N=Array(K).fill(0); for(let t=0;t<T;t++){ const a=Math.random()<ag.eps?Math.floor(Math.random()*K):argmaxRand(Q); const r=mu[a]+SD*randn(); N[a]++; Q[a]+=(ag.al||1/N[a])*(r-Q[a]); tot[i]+=r; if(a===best)opt[i][t]++; } });
+    if(run%200===199){$('xProg').textContent=`Lượt chạy: ${run+1}/${RUNS}`;await sleep(0);} }
+  lineChart($('xChart'),{series:ags.map((ag,i)=>({label:ag.l,color:ag.c,data:[...opt[i]].map(x=>100*x/RUNS)})),xLabel:'Lần kéo thứ',yLabel:'% máy tốt nhất',yMin:0,yMax:100,xStart:1});
+  $('xTable').innerHTML='<table><tr><th>Chiến lược</th><th>Tổng điểm trung bình trong 200 lần kéo</th><th>Độ hối tiếc (so với 1.600 lý tưởng)</th></tr>'+ags.map((ag,i)=>`<tr><td>${ag.l}</td><td>${fmt(tot[i]/RUNS,0)}</td><td>${fmt(1600-tot[i]/RUNS,0)}</td></tr>`).join('')+'</table>';
+  $('xProg').textContent='Xong.'; $('xRun').disabled=false;
+};
+
+// ----- traffic light -----
+(function(){
+  const PN=0.4, PE=0.2, CAP=30, B=10, GAM=0.95, AL=0.1, EP=0.1;
+  let Q=null, timer=null;
+  const sIdx=(qn,qe,g)=>(Math.min(qn,B)*(B+1)+Math.min(qe,B))*2+g;
+  function newState(){return {qn:0,qe:0,g:0,t:0,sinceSwitch:0,amber:false};}
+  function tick(s,act){ // act 0 keep, 1 switch
+    s.amber=false;
+    if(act===1){ s.g=1-s.g; s.sinceSwitch=0; s.amber=true; }
+    if(Math.random()<PN) s.qn=Math.min(CAP,s.qn+1);
+    if(Math.random()<PE) s.qe=Math.min(CAP,s.qe+1);
+    if(!s.amber){ if(s.g===0&&s.qn>0)s.qn--; else if(s.g===1&&s.qe>0)s.qe--; }
+    s.t++; s.sinceSwitch++;
+    return -(s.qn+s.qe);
+  }
+  const fixedPolicy=s=>s.sinceSwitch>=10?1:0;
+  const rlPolicy=s=>{const q=Q[sIdx(s.qn,s.qe,s.g)];return q[1]>q[0]?1:0;};
+  function evaluate(pol){ const s=newState(); let tot=0, N=20000; for(let i=0;i<N;i++){ tot+=-tick(s,pol(s)); } return tot/N; }
+  $('tTrain').onclick=async()=>{ $('tTrain').disabled=true; Q=[...Array((B+1)*(B+1)*2)].map(()=>[0,0]); const s=newState();
+    for(let i=0;i<200000;i++){ const k=sIdx(s.qn,s.qe,s.g); const a=Math.random()<EP?(Math.random()<.5?0:1):(Q[k][1]>Q[k][0]?1:(Q[k][1]<Q[k][0]?0:(Math.random()<.5?0:1)));
+      const r=tick(s,a); const k2=sIdx(s.qn,s.qe,s.g); Q[k][a]+=AL*(r+GAM*Math.max(Q[k2][0],Q[k2][1])-Q[k][a]);
+      if(i%40000===39999){$('tTrainP').textContent=`Đã huấn luyện ${i+1} bước`;await sleep(0);} }
+    const ef=evaluate(fixedPolicy), er=evaluate(rlPolicy);
+    $('tEval').innerHTML=`<table><tr><th>Bộ điều khiển</th><th>Số xe chờ trung bình (càng thấp càng tốt)</th></tr><tr><td>Bộ hẹn giờ cố định (chuyển mỗi 10 bước)</td><td class="mono">${fmt(ef,1)}</td></tr><tr><td><b>Bộ điều khiển RL (Q-learning)</b></td><td class="mono"><b>${fmt(er,1)}</b></td></tr></table><p class="note">Đo trên 20.000 bước mô phỏng cho mỗi loại.</p>`;
+    $('tTrainP').textContent='Huấn luyện xong.'; $('tRL').disabled=false; $('tTrain').disabled=false; };
+  function draw(s,label,stats){
+    const svg=$('tSvg'); svg.innerHTML='';
+    S('rect',{x:0,y:0,width:320,height:320,fill:'#dcfce7'},svg);
+    S('rect',{x:130,y:0,width:60,height:320,fill:'#475569'},svg); S('rect',{x:0,y:130,width:320,height:60,fill:'#475569'},svg);
+    S('rect',{x:130,y:130,width:60,height:60,fill:'#334155'},svg);
+    for(let y=4;y<320;y+=24){ if(y>120&&y<196)continue; S('rect',{x:158,y:y,width:4,height:12,fill:'#e2e8f0'},svg);} for(let x=4;x<320;x+=24){ if(x>120&&x<196)continue; S('rect',{x:x,y:158,width:12,height:4,fill:'#e2e8f0'},svg);}
+    // NS queue: cars coming down in the left lane above the intersection
+    for(let i=0;i<Math.min(s.qn,10);i++) S('rect',{x:136,y:112-i*12,width:18,height:10,rx:2,fill:'#2563eb'},svg);
+    for(let i=0;i<Math.min(s.qe,10);i++) S('rect',{x:112-i*12,y:166,width:10,height:18,rx:2,fill:'#ea580c'},svg);
+    const nsCol=s.amber?'#f59e0b':s.g===0?'#22c55e':'#ef4444', ewCol=s.amber?'#f59e0b':s.g===1?'#22c55e':'#ef4444';
+    S('rect',{x:196,y:96,width:22,height:30,rx:5,fill:'#0f172a'},svg); S('circle',{cx:207,cy:111,r:8,fill:nsCol},svg);
+    S('rect',{x:96,y:196,width:30,height:22,rx:5,fill:'#0f172a'},svg); S('circle',{cx:111,cy:207,r:8,fill:ewCol},svg);
+    S('text',{x:222,y:20,'font-size':12,'font-weight':700,fill:'#14532d',text:'Hàng B–N: '+s.qn},svg);
+    S('text',{x:200,y:300,'font-size':12,'font-weight':700,fill:'#14532d',text:'Hàng Đ–T: '+s.qe},svg);
+    S('text',{x:8,y:20,'font-size':12,'font-weight':700,fill:'#0f172a',text:label},svg);
+    $('tLog').textContent=`${label}\nBước ${s.t}: ${s.amber?'ĐANG CHUYỂN (đèn vàng, không xe nào qua)':(s.g===0?'Bắc–nam đang xanh':'Đông–tây đang xanh')}\nĐang chờ: ${s.qn+s.qe}   Trung bình chờ cho đến giờ: ${fmt(stats.sum/Math.max(1,s.t),2)}`;
+  }
+  function watch(pol,label){ stop(); const s=newState(), stats={sum:0}; draw(s,label,stats);
+    timer=setInterval(()=>{ const r=tick(s,pol(s)); stats.sum+=-r; draw(s,label,stats); },250); }
+  function stop(){ if(timer){clearInterval(timer);timer=null;} }
+  $('tFixed').onclick=()=>watch(fixedPolicy,'Bộ hẹn giờ cố định');
+  $('tRL').onclick=()=>{ if(Q) watch(rlPolicy,'Bộ điều khiển RL'); };
+  $('tStop').onclick=stop;
+  draw(newState(),'Chưa chạy',{sum:0});
+})();
+
+const QUIZ=[
+{q:"Trong trò chơi máy đánh bạc ở slide, mục tiêu và phần thưởng là gì?",
+ o:["Mục tiêu: cực đại hoá tổng số điểm sau tất cả các lượt; phần thưởng: số điểm nhận được mỗi lượt","Mục tiêu: kéo mọi máy như nhau; phần thưởng: số lượng máy","Mục tiêu: tìm máy chậm nhất; phần thưởng: thời gian","Mục tiêu: cực tiểu hoá số lượt; phần thưởng: −1 mỗi lượt"],a:0,
+ e:["Chính xác. Đây đúng là cách slide định nghĩa.","Kéo mọi máy như nhau bỏ qua số điểm.","Tốc độ không thuộc bài toán.","Số lượt là cố định trong trò chơi này."]},
+{q:"Vì sao bài toán máy trò chơi nhiều cánh tay chỉ có một trạng thái?",
+ o:["Kéo một cánh tay không làm thay đổi tình huống: các máy giống nhau có mặt ở mọi lượt","Vì chỉ có một cánh tay","Vì phần thưởng luôn như nhau","Vì tác nhân không quan sát được gì"],a:0,
+ e:["Chính xác. Hành động ảnh hưởng đến phần thưởng, không ảnh hưởng đến điều đến sau.","Bài toán này có nhiều cánh tay (k > 1).","Phần thưởng là ngẫu nhiên.","Tác nhân quan sát được các phần thưởng của nó."]},
+{q:"Độ hối tiếc (regret) là gì?",
+ o:["Hiệu giữa phần thưởng bạn kỳ vọng nếu luôn kéo cánh tay tốt nhất và những gì bạn thực sự nhận được","Số lần cánh tay tệ nhất được kéo","Phần thưởng của lần kéo cuối","Một hình phạt môi trường áp cho việc khám phá"],a:0,
+ e:["Chính xác. Chiến lược tốt giữ tổng hối tiếc nhỏ.","Kéo các cánh tay tệ góp phần vào hối tiếc, nhưng hối tiếc được đo bằng phần thưởng.","Một lần kéo nói rất ít về hiệu quả tổng thể.","Môi trường không phạt việc khám phá; cái giá là phần thưởng bị mất."]},
+{q:"Trong chiến lược lạc quan với X = 10, X là gì?",
+ o:["Giá trị khởi đầu của mọi ước lượng Q(a), chọn cao hơn mức mà bất kỳ máy nào thực sự trả","Số lượng máy","Số lượt","Giá trị của ε"],a:0,
+ e:["Chính xác. Bắt đầu cao làm mọi máy chưa thử đều trông hấp dẫn.","Số lượng máy là k.","Số lượt là một thứ riêng.","ε là một xác suất giữa 0 và 1."]},
+{q:"Mọi ước lượng bắt đầu ở X = 10 (cập nhật trung bình mẫu). Máy 2 được kéo và trả 6. Q(2) bây giờ là bao nhiêu?",
+ o:["6","10","8","16"],a:0,
+ e:["Chính xác: 10 + (1/1)(6 − 10) = 6. Với 1/n sau một lần kéo, ước lượng bằng đúng phần thưởng đó.","Ước lượng phải thay đổi sau một lần kéo.","Đó sẽ là bước cập nhật 1/2.","Ước lượng dịch về phía phần thưởng, không cộng thêm vào nó."]},
+{q:"Vì sao đèn giao thông là một bài toán RL đầy đủ chứ không phải bài toán máy trò chơi?",
+ o:["Các hành động của nó làm thay đổi trạng thái tương lai (các hàng xe), nên quyết định có hệ quả bị trì hoãn","Nó không có hành động","Nó chỉ có một phần thưởng khả dĩ","Xe là dữ liệu có nhãn"],a:0,
+ e:["Chính xác. Giữ đèn xanh bây giờ ảnh hưởng đến độ dài hàng xe về sau.","Giữ hoặc chuyển là các hành động của nó.","Phần thưởng thay đổi theo độ dài hàng xe.","Bài toán này không có nhãn."]},
+{q:"Trong mô phỏng giao thông, phần thưởng nào khuyến khích giảm tắc nghẽn?",
+ o:["Trừ tổng số xe đang chờ ở mỗi bước","Cộng tổng số xe đang chờ","+1 mỗi lần đèn chuyển","Một số ngẫu nhiên"],a:0,
+ e:["Chính xác. Ít xe chờ hơn nghĩa là phần thưởng cao hơn (ít âm hơn).","Cách này sẽ thưởng cho kẹt xe.","Cách này làm đèn chuyển liên tục, lãng phí thời gian.","Phần thưởng ngẫu nhiên không dạy được chiến lược."]},
+{q:"Ứng dụng nào phù hợp tự nhiên với thuật toán bandit?",
+ o:["Chọn phiên bản quảng cáo nào để hiển thị nhằm tối đa lượt nhấp","Lái một chiếc xe qua thành phố","Chơi trọn một ván cờ vua","Điều khiển một cánh tay robot qua nhiều bước"],a:0,
+ e:["Chính xác. Mỗi phiên bản là một cánh tay, một lượt nhấp là phần thưởng; hiển thị một quảng cáo hầu như không làm đổi tình huống kế tiếp.","Lái xe có nhiều trạng thái và hệ quả bị trì hoãn.","Cờ vua có nhiều trạng thái và phần thưởng bị trì hoãn.","Các hành động của cánh tay robot làm thay đổi trạng thái tương lai của nó."]},
+{q:"Khuôn mẫu cập nhật nào được hầu hết các thuật toán trong khóa học này dùng chung?",
+ o:["ước lượng ← ước lượng + bước cập nhật × (mục tiêu − ước lượng)","ước lượng ← mục tiêu × bước cập nhật","ước lượng ← một giá trị ngẫu nhiên","ước lượng ← ước lượng − phần thưởng"],a:0,
+ e:["Chính xác. Các phương pháp chỉ khác nhau ở mục tiêu chúng dùng.","Cách này vứt bỏ ước lượng cũ.","Các ước lượng được học, không phải ngẫu nhiên.","Cách này bỏ qua mục tiêu và bước cập nhật."]},
+{q:"Cặp nào được ghép đúng?",
+ o:["Q-learning — mục tiêu R + γ max Q(S′, ·); REINFORCE — học trực tiếp các xác suất hành động","Monte Carlo — cập nhật sau mỗi bước; TD — chờ đến khi tập kết thúc","Sarsa — off-policy; Q-learning — on-policy","ε-tham lam — không bao giờ khám phá"],a:0,
+ e:["Chính xác. Cả hai mô tả đều đúng.","Ngược lại mới đúng.","Sarsa là on-policy và Q-learning là off-policy.","ε-tham lam khám phá với xác suất ε."]}
+];
+</script>
+<script>
+buildTOC();
+renderQuiz(QUIZ);
+</script>
+</body>
+</html>
