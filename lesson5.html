@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RL 5: Sarsa and Q-learning</title>
+<style>:root{
+  --ink:#1c2430;--muted:#5d6878;--bg:#f7f7f3;--card:#ffffff;--line:#e3e6ea;
+  --accent:#2563eb;--accent-soft:#dbeafe;--ok:#15803d;--ok-soft:#dcfce7;--bad:#b91c1c;--bad-soft:#fee2e2;
+  --warn:#b45309;--warn-soft:#fef3c7;--purple:#7c3aed;--purple-soft:#ede9fe;
+  --c1:#2563eb;--c2:#ea580c;--c3:#16a34a;--c4:#7c3aed;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font:16.5px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+main{max-width:860px;margin:0 auto;padding:0 18px 80px}
+header.top{max-width:860px;margin:0 auto;padding:22px 18px 6px}
+.crumbs{font-size:.85rem;color:var(--muted);letter-spacing:.02em;text-transform:uppercase;font-weight:600}
+h1{font-size:2rem;line-height:1.2;margin:.25em 0 .35em}
+h2{font-size:1.35rem;margin:2.2em 0 .6em;padding-top:.3em;border-top:1px solid var(--line)}
+h3{font-size:1.08rem;margin:1.5em 0 .4em}
+.lead{color:var(--muted);font-size:1.05rem;margin-top:0}
+nav.course{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
+nav.course a{font-size:.82rem;text-decoration:none;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 10px}
+nav.course a.cur{background:var(--accent);border-color:var(--accent);color:#fff}
+.toc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin:18px 0}
+.toc b{display:block;margin-bottom:4px}
+.toc ol{margin:0;padding-left:20px}
+.toc a{color:var(--accent);text-decoration:none}
+.goals{background:var(--ok-soft);border-radius:12px;padding:12px 18px;margin:16px 0}
+.goals ul{margin:.3em 0 0;padding-left:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:18px 0}
+.demo{background:var(--card);border:2px solid var(--accent-soft);border-radius:14px;padding:16px 18px;margin:20px 0}
+.demo>.tag,.card>.tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.box{border-radius:10px;padding:10px 14px;margin:14px 0}
+.key{background:var(--accent-soft);border-left:4px solid var(--accent)}
+.analogy{background:var(--purple-soft);border-left:4px solid var(--purple)}
+.warn{background:var(--warn-soft);border-left:4px solid var(--warn)}
+.example{background:#f1f5f9;border-left:4px solid #64748b}
+.box b.lbl{display:block;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.analogy b.lbl{color:var(--purple)}.key b.lbl{color:var(--accent)}.warn b.lbl{color:var(--warn)}.example b.lbl{color:#475569}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.95rem;background:#fff}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:#f1f5f9}
+.formula{font-family:ui-monospace,Menlo,Consolas,monospace;background:#fff;border:1px dashed #cbd5e1;border-radius:10px;padding:12px;text-align:center;font-size:1.05rem;margin:14px 0;overflow-x:auto}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92rem}
+.note{color:var(--muted);font-size:.92rem}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.center{text-align:center}
+button{font:inherit;font-size:.95rem;padding:7px 14px;border-radius:9px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+button.alt{background:#fff;color:var(--accent)}
+button:disabled{opacity:.45;cursor:default}
+input[type=range]{width:180px;vertical-align:middle}
+svg{max-width:100%;height:auto;display:block;margin:0 auto}
+svg text{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:.88rem;margin-top:4px}
+.legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+.log{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88rem;background:#f8fafc;border-radius:8px;padding:10px 12px;white-space:pre-wrap;min-height:3.2em}
+.steps{counter-reset:s;list-style:none;padding-left:0}
+.steps li{counter-increment:s;position:relative;padding-left:38px;margin:10px 0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:.85rem;display:flex;align-items:center;justify-content:center}
+pre.code{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow-x:auto;font-size:.86rem;line-height:1.55}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:640px){.grid2{grid-template-columns:1fr}h1{font-size:1.6rem}}
+/* quiz */
+.quiz{background:#fff;border:2px solid var(--line);border-radius:16px;padding:18px 20px;margin-top:40px}
+.quiz h2{border:0;margin-top:0;padding-top:0}
+.q{margin:22px 0;padding-bottom:14px;border-bottom:1px dashed var(--line)}
+.q p.qt{font-weight:600;margin:0 0 8px}
+.opt{display:block;width:100%;text-align:left;margin:6px 0;padding:10px 12px;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:9px}
+.opt:hover{border-color:var(--accent)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt .why{display:none;font-size:.9rem;color:var(--muted);margin-top:4px}
+.q.done .opt .why{display:block}
+.q.done .opt{cursor:default}
+.verdict{display:none;font-weight:700;margin-top:6px}
+.q.done .verdict{display:block}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.scorebar{position:sticky;bottom:10px;background:#0f172a;color:#fff;border-radius:12px;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px}
+.scorebar button{background:#fff;color:#0f172a;border-color:#fff}
+.final{display:none;margin-top:14px;padding:14px;border-radius:12px;background:var(--accent-soft)}
+footer.pn{display:flex;justify-content:space-between;gap:10px;margin-top:30px}
+footer.pn a{flex:1;text-decoration:none;border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px 14px;color:var(--ink)}
+footer.pn a small{display:block;color:var(--muted)}
+footer.pn a.next{text-align:right}
+@media (max-width:640px){nav.course{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}nav.course a{white-space:nowrap}}
+</style>
+</head>
+<body>
+<header class="top">
+<div class="crumbs">Reinforcement Learning from Zero · Day 2 · Lesson 5 of 7</div>
+<nav class="course"><a href="lesson1.html" class="">1. What Is Reinforcement Learning?</a><a href="lesson2.html" class="">2. Rewards, Return and Value</a><a href="lesson3.html" class="">3. Exploration vs. Exploitation</a><a href="lesson4.html" class="">4. Monte Carlo and TD Learning</a><a href="lesson5.html" class="cur">5. Sarsa and Q-learning</a><a href="lesson6.html" class="">6. Policy-based Reinforcement Learning</a><a href="lesson7.html" class="">7. Multi-armed Bandits and Applications</a></nav>
+</header>
+<main>
+<h1>Lesson 5: Sarsa and Q-learning</h1>
+<p class="lead">Now the agent learns to <i>act</i>, not just to predict. Sarsa and Q-learning learn action values Q(s, a) with the TD idea from Lesson 4, and choose actions with ε-greedy from Lesson 3. They are the two most famous value-based RL algorithms. The lesson ends with what to do when the table of Q-values becomes too large.</p>
+
+<div class="goals"><b>After this lesson you can:</b>
+<ul>
+<li>Read and fill a Q-table, and choose actions from it.</li>
+<li>Apply the Sarsa and Q-learning update rules by hand.</li>
+<li>Explain on-policy vs. off-policy learning, and why Sarsa and Q-learning behave differently near a cliff.</li>
+<li>Explain the difference between tabular RL and approximate (deep) RL.</li>
+</ul></div>
+
+<div class="toc" id="toc"><b>Contents</b></div>
+
+<h2>1. From predicting to controlling</h2>
+<p>In Lesson 4 the policy was fixed and we only learned V(s). Now we want the agent to find a <b>good policy</b> by itself, without knowing the environment's rules. The recipe has two parts that run together, step after step:</p>
+<ol class="steps">
+<li><b>Evaluate:</b> learn Q(s, a), "how good is action a in state s", from experience, using a TD update.</li>
+<li><b>Improve:</b> choose actions ε-greedily with respect to Q: usually the best-looking action, sometimes a random one to keep exploring.</li>
+</ol>
+<p>As Q becomes more accurate, the greedy choices get better; better choices produce better experience; better experience makes Q more accurate. This loop is called <b>generalized policy iteration</b>.</p>
+<p>Why Q and not V? With V you need to know where each action leads to compare them. With Q, the comparison is direct: just look up Q(s, a) for each action and pick the largest. No model of the world is needed.</p>
+
+<h2>2. The Q-table</h2>
+<p>In <b>tabular RL</b>, the agent stores one number for every pair of state and action, in a table:</p>
+<table>
+<tr><th>State ↓ / Action →</th><th>A₁ (Up)</th><th>A₂ (Right)</th><th>…</th><th>Aₙ (Left)</th></tr>
+<tr><td><b>S₁</b></td><td>Q(S₁, A₁) = −3.2</td><td>Q(S₁, A₂) = <b>−1.0</b></td><td>…</td><td>Q(S₁, Aₙ) = −5.4</td></tr>
+<tr><td><b>S₂</b></td><td>Q(S₂, A₁) = <b>4.1</b></td><td>Q(S₂, A₂) = 2.0</td><td>…</td><td>Q(S₂, Aₙ) = 0.3</td></tr>
+<tr><td>…</td><td>…</td><td>…</td><td>…</td><td>…</td></tr>
+<tr><td><b>Sₘ</b></td><td>Q(Sₘ, A₁)</td><td>Q(Sₘ, A₂)</td><td>…</td><td>Q(Sₘ, Aₙ)</td></tr>
+</table>
+<p>To act greedily in S₁, look along its row and pick the largest number (Right, −1.0). All values usually start at 0, and <b>one cell is updated after every action</b>.</p>
+
+<h2>3. Sarsa</h2>
+<p>Sarsa applies the TD(0) idea to Q-values. After taking action A in state S, the agent receives reward R, lands in S′, and <b>chooses its next action A′</b> (with ε-greedy). Then it updates:</p>
+<div class="formula" style="line-height:1.4">
+<span style="display:inline-block;text-align:center;vertical-align:top">Q(S,A) ←<br><small style="color:#64748b">new value</small></span>
+<span style="display:inline-block;text-align:center;vertical-align:top;color:#475569">Q(S,A)<br><small>old estimate</small></span> +
+<span style="display:inline-block;text-align:center;vertical-align:top;color:#7c3aed">α<br><small>step size</small></span> ×
+<span style="display:inline-block;text-align:center;vertical-align:top">[ <span style="color:#16a34a">R + γ·Q(S′,A′)</span> − Q(S,A) ]<br><small style="color:#16a34a">TD target</small> <small style="color:#ea580c">— the whole bracket is the TD error</small></span>
+</div>
+<p>The name comes from the five things the update uses: <b>S</b>tate, <b>A</b>ction, <b>R</b>eward, next <b>S</b>tate, next <b>A</b>ction: (S, A, R, S′, A′).</p>
+<pre class="code">Sarsa
+initialize Q(s, a) = 0 for all s, a
+for each episode:
+    S ← start state
+    A ← ε-greedy action from Q in S
+    while S is not terminal:
+        take A, observe R and S′
+        A′ ← ε-greedy action from Q in S′      # choose the next action FIRST
+        Q(S,A) ← Q(S,A) + α·(R + γ·Q(S′,A′) − Q(S,A))
+        S ← S′ ;  A ← A′                       # and really take A′ next</pre>
+
+<h2>4. Q-learning</h2>
+<p>Q-learning changes one thing: in the target, instead of the action A′ the agent will actually take, it uses the <b>best</b> action in S′:</p>
+<div class="formula">Q(S,A) ← Q(S,A) + α × [ R + γ · max<sub>a</sub> Q(S′, a) − Q(S,A) ]</div>
+<pre class="code">Q-learning
+initialize Q(s, a) = 0 for all s, a
+for each episode:
+    S ← start state
+    while S is not terminal:
+        A ← ε-greedy action from Q in S
+        take A, observe R and S′
+        Q(S,A) ← Q(S,A) + α·(R + γ·max_a Q(S′,a) − Q(S,A))
+        S ← S′</pre>
+
+<div class="box example"><b class="lbl">Worked example: the same experience, two updates (α = 0.5, γ = 1)</b>
+Current estimate Q(S, Right) = −2. The agent moves Right, gets R = −1, and lands in S′ where:<br>
+Q(S′, Up) = −4, Q(S′, Right) = −3, Q(S′, Down) = −100, Q(S′, Left) = −5.<br>
+Because of exploration, the next action the agent picks is A′ = <b>Up</b>.<br><br>
+<b>Sarsa</b> uses the action actually picked: target = −1 + 1 × Q(S′, Up) = −1 − 4 = −5.<br>
+Q(S, Right) ← −2 + 0.5 × (−5 − (−2)) = −2 − 1.5 = <b>−3.5</b><br><br>
+<b>Q-learning</b> uses the best action in S′ (Right, −3): target = −1 + (−3) = −4.<br>
+Q(S, Right) ← −2 + 0.5 × (−4 − (−2)) = −2 − 1 = <b>−3</b></div>
+
+<h2>5. On-policy vs. off-policy</h2>
+<div class="grid2">
+<div class="box key" style="margin:0"><b class="lbl">Sarsa is on-policy</b>It learns the value of the policy it is <b>actually following</b>, random exploration included. If the agent sometimes stumbles, Sarsa's values include the cost of stumbling.</div>
+<div class="box analogy" style="margin:0"><b class="lbl">Q-learning is off-policy</b>It learns the value of the <b>best</b> (greedy) policy, even while it behaves differently (exploring). Its values assume "from the next step on, I will act perfectly".</div>
+</div>
+<p>Usually both learn good policies. The difference shows clearly when exploration is <b>dangerous</b>, as in the cliff world below.</p>
+
+<h2>6. Try it: the cliff walk</h2>
+<div class="demo"><span class="tag">Side-by-side simulation</span>
+<p class="note" style="margin-top:0">Walk from <b>S</b> to <b>G</b>. Each step costs −1. The dark red squares are a <b>cliff</b>: stepping in costs −100 and sends you back to S. Both agents use ε-greedy with ε = 0.1, α = 0.5, γ = 1, and train on the same world. Colours show the best Q-value in each square (lighter = better); arrows show the greedy action; the line shows the route the agent would take if it acted greedily.</p>
+<div class="row">
+  <button id="cw1">▶ Train 1 episode (animated)</button>
+  <button id="cw50" class="alt">+50 episodes</button>
+  <button id="cw300" class="alt">+300 episodes</button>
+  <button id="cwR" class="alt">Reset</button>
+  <span class="note" id="cwN"></span>
+</div>
+<div class="grid2">
+  <div><h3 class="center" style="margin:6px 0">Sarsa</h3><svg id="cwS" viewBox="0 0 360 200"></svg><p class="mono center" id="cwSt"></p></div>
+  <div><h3 class="center" style="margin:6px 0">Q-learning</h3><svg id="cwQ" viewBox="0 0 360 200"></svg><p class="mono center" id="cwQt"></p></div>
+</div>
+<div class="log" id="cwLog">Press "+300 episodes" to train both quickly, or watch one episode at a time. Click any square to see its four Q-values.</div>
+</div>
+
+<p><b>What you should see after a few hundred episodes:</b></p>
+<ul>
+<li><b>Q-learning</b> learns the <b>shortest route, right along the edge of the cliff</b>. That is the best route for a perfect agent. But this agent still explores 10% of the time, and one random step down means −100. So while learning, Q-learning often falls.</li>
+<li><b>Sarsa</b> learns a <b>safer route</b> further from the edge. Its values include the risk of its own random steps, so it keeps its distance. Its route is longer, but it falls much less.</li>
+</ul>
+
+<div class="demo"><span class="tag">Experiment</span>
+<p class="note" style="margin-top:0">Total reward per episode <b>during learning</b> (ε = 0.1 the whole time), averaged over 40 independent runs and smoothed.</p>
+<div class="row"><button id="cwExp">Run experiment (40 runs × 300 episodes)</button><span class="note" id="cwExpP"></span></div>
+<div id="cwChart"><p class="note center">Press the button to run.</p></div>
+</div>
+<p>After the first few dozen episodes, Sarsa's curve stays above Q-learning's: Sarsa collects more reward per episode while learning, because Q-learning's edge route is punished by the occasional exploratory fall. (Both curves are noisy; run the experiment twice to see that the gap is consistent.) If exploration were switched off after learning (ε = 0), Q-learning's route would be the better one. Which to use depends on whether mistakes made <i>while learning</i> matter, as with a real robot near real stairs.</p>
+
+<h2>7. When the table gets too big: approximate RL</h2>
+<p>A Q-table needs one row per state. That works for a grid of 32 squares. It does not work for:</p>
+<ul>
+<li><b>Board games:</b> the 9×9 game of Go has around 10³⁸ possible positions; chess has more than 10⁴⁰.</li>
+<li><b>Images:</b> a video-game screen of 84×84 grey pixels has more possible images than there are atoms in the universe.</li>
+<li><b>Continuous states:</b> a robot arm's angles and speeds are real numbers, so there are infinitely many states.</li>
+</ul>
+<p>Two problems appear: the table cannot fit in memory, and most states are never visited even once, so their values would never be learned.</p>
+<p>The solution is <b>approximate RL</b> (also called function approximation): replace the table with a <b>model</b> — often a neural network — that takes the state as input and outputs a Q-value for every action.</p>
+<div class="card"><span class="tag">Diagram: tabular vs. approximate</span>
+<svg viewBox="0 0 680 250">
+  <defs><marker id="ah5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+  <text x="150" y="20" text-anchor="middle" font-weight="700" font-size="14">Tabular RL</text>
+  <g font-size="11">
+    <rect x="40" y="35" width="220" height="150" fill="#fff" stroke="#94a3b8"/>
+    <line x1="40" y1="60" x2="260" y2="60" stroke="#94a3b8"/><line x1="90" y1="35" x2="90" y2="185" stroke="#94a3b8"/>
+    <text x="65" y="52" text-anchor="middle">s</text><text x="125" y="52" text-anchor="middle">Up</text><text x="175" y="52" text-anchor="middle">Right</text><text x="225" y="52" text-anchor="middle">Down</text>
+    <text x="65" y="80" text-anchor="middle">S1</text><text x="125" y="80" text-anchor="middle">−3.2</text><text x="175" y="80" text-anchor="middle">−1.0</text><text x="225" y="80" text-anchor="middle">−5.1</text>
+    <text x="65" y="105" text-anchor="middle">S2</text><text x="125" y="105" text-anchor="middle">4.1</text><text x="175" y="105" text-anchor="middle">2.0</text><text x="225" y="105" text-anchor="middle">0.3</text>
+    <text x="65" y="130" text-anchor="middle">S3</text><text x="125" y="130" text-anchor="middle">0.7</text><text x="175" y="130" text-anchor="middle">6.2</text><text x="225" y="130" text-anchor="middle">1.9</text>
+    <text x="65" y="155" text-anchor="middle">…</text><text x="175" y="155" text-anchor="middle">…</text>
+    <text x="65" y="177" text-anchor="middle">Sₘ</text>
+  </g>
+  <text x="150" y="210" text-anchor="middle" font-size="12" fill="#475569">one stored number per (state, action)</text>
+  <text x="150" y="228" text-anchor="middle" font-size="12" fill="#475569">look up · update one cell</text>
+  <text x="500" y="20" text-anchor="middle" font-weight="700" font-size="14">Approximate RL (e.g. a neural network)</text>
+  <rect x="330" y="95" width="70" height="44" rx="8" fill="#dbeafe" stroke="#2563eb"/><text x="365" y="122" text-anchor="middle" font-size="12">state s</text>
+  <g fill="#ede9fe" stroke="#7c3aed">
+    <circle cx="450" cy="70" r="11"/><circle cx="450" cy="105" r="11"/><circle cx="450" cy="140" r="11"/><circle cx="450" cy="175" r="11"/>
+    <circle cx="510" cy="85" r="11"/><circle cx="510" cy="120" r="11"/><circle cx="510" cy="155" r="11"/>
+  </g>
+  <g stroke="#c4b5fd" stroke-width="1">
+    <line x1="400" y1="117" x2="439" y2="70"/><line x1="400" y1="117" x2="439" y2="105"/><line x1="400" y1="117" x2="439" y2="140"/><line x1="400" y1="117" x2="439" y2="175"/>
+    <line x1="461" y1="70" x2="499" y2="85"/><line x1="461" y1="70" x2="499" y2="120"/><line x1="461" y1="105" x2="499" y2="85"/><line x1="461" y1="105" x2="499" y2="155"/><line x1="461" y1="140" x2="499" y2="120"/><line x1="461" y1="140" x2="499" y2="155"/><line x1="461" y1="175" x2="499" y2="155"/><line x1="461" y1="175" x2="499" y2="120"/>
+    <line x1="521" y1="85" x2="570" y2="75"/><line x1="521" y1="120" x2="570" y2="117"/><line x1="521" y1="155" x2="570" y2="160"/><line x1="521" y1="85" x2="570" y2="117"/><line x1="521" y1="155" x2="570" y2="117"/>
+  </g>
+  <g font-size="12"><rect x="572" y="62" width="100" height="26" rx="6" fill="#dcfce7" stroke="#16a34a"/><text x="622" y="80" text-anchor="middle">Q(s, Up)</text>
+  <rect x="572" y="104" width="100" height="26" rx="6" fill="#dcfce7" stroke="#16a34a"/><text x="622" y="122" text-anchor="middle">Q(s, Right)</text>
+  <rect x="572" y="146" width="100" height="26" rx="6" fill="#dcfce7" stroke="#16a34a"/><text x="622" y="164" text-anchor="middle">Q(s, Down)</text></g>
+  <text x="500" y="210" text-anchor="middle" font-size="12" fill="#475569">the model computes all Q-values from the state</text>
+  <text x="500" y="228" text-anchor="middle" font-size="12" fill="#475569">similar states → similar values (generalization)</text>
+</svg>
+</div>
+<p>The update idea stays the same: compute the TD target R + γ·max Q(S′, a), and adjust the network's weights so its output Q(S, A) moves toward that target. The big benefit is <b>generalization</b>: learning about one state also improves the estimates for similar states the agent has never seen. The famous <b>Deep Q-Network (DQN)</b>, published by DeepMind in 2015, used exactly this idea to learn dozens of Atari video games directly from screen pixels.</p>
+<table>
+<tr><th></th><th>Tabular RL</th><th>Approximate RL</th></tr>
+<tr><td>Stores</td><td>One value per (state, action)</td><td>The parameters (weights) of a model</td></tr>
+<tr><td>Good for</td><td>Small, discrete problems</td><td>Huge or continuous state spaces</td></tr>
+<tr><td>Unseen states</td><td>No information</td><td>Estimated from similar states</td></tr>
+<tr><td>Stability</td><td>Simple, well understood</td><td>Harder; needs extra techniques to train stably</td></tr>
+</table>
+
+<h2>8. Summary</h2>
+<ul>
+<li>Control = learn Q(s, a) + act ε-greedily on Q; the two improve each other.</li>
+<li><b>Sarsa</b> target: R + γ·Q(S′, A′), using the next action actually taken. <b>On-policy</b>.</li>
+<li><b>Q-learning</b> target: R + γ·max<sub>a</sub> Q(S′, a), using the best next action. <b>Off-policy</b>.</li>
+<li>Near danger, Sarsa learns safer behaviour; Q-learning learns the optimal route but suffers more while exploring.</li>
+<li>When there are too many states for a table, a model such as a neural network approximates Q (e.g. DQN).</li>
+<li>Next lesson (Day 3): a completely different approach that learns the policy directly.</li>
+</ul>
+
+
+
+<section class="quiz" id="quiz">
+<h2>Quiz: check your understanding</h2>
+<p class="note">10 multiple-choice questions. Click an answer: you will see whether it is right, and an explanation for <b>every</b> option.</p>
+<div id="quizItems"></div>
+<div class="final" id="finalMsg"></div>
+<div class="scorebar"><span id="scoreText"></span><button id="retry">Retry quiz</button></div>
+</section>
+<footer class="pn"><a href="lesson4.html"><small>← Previous</small>4. Monte Carlo and TD Learning</a><a class="next" href="lesson6.html"><small>Next →</small>6. Policy-based Reinforcement Learning</a></footer>
+</main>
+<script>// ---------- small helpers ----------
+const $ = id => document.getElementById(id);
+const NS = 'http://www.w3.org/2000/svg';
+function S(tag, attrs, parent){
+  const e = document.createElementNS(NS, tag);
+  for (const k in (attrs||{})) {
+    if (k === 'text') e.textContent = attrs[k]; else e.setAttribute(k, attrs[k]);
+  }
+  if (parent) parent.appendChild(e);
+  return e;
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const fmt = (x, d=2) => (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toFixed(d);
+function argmaxRand(arr){
+  const m = Math.max(...arr); const c = [];
+  arr.forEach((v,i)=>{ if (v === m) c.push(i); });
+  return c[Math.floor(Math.random()*c.length)];
+}
+function randn(){ let u=0,v=0; while(!u)u=Math.random(); while(!v)v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+
+// ---------- line chart ----------
+// opts: {w,h,series:[{label,color,data:[y..], dash}], xLabel,yLabel,yMin,yMax,xStart}
+function lineChart(container, opts){
+  const w = opts.w||640, h = opts.h||300, L=56, R=16, T=14, B=44;
+  container.innerHTML = '';
+  const svg = S('svg', {viewBox:`0 0 ${w} ${h}`, role:'img'}, container);
+  let all = []; opts.series.forEach(s => all = all.concat(s.data));
+  const yMin = opts.yMin !== undefined ? opts.yMin : Math.min(...all);
+  const yMax = opts.yMax !== undefined ? opts.yMax : Math.max(...all);
+  const n = Math.max(...opts.series.map(s=>s.data.length));
+  const x0 = opts.xStart||0;
+  const X = i => L + (w-L-R) * (n<=1?0:i/(n-1));
+  const Y = v => T + (h-T-B) * (1 - (v-yMin)/((yMax-yMin)||1));
+  for (let k=0;k<=4;k++){
+    const v = yMin + (yMax-yMin)*k/4, y = Y(v);
+    S('line',{x1:L,x2:w-R,y1:y,y2:y,stroke:'#e5e7eb'},svg);
+    S('text',{x:L-6,y:y+4,'text-anchor':'end','font-size':11,fill:'#64748b',text:(Math.abs(yMax-yMin)<5?fmt(v,2):Math.round(v))},svg);
+  }
+  for (let k=0;k<=4;k++){
+    const i = Math.round((n-1)*k/4), x = X(i);
+    S('text',{x:x,y:h-B+16,'text-anchor':'middle','font-size':11,fill:'#64748b',text:x0+i},svg);
+  }
+  S('line',{x1:L,x2:L,y1:T,y2:h-B,stroke:'#94a3b8'},svg);
+  S('line',{x1:L,x2:w-R,y1:h-B,y2:h-B,stroke:'#94a3b8'},svg);
+  if (opts.xLabel) S('text',{x:(L+w-R)/2,y:h-6,'text-anchor':'middle','font-size':12,fill:'#334155',text:opts.xLabel},svg);
+  if (opts.yLabel) S('text',{x:14,y:(T+h-B)/2,'text-anchor':'middle','font-size':12,fill:'#334155',transform:`rotate(-90 14 ${(T+h-B)/2})`,text:opts.yLabel},svg);
+  opts.series.forEach(s=>{
+    const pts = s.data.map((v,i)=>`${X(i).toFixed(1)},${Y(Math.max(yMin,Math.min(yMax,v))).toFixed(1)}`).join(' ');
+    S('polyline',{points:pts,fill:'none',stroke:s.color,'stroke-width':2.2,'stroke-dasharray':s.dash||'', 'stroke-linejoin':'round'},svg);
+  });
+  const lg = document.createElement('div'); lg.className='legend';
+  opts.series.forEach(s=>{ const sp=document.createElement('span'); sp.style.setProperty('--c',s.color); sp.textContent=s.label; lg.appendChild(sp); });
+  container.appendChild(lg);
+}
+
+// ---------- table of contents ----------
+function buildTOC(){
+  const toc = $('toc'); if (!toc) return;
+  const hs = [...document.querySelectorAll('main > section > h2, main > h2')].filter(h=>!h.closest('.quiz'));
+  const ol = document.createElement('ol');
+  hs.forEach((h,i)=>{ if(!h.id) h.id='sec'+(i+1); const li=document.createElement('li'); li.innerHTML=`<a href="#${h.id}">${h.textContent}</a>`; ol.appendChild(li); });
+  const li=document.createElement('li'); li.innerHTML='<a href="#quiz">Quiz (10 questions)</a>'; ol.appendChild(li);
+  toc.appendChild(ol);
+}
+
+// ---------- quiz ----------
+// item: {q, o:[4 options], a:index, e:[4 explanations]}
+function renderQuiz(items){
+  const box = $('quizItems'); box.innerHTML = '';
+  let answered = 0, correct = 0;
+  const bar = $('scoreText'), fin = $('finalMsg');
+  function upd(){
+    bar.textContent = `Answered ${answered}/${items.length} · Correct ${correct}`;
+    if (answered === items.length){
+      fin.style.display='block';
+      const pct = correct/items.length;
+      fin.innerHTML = `<b>You scored ${correct}/${items.length}.</b> ` + (pct===1 ? 'Perfect. You have mastered this lesson.' : pct>=0.7 ? 'Good work. Read the explanations for the questions you missed, then move on.' : 'Re-read the sections linked in the contents above, then press "Retry quiz".');
+    } else fin.style.display='none';
+  }
+  items = items.map(it0=>{ // shuffle option order so the answer is not always in the same place
+    const idx=[0,1,2,3].slice(0,it0.o.length); for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+    return {q:it0.q,o:idx.map(i=>it0.o[i]),e:idx.map(i=>it0.e[i]),a:idx.indexOf(it0.a),orig:it0};
+  });
+  items.forEach((it, qi)=>{
+    const d = document.createElement('div'); d.className='q';
+    d.innerHTML = `<p class="qt">${qi+1}. ${it.q}</p>`;
+    const btns = [];
+    it.o.forEach((t,j)=>{
+      const b = document.createElement('button'); b.className='opt';
+      b.innerHTML = `<b>${String.fromCharCode(65+j)}.</b> ${t}<span class="why">${j===it.a?'✔ ':'✘ '}${it.e[j]}</span>`;
+      b.onclick = ()=>{
+        if (d.classList.contains('done')) return;
+        d.classList.add('done'); answered++;
+        btns[it.a].classList.add('right');
+        if (j===it.a){ correct++; v.innerHTML='<span class="ok">Correct!</span> All options are explained below.'; }
+        else { b.classList.add('wrong'); v.innerHTML=`<span class="bad">Not quite.</span> The answer is ${String.fromCharCode(65+it.a)}. Read why each option is right or wrong.`; }
+        upd();
+      };
+      btns.push(b); d.appendChild(b);
+    });
+    const v = document.createElement('div'); v.className='verdict'; d.insertBefore(v, d.children[1]);
+    box.appendChild(d);
+  });
+  $('retry').onclick = ()=>{ renderQuiz(items.map(x=>x.orig)); $('quiz').scrollIntoView(); };
+  upd();
+}
+</script>
+<script>
+(function(){
+  const R=4,C=8,START=[3,0],GOAL=[3,7],CW=44,OX=4,OY=4,ALPHA=0.5,EPS=0.1;
+  const D=[[-1,0],[0,1],[1,0],[0,-1]], AN=['Up','Right','Down','Left'];
+  const isCliff=(r,c)=>r===3&&c>=1&&c<=6, isGoal=(r,c)=>r===GOAL[0]&&c===GOAL[1];
+  function newQ(){return [...Array(R)].map(()=>[...Array(C)].map(()=>[0,0,0,0]));}
+  function egreedy(Q,r,c,eps){return Math.random()<eps?Math.floor(Math.random()*4):argmaxRand(Q[r][c]);}
+  function step(r,c,a){let r1=Math.max(0,Math.min(R-1,r+D[a][0])),c1=Math.max(0,Math.min(C-1,c+D[a][1])); if(isCliff(r1,c1)) return {r:START[0],c:START[1],rw:-100,fell:true,done:false}; return {r:r1,c:c1,rw:-1,fell:false,done:isGoal(r1,c1)};}
+  function* episode(Q,algo,eps){ // yields positions; updates Q in place
+    let r=START[0],c=START[1],a=egreedy(Q,r,c,eps),total=0,falls=0,n=0;
+    while(n<1000){ n++;
+      const s=step(r,c,a); total+=s.rw; if(s.fell)falls++;
+      let a2=s.done?0:egreedy(Q,s.r,s.c,eps);
+      const nextV=s.done?0:(algo==='q'?Math.max(...Q[s.r][s.c]):Q[s.r][s.c][a2]);
+      Q[r][c][a]+=ALPHA*(s.rw+nextV-Q[r][c][a]);
+      if(algo==='q'&&!s.done) a2=egreedy(Q,s.r,s.c,eps); // Q-learning chooses its next action independently
+      yield {r:s.r,c:s.c,fell:s.fell,total,falls,done:s.done};
+      if(s.done)break; r=s.r;c=s.c;a=a2;
+    }
+  }
+  function runEpisode(Q,algo){let last; for(const x of episode(Q,algo,EPS)) last=x; return last;}
+  function greedyPath(Q){const p=[[START[0],START[1]]];let r=START[0],c=START[1],seen=new Set();for(let k=0;k<40;k++){const a=argmaxFirst(Q[r][c]);const s=step(r,c,a);if(s.fell){p.push([3,Math.max(1,Math.min(6,c+D[a][1]))]);break;}r=s.r;c=s.c;p.push([r,c]);if(s.done)break;const key=r+','+c;if(seen.has(key))break;seen.add(key);}return p;}
+  function argmaxFirst(a){let b=0;for(let i=1;i<a.length;i++)if(a[i]>a[b])b=i;return b;}
+  const A={s:{Q:newQ(),algo:'s',svg:'cwS',st:'cwSt',last:null},q:{Q:newQ(),algo:'q',svg:'cwQ',st:'cwQt',last:null}};
+  let eps=0,busy=false,sel=null;
+  const cx=c=>OX+c*CW+CW/2, cy=r=>OY+r*CW+CW/2;
+  function shade(v){const t=Math.max(0,Math.min(1,(v+25)/25)); const l=Math.round(55+t*40); return `hsl(214,80%,${l}%)`;}
+  function draw(key,agentPos){
+    const ag=A[key], svg=$(ag.svg); svg.innerHTML='';
+    for(let r=0;r<R;r++)for(let c=0;c<C;c++){
+      let fill;
+      if(isCliff(r,c)) fill='#7f1d1d'; else if(isGoal(r,c)) fill='#86efac'; else fill=eps?shade(Math.max(...ag.Q[r][c])):'#f8fafc';
+      const rc=S('rect',{x:OX+c*CW+1,y:OY+r*CW+1,width:CW-2,height:CW-2,rx:5,fill:fill,stroke:sel&&sel[0]===r&&sel[1]===c?'#0f172a':'#e2e8f0','stroke-width':sel&&sel[0]===r&&sel[1]===c?3:1,style:'cursor:pointer'},svg);
+      rc.onclick=()=>{sel=[r,c];drawAll();showQ();};
+      if(r===3&&c===0) S('text',{x:cx(c),y:cy(r)-8,'text-anchor':'middle','font-size':12,'font-weight':700,fill:'#0f172a',text:'S'},svg);
+      if(isGoal(r,c)) S('text',{x:cx(c),y:cy(r)+5,'text-anchor':'middle','font-size':14,'font-weight':700,fill:'#14532d',text:'G'},svg);
+      if(eps&&!isCliff(r,c)&&!isGoal(r,c)){const a=argmaxFirst(ag.Q[r][c]); if(ag.Q[r][c].some(v=>v!==0)){const ux=D[a][1],uy=D[a][0],px=-uy,py=ux,tx=cx(c)+ux*10,ty=cy(r)+uy*10+(r===3&&c===0?6:0);
+        S('polygon',{points:`${tx+ux*6},${ty+uy*6} ${tx+px*5},${ty+py*5} ${tx-px*5},${ty-py*5}`,fill:'#0f172a',opacity:.55,style:'pointer-events:none'},svg);}}
+    }
+    S('text',{x:OX+4*CW,y:cy(3)+5,'text-anchor':'middle','font-size':12,'font-weight':700,fill:'#fecaca',text:'CLIFF  −100',style:'pointer-events:none'},svg);
+    if(eps){const p=greedyPath(ag.Q); S('polyline',{points:p.map(([r,c])=>cx(c)+','+cy(r)).join(' '),fill:'none',stroke:'#f59e0b','stroke-width':4,'stroke-linejoin':'round',opacity:.9,style:'pointer-events:none'},svg);}
+    if(agentPos){S('circle',{cx:cx(agentPos.c),cy:cy(agentPos.r),r:11,fill:agentPos.fell?'#dc2626':'#1d4ed8',stroke:'#fff','stroke-width':2},svg);}
+    $(ag.st).textContent=ag.last?`last episode: reward ${ag.last.total}, falls ${ag.last.falls}`:'not trained yet';
+  }
+  function drawAll(){draw('s');draw('q');$('cwN').textContent='Episodes trained: '+eps;}
+  function showQ(){ if(!sel)return; const [r,c]=sel; if(isCliff(r,c)){$('cwLog').textContent='Cliff square: the agent never stays here (it is sent back to S).';return;}
+    const f=Q=>Q[r][c].map((v,i)=>`${AN[i]}: ${fmt(v,1)}`).join('   ');
+    $('cwLog').textContent=`Square (row ${r}, col ${c}) Q-values\nSarsa:      ${f(A.s.Q)}\nQ-learning: ${f(A.q.Q)}`; }
+  function train(n){ if(busy)return; for(let i=0;i<n;i++){A.s.last=runEpisode(A.s.Q,'s');A.q.last=runEpisode(A.q.Q,'q');eps++;} drawAll(); showQ(); }
+  async function animate(){ if(busy)return; busy=true; document.querySelectorAll('#cw1,#cw50,#cw300,#cwR').forEach(b=>b.disabled=true);
+    eps++; const gs=episode(A.s.Q,'s',EPS), gq=episode(A.q.Q,'q',EPS); let ds=false,dq=false,ps=null,pq=null;
+    while(!ds||!dq){ if(!ds){const x=gs.next(); if(x.done)ds=true; else {ps=x.value;A.s.last=ps; if(ps.done)ds=true;}}
+      if(!dq){const x=gq.next(); if(x.done)dq=true; else {pq=x.value;A.q.last=pq; if(pq.done)dq=true;}}
+      draw('s',ps); draw('q',pq); $('cwN').textContent='Episodes trained: '+eps; await sleep(eps<5?90:45); }
+    await sleep(400); drawAll(); showQ(); busy=false; document.querySelectorAll('#cw1,#cw50,#cw300,#cwR').forEach(b=>b.disabled=false); }
+  $('cw1').onclick=animate; $('cw50').onclick=()=>train(50); $('cw300').onclick=()=>train(300);
+  $('cwR').onclick=()=>{A.s.Q=newQ();A.q.Q=newQ();A.s.last=A.q.last=null;eps=0;sel=null;drawAll();$('cwLog').textContent='Reset. All Q-values are 0.';};
+  drawAll();
+
+  $('cwExp').onclick=async()=>{ $('cwExp').disabled=true; const RUNS=40,EPN=300; const sumS=new Float64Array(EPN),sumQ=new Float64Array(EPN);
+    for(let run=0;run<RUNS;run++){ const qs=newQ(),qq=newQ(); for(let e=0;e<EPN;e++){ sumS[e]+=Math.max(-150,runEpisode(qs,'s').total); sumQ[e]+=Math.max(-150,runEpisode(qq,'q').total);} if(run%8===7){$('cwExpP').textContent=`Runs: ${run+1}/${RUNS}`;await sleep(0);} }
+    const sm=a=>a.map((_,i)=>{let s=0,c=0;for(let j=Math.max(0,i-9);j<=i;j++){s+=a[j];c++;}return s/c;});
+    lineChart($('cwChart'),{series:[{label:'Sarsa',color:'#2563eb',data:sm([...sumS].map(x=>x/RUNS))},{label:'Q-learning',color:'#ea580c',data:sm([...sumQ].map(x=>x/RUNS))}],xLabel:'Episode',yLabel:'Reward per episode',yMin:-100,yMax:0,xStart:1});
+    $('cwExpP').textContent='Done. (Very bad early episodes are clipped at −150 before averaging.)'; $('cwExp').disabled=false; };
+})();
+
+const QUIZ=[
+{q:"Why do control algorithms like Sarsa learn Q(s, a) rather than V(s)?",
+ o:["With Q, the agent can compare actions directly without knowing where each action leads","Q-values are always positive","V(s) cannot be learned from experience","Q needs less memory than V"],a:0,
+ e:["Correct. Picking the largest Q(s, a) requires no model of the environment.","Q-values can be negative.","Lesson 4 showed that V(s) can be learned from experience.","Q stores one value per state–action pair, which is more than V."]},
+{q:"In a Q-table, the row for state S₂ is: Up = 4.1, Right = 2.0, Left = 0.3. Which action does a greedy agent take?",
+ o:["Up","Right","Left","A random one"],a:0,
+ e:["Correct. 4.1 is the largest value in the row.","2.0 is smaller than 4.1.","0.3 is the smallest value.","A greedy agent always picks the highest value; randomness only comes from ε."]},
+{q:"What does SARSA stand for?",
+ o:["State, Action, Reward, next State, next Action","State, Average, Reward, Step, Action","Sample, Action, Return, State, Average","Search, Act, Reward, Search, Act"],a:0,
+ e:["Correct. The update uses the tuple (S, A, R, S′, A′).","No averages or steps are named in it.","Return and sample are not part of the name.","Sarsa does not search."]},
+{q:"What is the Q-learning target?",
+ o:["R + γ · max over a of Q(S′, a)","R + γ · Q(S′, A′) for the next action actually chosen","The full return G","Q(S, A) − R"],a:0,
+ e:["Correct. Q-learning uses the best next action.","That is the Sarsa target.","That is the Monte Carlo target.","This is not a target used by any method here."]},
+{q:"Q(S, A) = 2, R = 1, γ = 1, max Q(S′, ·) = 5, α = 0.5. What is Q(S, A) after one Q-learning update?",
+ o:["4","6","3.5","2"],a:0,
+ e:["Correct: target = 1 + 5 = 6; error = 6 − 2 = 4; new = 2 + 0.5 × 4 = 4.","6 is the target. With α = 0.5 the estimate only moves halfway.","Check the arithmetic: 0.5 × 4 = 2, so 2 + 2 = 4.","The estimate changes because the error is not zero."]},
+{q:"Why is Sarsa called on-policy?",
+ o:["It learns the value of the policy it actually follows, including exploration","It uses no policy","It always acts greedily","It only learns after the episode ends"],a:0,
+ e:["Correct. Its target uses the next action chosen by its own ε-greedy policy.","Sarsa follows an ε-greedy policy.","Sarsa explores with probability ε.","Sarsa updates after every step."]},
+{q:"Why is Q-learning called off-policy?",
+ o:["It learns the value of the greedy (best) policy while behaving with a different, exploring policy","It does not use rewards","It never explores","It needs a model of the environment"],a:0,
+ e:["Correct. The max in the target assumes greedy behaviour from the next step on.","It uses rewards in every update.","It explores with ε-greedy; it just does not learn the value of that exploration.","Q-learning is model-free."]},
+{q:"In the cliff walk with ε = 0.1, why does Q-learning collect less reward per episode during learning than Sarsa?",
+ o:["It learns the route along the cliff edge, and its random exploratory steps sometimes fall off (−100)","It never reaches the goal","It uses a larger step size","Its values are always zero"],a:0,
+ e:["Correct. The edge route is optimal for a perfect agent, but costly for one that still explores.","It does reach the goal; it just falls more often on the way.","Both use α = 0.5 in the demo.","Its values are learned and become non-zero."]},
+{q:"Why can a Q-table not be used for a game like Go?",
+ o:["There are far too many states to store, and most would never be visited","Go has no rewards","Go has only one action","Q-tables cannot store negative numbers"],a:0,
+ e:["Correct. With around 10³⁸ positions on even a 9×9 board, a table is impossible.","Winning or losing gives a reward.","Go has many legal moves per position.","Q-tables can store any number."]},
+{q:"What is the main advantage of approximate RL, such as a neural network that outputs Q-values?",
+ o:["It generalizes: learning about one state improves estimates for similar, unseen states","It never needs rewards","It always trains more stably than a table","It removes the need for exploration"],a:0,
+ e:["Correct. Similar inputs give similar outputs, so knowledge transfers between states.","Rewards are still the learning signal.","Function approximation is usually harder to train stably than a table.","The agent still has to explore."]}
+];
+</script>
+<script>
+buildTOC();
+renderQuiz(QUIZ);
+</script>
+</body>
+</html>

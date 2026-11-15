@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RL 6: Policy-based Reinforcement Learning</title>
+<style>:root{
+  --ink:#1c2430;--muted:#5d6878;--bg:#f7f7f3;--card:#ffffff;--line:#e3e6ea;
+  --accent:#2563eb;--accent-soft:#dbeafe;--ok:#15803d;--ok-soft:#dcfce7;--bad:#b91c1c;--bad-soft:#fee2e2;
+  --warn:#b45309;--warn-soft:#fef3c7;--purple:#7c3aed;--purple-soft:#ede9fe;
+  --c1:#2563eb;--c2:#ea580c;--c3:#16a34a;--c4:#7c3aed;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font:16.5px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+main{max-width:860px;margin:0 auto;padding:0 18px 80px}
+header.top{max-width:860px;margin:0 auto;padding:22px 18px 6px}
+.crumbs{font-size:.85rem;color:var(--muted);letter-spacing:.02em;text-transform:uppercase;font-weight:600}
+h1{font-size:2rem;line-height:1.2;margin:.25em 0 .35em}
+h2{font-size:1.35rem;margin:2.2em 0 .6em;padding-top:.3em;border-top:1px solid var(--line)}
+h3{font-size:1.08rem;margin:1.5em 0 .4em}
+.lead{color:var(--muted);font-size:1.05rem;margin-top:0}
+nav.course{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
+nav.course a{font-size:.82rem;text-decoration:none;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 10px}
+nav.course a.cur{background:var(--accent);border-color:var(--accent);color:#fff}
+.toc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin:18px 0}
+.toc b{display:block;margin-bottom:4px}
+.toc ol{margin:0;padding-left:20px}
+.toc a{color:var(--accent);text-decoration:none}
+.goals{background:var(--ok-soft);border-radius:12px;padding:12px 18px;margin:16px 0}
+.goals ul{margin:.3em 0 0;padding-left:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:18px 0}
+.demo{background:var(--card);border:2px solid var(--accent-soft);border-radius:14px;padding:16px 18px;margin:20px 0}
+.demo>.tag,.card>.tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.box{border-radius:10px;padding:10px 14px;margin:14px 0}
+.key{background:var(--accent-soft);border-left:4px solid var(--accent)}
+.analogy{background:var(--purple-soft);border-left:4px solid var(--purple)}
+.warn{background:var(--warn-soft);border-left:4px solid var(--warn)}
+.example{background:#f1f5f9;border-left:4px solid #64748b}
+.box b.lbl{display:block;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.analogy b.lbl{color:var(--purple)}.key b.lbl{color:var(--accent)}.warn b.lbl{color:var(--warn)}.example b.lbl{color:#475569}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.95rem;background:#fff}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:#f1f5f9}
+.formula{font-family:ui-monospace,Menlo,Consolas,monospace;background:#fff;border:1px dashed #cbd5e1;border-radius:10px;padding:12px;text-align:center;font-size:1.05rem;margin:14px 0;overflow-x:auto}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92rem}
+.note{color:var(--muted);font-size:.92rem}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.center{text-align:center}
+button{font:inherit;font-size:.95rem;padding:7px 14px;border-radius:9px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+button.alt{background:#fff;color:var(--accent)}
+button:disabled{opacity:.45;cursor:default}
+input[type=range]{width:180px;vertical-align:middle}
+svg{max-width:100%;height:auto;display:block;margin:0 auto}
+svg text{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:.88rem;margin-top:4px}
+.legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+.log{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88rem;background:#f8fafc;border-radius:8px;padding:10px 12px;white-space:pre-wrap;min-height:3.2em}
+.steps{counter-reset:s;list-style:none;padding-left:0}
+.steps li{counter-increment:s;position:relative;padding-left:38px;margin:10px 0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:.85rem;display:flex;align-items:center;justify-content:center}
+pre.code{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow-x:auto;font-size:.86rem;line-height:1.55}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:640px){.grid2{grid-template-columns:1fr}h1{font-size:1.6rem}}
+/* quiz */
+.quiz{background:#fff;border:2px solid var(--line);border-radius:16px;padding:18px 20px;margin-top:40px}
+.quiz h2{border:0;margin-top:0;padding-top:0}
+.q{margin:22px 0;padding-bottom:14px;border-bottom:1px dashed var(--line)}
+.q p.qt{font-weight:600;margin:0 0 8px}
+.opt{display:block;width:100%;text-align:left;margin:6px 0;padding:10px 12px;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:9px}
+.opt:hover{border-color:var(--accent)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt .why{display:none;font-size:.9rem;color:var(--muted);margin-top:4px}
+.q.done .opt .why{display:block}
+.q.done .opt{cursor:default}
+.verdict{display:none;font-weight:700;margin-top:6px}
+.q.done .verdict{display:block}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.scorebar{position:sticky;bottom:10px;background:#0f172a;color:#fff;border-radius:12px;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px}
+.scorebar button{background:#fff;color:#0f172a;border-color:#fff}
+.final{display:none;margin-top:14px;padding:14px;border-radius:12px;background:var(--accent-soft)}
+footer.pn{display:flex;justify-content:space-between;gap:10px;margin-top:30px}
+footer.pn a{flex:1;text-decoration:none;border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px 14px;color:var(--ink)}
+footer.pn a small{display:block;color:var(--muted)}
+footer.pn a.next{text-align:right}
+@media (max-width:640px){nav.course{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}nav.course a{white-space:nowrap}}
+</style>
+</head>
+<body>
+<header class="top">
+<div class="crumbs">Reinforcement Learning from Zero · Day 3 · Lesson 6 of 7</div>
+<nav class="course"><a href="lesson1.html" class="">1. What Is Reinforcement Learning?</a><a href="lesson2.html" class="">2. Rewards, Return and Value</a><a href="lesson3.html" class="">3. Exploration vs. Exploitation</a><a href="lesson4.html" class="">4. Monte Carlo and TD Learning</a><a href="lesson5.html" class="">5. Sarsa and Q-learning</a><a href="lesson6.html" class="cur">6. Policy-based Reinforcement Learning</a><a href="lesson7.html" class="">7. Multi-armed Bandits and Applications</a></nav>
+</header>
+<main>
+<h1>Lesson 6: Policy-based Reinforcement Learning</h1>
+<p class="lead">Everything on Day 2 was value-based: learn how good actions are, then pick the best. Policy-based methods skip that middle step. They learn the policy itself, as a set of probabilities, and nudge those probabilities toward actions that earned more reward.</p>
+
+<div class="goals"><b>After this lesson you can:</b>
+<ul>
+<li>Give three reasons to learn a policy directly instead of a value function.</li>
+<li>Turn action preferences into probabilities with the softmax function.</li>
+<li>Explain the idea of policy gradient ("climb the hill of expected reward").</li>
+<li>Apply the REINFORCE update by hand, and explain why a baseline helps.</li>
+<li>Describe actor–critic methods, which combine both families.</li>
+</ul></div>
+
+<div class="toc" id="toc"><b>Contents</b></div>
+
+<h2>1. Why learn the policy directly?</h2>
+<p>A value-based agent picks actions with ε-greedy on Q. That works well for many problems, but has some limits:</p>
+<table>
+<tr><th style="width:30%">Problem</th><th>What goes wrong with value-based</th><th>How a learned policy helps</th></tr>
+<tr><td><b>Continuous actions</b><br><span class="note">e.g. a steering angle from −30° to +30°</span></td><td>"Pick the action with the largest Q" means searching through infinitely many actions at every step.</td><td>The policy can directly output an action (for example the average and spread of a steering angle).</td></tr>
+<tr><td><b>Randomness is the best strategy</b><br><span class="note">e.g. rock–paper–scissors</span></td><td>Greedy choice is deterministic. Always playing "rock" is easy to beat. ε-greedy is random only in a fixed, crude way.</td><td>A policy can learn exact probabilities, such as ⅓ each, which no opponent can exploit.</td></tr>
+<tr><td><b>Abrupt changes</b></td><td>A tiny change in Q-values can suddenly flip which action is greedy, so behaviour jumps around during learning.</td><td>Probabilities change smoothly, a little at a time, which often makes learning more stable.</td></tr>
+</table>
+<div class="box analogy"><b class="lbl">Analogy</b>
+A value-based learner is like a student who first gives every possible answer a score, then picks the top-scored one. A policy-based learner is like an athlete building instinct: after a good result, the movements that led to it simply become a bit more likely next time, without anyone writing down a score for each movement.</div>
+
+<h2>2. A policy with knobs: preferences and softmax</h2>
+<p>To learn a policy, we need a policy that has adjustable numbers, called <b>parameters</b> and written θ (theta). The simplest version gives each action a a number θₐ called its <b>preference</b>. The <b>softmax</b> function turns preferences into probabilities:</p>
+<div class="formula">π(a) = e^θₐ / ( e^θ₁ + e^θ₂ + … + e^θₙ )</div>
+<ul>
+<li>e ≈ 2.718. Raising e to a power always gives a positive number, so every action keeps some chance of being picked. The agent never stops exploring completely.</li>
+<li>Dividing by the sum makes all probabilities add up to exactly 1.</li>
+<li>Only <b>differences</b> between preferences matter: adding the same number to every θ changes nothing.</li>
+</ul>
+<div class="box example"><b class="lbl">Worked example</b>
+Preferences θ = (1, 2, 0) for actions A, B, C.<br>
+e¹ = 2.72, e² = 7.39, e⁰ = 1. Sum = 11.11.<br>
+π(A) = 2.72 / 11.11 = <b>0.24</b>, π(B) = 7.39 / 11.11 = <b>0.67</b>, π(C) = 1 / 11.11 = <b>0.09</b>.<br>
+B is the favourite, but A and C still get picked sometimes.</div>
+
+<div class="demo"><span class="tag">Interactive: softmax</span>
+<div class="grid2">
+<div>
+  <div class="row"><label>θ<sub>A</sub> = <b id="t0v" class="mono"></b> <input type="range" id="t0" min="-3" max="3" step="0.1" value="1"></label></div>
+  <div class="row"><label>θ<sub>B</sub> = <b id="t1v" class="mono"></b> <input type="range" id="t1" min="-3" max="3" step="0.1" value="2"></label></div>
+  <div class="row"><label>θ<sub>C</sub> = <b id="t2v" class="mono"></b> <input type="range" id="t2" min="-3" max="3" step="0.1" value="0"></label></div>
+  <div class="row"><label>Temperature τ = <b id="tauv" class="mono"></b> <input type="range" id="tau" min="0.1" max="5" step="0.1" value="1"></label></div>
+  <p class="note">With temperature, π(a) = e^(θₐ/τ) / Σ e^(θ/τ). Low τ: almost always the favourite (nearly greedy). High τ: almost uniform (very exploratory).</p>
+</div>
+<svg viewBox="0 0 320 230" id="smSvg"></svg>
+</div>
+</div>
+
+<h2>3. Policy gradient: climbing the hill</h2>
+<p>Define the <b>objective</b> J(θ) as the expected return when the agent follows the policy with parameters θ. Different θ give different policies, and so different expected returns. Imagine all possible θ values as a landscape, with J(θ) as the height. We want to reach the top.</p>
+<div class="card"><span class="tag">Animation: gradient ascent</span>
+<svg viewBox="0 0 640 230">
+  <path id="hill" d="M20,200 C120,195 160,170 220,120 C270,78 300,40 360,38 C420,36 450,70 500,120 C540,160 580,190 620,196" fill="none" stroke="#7c3aed" stroke-width="3"/>
+  <path d="M20,200 C120,195 160,170 220,120 C270,78 300,40 360,38 C420,36 450,70 500,120 C540,160 580,190 620,196 L620,210 L20,210 Z" fill="#ede9fe" opacity=".6"/>
+  <path id="climb" d="M20,200 C120,195 160,170 220,120 C270,78 300,40 360,38" fill="none"/>
+  <circle r="11" fill="#ea580c" stroke="#fff" stroke-width="2"><animateMotion dur="5s" repeatCount="indefinite" keyPoints="0;1;1" keyTimes="0;0.75;1" keySplines="0.2 0 0.4 1;0 0 1 1" calcMode="spline"><mpath href="#climb"/></animateMotion></circle>
+  <text x="360" y="26" text-anchor="middle" font-size="13" font-weight="700" fill="#4c1d95">best policy (highest J)</text>
+  <text x="70" y="180" font-size="12" fill="#334155">start: random policy</text>
+  <text x="320" y="225" text-anchor="middle" font-size="12" fill="#475569">policy parameters θ →</text>
+  <text x="10" y="20" font-size="12" fill="#475569">expected return J(θ)</text>
+</svg>
+</div>
+<p>The <b>gradient</b> is the direction in which J increases fastest, like the steepest uphill direction on a mountain. <b>Gradient ascent</b> repeatedly takes a small step uphill:</p>
+<div class="formula">θ ← θ + η × (estimate of the gradient of J)</div>
+<p>Here η (eta) is the step size. The challenge: we cannot see the landscape. We only have the rewards from the actions we tried. The <b>policy gradient theorem</b> tells us how to estimate the uphill direction from experience alone, and the result is surprisingly intuitive:</p>
+<div class="box key"><b class="lbl">The core idea</b>
+After the agent takes action a and gets a return G: <b>make a more likely if G was high, and less likely if G was low</b>, by an amount proportional to how good or bad the result was.</div>
+
+<h2>4. REINFORCE</h2>
+<p><b>REINFORCE</b> (Williams, 1992) is the classic policy-gradient algorithm. For the softmax policy on a single-state problem (like the bandit), its update for every action k after taking action a and receiving reward R is:</p>
+<div class="formula">θₖ ← θₖ + η × (R − b) × ( 1[k = a] − π(k) )</div>
+<ul>
+<li><b>1[k = a]</b> is 1 for the action that was taken and 0 for the others.</li>
+<li>So for the <b>taken</b> action, (1 − π(a)) is positive: its preference moves in the direction of (R − b).</li>
+<li>For the <b>other</b> actions, (0 − π(k)) is negative: they move the opposite way, a little.</li>
+<li><b>b</b> is a <b>baseline</b>, usually the average reward so far. (R − b) asks: "was this result better or worse than usual?"</li>
+</ul>
+<div class="box example"><b class="lbl">Worked example (η = 0.5, b = 0)</b>
+Three arms, θ = (0, 0, 0), so π = (⅓, ⅓, ⅓). The agent picks arm 3 and gets R = 1.<br>
+Arm 3: θ₃ ← 0 + 0.5 × 1 × (1 − ⅓) = <b>+0.333</b><br>
+Arms 1 and 2: θ ← 0 + 0.5 × 1 × (0 − ⅓) = <b>−0.167</b><br>
+New probabilities: e^0.333 = 1.40, e^−0.167 = 0.85. Sum = 1.40 + 0.85 + 0.85 = 3.09.<br>
+π = (0.27, 0.27, <b>0.45</b>). One good result made arm 3 noticeably more likely.</div>
+
+<h3>Why the baseline matters</h3>
+<p>Suppose every arm pays about 4 to 5 points, always positive. Without a baseline, (R − 0) is always positive, so <b>every</b> chosen action gets pushed up, the good ones only slightly more than the bad ones. Learning still works on average, but it is noisy and slow. With the baseline b = average reward, an arm paying 4.2 when the average is 4.5 gets pushed <b>down</b>, and one paying 5 gets pushed up. The baseline does not change which direction is uphill on average, but it greatly reduces the noise (variance) of each step.</p>
+
+<div class="demo"><span class="tag">Interactive: train a softmax policy</span>
+<p class="note" style="margin-top:0">Three arms with hidden average payouts 4, 4.5 and 5 (plus noise). The policy starts uniform. η = 0.1. The left chart shows the probabilities; the right chart shows how they change over time.</p>
+<div class="row">
+  <label><input type="checkbox" id="pgBase" checked> Use baseline (average reward)</label>
+  <button id="pg1">Train 1 step</button>
+  <button id="pgAuto" class="alt">▶ Auto</button>
+  <button id="pg200" class="alt">+200 steps</button>
+  <button id="pgR" class="alt">Reset</button>
+</div>
+<div class="grid2">
+  <svg viewBox="0 0 320 230" id="pgBars"></svg>
+  <div id="pgHist"></div>
+</div>
+<div class="log" id="pgLog"></div>
+</div>
+
+<div class="demo"><span class="tag">Experiment: baseline vs. no baseline</span>
+<div class="row"><button id="pgExp">Run (300 runs × 500 steps)</button><span class="note" id="pgExpP"></span></div>
+<div id="pgChart"><p class="note center">Press the button to run.</p></div>
+</div>
+<p>With the baseline, the probability of picking the best arm rises much faster. Without it, learning is slower because all-positive rewards push every action up.</p>
+
+<h3>REINFORCE for full episodes</h3>
+<p>With many states, the policy takes the state as input: π(a | s, θ), often computed by a neural network. REINFORCE then works like Monte Carlo from Lesson 4: play a complete episode, compute the return Gₜ from each step, and push up the probability of each action in proportion to (Gₜ − b).</p>
+<pre class="code">REINFORCE
+initialize policy parameters θ
+for each episode:
+    play the episode with π(·|·, θ):  S₀, A₀, R₁, …, S_T
+    for t = 0 … T−1:
+        Gₜ ← return from step t           (Rₜ₊₁ + γRₜ₊₂ + …)
+        θ ← θ + η · (Gₜ − b) · (direction that makes Aₜ more likely in Sₜ)</pre>
+<p class="note">"Direction that makes Aₜ more likely" is the gradient of log π(Aₜ | Sₜ, θ). For the softmax with one state, it is exactly the (1[k = a] − π(k)) term above.</p>
+
+<h2>5. Actor–critic: the best of both</h2>
+<p>REINFORCE waits for the end of each episode and its returns are noisy, just like Monte Carlo. The fix is the same as in Lesson 4: <b>use TD</b>. An actor–critic method has two parts:</p>
+<div class="card"><span class="tag">Diagram</span>
+<svg viewBox="0 0 680 230">
+  <defs><marker id="ah6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+  <rect x="30" y="30" width="200" height="70" rx="12" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+  <text x="130" y="60" text-anchor="middle" font-weight="700" font-size="15" fill="#4c1d95">Actor (policy π)</text>
+  <text x="130" y="82" text-anchor="middle" font-size="12">chooses the actions</text>
+  <rect x="30" y="140" width="200" height="70" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <text x="130" y="170" text-anchor="middle" font-weight="700" font-size="15" fill="#1e3a8a">Critic (value V)</text>
+  <text x="130" y="192" text-anchor="middle" font-size="12">judges: better or worse than expected?</text>
+  <rect x="460" y="80" width="190" height="80" rx="12" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text x="555" y="117" text-anchor="middle" font-weight="700" font-size="15" fill="#14532d">Environment</text>
+  <path d="M230,60 L458,100" stroke="#ea580c" stroke-width="2.5" marker-end="url(#ah6)"/><text x="345" y="66" text-anchor="middle" font-size="12" fill="#ea580c">action</text>
+  <path d="M458,140 L232,175" stroke="#64748b" stroke-width="2.5" marker-end="url(#ah6)"/><text x="350" y="178" text-anchor="middle" font-size="12" fill="#334155">reward, next state</text>
+  <path d="M110,140 L110,102" stroke="#dc2626" stroke-width="3" marker-end="url(#ah6)"/>
+  <text x="118" y="126" font-size="12" font-weight="700" fill="#dc2626">TD error δ</text>
+</svg>
+</div>
+<ul>
+<li>The <b>critic</b> learns V(s) with TD (Lesson 4) and computes the TD error δ = R + γV(s′) − V(s) after every step.</li>
+<li>The <b>actor</b> is the policy. It uses δ in place of (G − b): if δ &gt; 0 the action turned out better than the critic expected, so it becomes more likely; if δ &lt; 0, less likely.</li>
+</ul>
+<p>Actor–critic methods can learn after every step, work on continuing tasks, and have lower variance than REINFORCE. Many modern algorithms (such as A2C, PPO and SAC) are actor–critic methods with a neural network for each part.</p>
+
+<h2>6. Value-based vs. policy-based</h2>
+<table>
+<tr><th></th><th>Value-based (Sarsa, Q-learning)</th><th>Policy-based (REINFORCE)</th></tr>
+<tr><td>What is learned</td><td>Q(s, a)</td><td>π(a | s, θ) directly</td></tr>
+<tr><td>How actions are chosen</td><td>Greedy / ε-greedy on Q</td><td>Sample from the learned probabilities</td></tr>
+<tr><td>Stochastic policies</td><td>Only crude (ε)</td><td>Natural, any probabilities</td></tr>
+<tr><td>Continuous actions</td><td>Difficult</td><td>Natural</td></tr>
+<tr><td>Data efficiency</td><td>Often better (reuses data, bootstraps)</td><td>Often worse (high variance)</td></tr>
+<tr><td>Typical risk</td><td>Unstable with function approximation</td><td>Slow, noisy learning; can settle on a local peak</td></tr>
+</table>
+<div class="card"><span class="tag">Map of the methods in this course</span>
+<svg viewBox="0 0 680 210">
+  <rect x="250" y="8" width="180" height="38" rx="10" fill="#0f172a"/><text x="340" y="32" text-anchor="middle" fill="#fff" font-weight="700" font-size="14">Model-free RL</text>
+  <g stroke="#94a3b8" stroke-width="2" fill="none"><path d="M300,46 L150,80"/><path d="M340,46 L340,80"/><path d="M380,46 L540,80"/></g>
+  <rect x="40" y="80" width="220" height="38" rx="10" fill="#dbeafe" stroke="#2563eb"/><text x="150" y="104" text-anchor="middle" font-weight="700" font-size="13">Value-based</text>
+  <rect x="280" y="80" width="120" height="38" rx="10" fill="#fef3c7" stroke="#b45309"/><text x="340" y="104" text-anchor="middle" font-weight="700" font-size="13">Actor–critic</text>
+  <rect x="430" y="80" width="220" height="38" rx="10" fill="#ede9fe" stroke="#7c3aed"/><text x="540" y="104" text-anchor="middle" font-weight="700" font-size="13">Policy-based</text>
+  <g font-size="12" fill="#334155">
+  <text x="150" y="142" text-anchor="middle">Prediction: Monte Carlo, TD(0)</text>
+  <text x="150" y="162" text-anchor="middle">Control: Sarsa, Q-learning</text>
+  <text x="150" y="182" text-anchor="middle">Large problems: DQN</text>
+  <text x="340" y="142" text-anchor="middle">uses both:</text>
+  <text x="340" y="162" text-anchor="middle">policy + TD critic</text>
+  <text x="540" y="142" text-anchor="middle">Softmax policy</text>
+  <text x="540" y="162" text-anchor="middle">REINFORCE (± baseline)</text>
+  </g>
+</svg>
+</div>
+
+<h2>7. Summary</h2>
+<ul>
+<li>Policy-based RL learns the action probabilities π(a | s, θ) directly.</li>
+<li>Softmax converts preferences θ into probabilities; temperature controls how random it is.</li>
+<li>Policy gradient = gradient <b>ascent</b> on the expected return J(θ): make actions with good results more likely.</li>
+<li>REINFORCE: θₖ ← θₖ + η(R − b)(1[k = a] − π(k)). A baseline b reduces noise without changing the direction on average.</li>
+<li>Actor–critic combines a policy (actor) with a TD-learned value function (critic).</li>
+<li>Next lesson: the multi-armed bandit in depth, real applications, and a review of the whole course.</li>
+</ul>
+
+
+
+<section class="quiz" id="quiz">
+<h2>Quiz: check your understanding</h2>
+<p class="note">10 multiple-choice questions. Click an answer: you will see whether it is right, and an explanation for <b>every</b> option.</p>
+<div id="quizItems"></div>
+<div class="final" id="finalMsg"></div>
+<div class="scorebar"><span id="scoreText"></span><button id="retry">Retry quiz</button></div>
+</section>
+<footer class="pn"><a href="lesson5.html"><small>← Previous</small>5. Sarsa and Q-learning</a><a class="next" href="lesson7.html"><small>Next →</small>7. Multi-armed Bandits and Applications</a></footer>
+</main>
+<script>// ---------- small helpers ----------
+const $ = id => document.getElementById(id);
+const NS = 'http://www.w3.org/2000/svg';
+function S(tag, attrs, parent){
+  const e = document.createElementNS(NS, tag);
+  for (const k in (attrs||{})) {
+    if (k === 'text') e.textContent = attrs[k]; else e.setAttribute(k, attrs[k]);
+  }
+  if (parent) parent.appendChild(e);
+  return e;
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const fmt = (x, d=2) => (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toFixed(d);
+function argmaxRand(arr){
+  const m = Math.max(...arr); const c = [];
+  arr.forEach((v,i)=>{ if (v === m) c.push(i); });
+  return c[Math.floor(Math.random()*c.length)];
+}
+function randn(){ let u=0,v=0; while(!u)u=Math.random(); while(!v)v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+
+// ---------- line chart ----------
+// opts: {w,h,series:[{label,color,data:[y..], dash}], xLabel,yLabel,yMin,yMax,xStart}
+function lineChart(container, opts){
+  const w = opts.w||640, h = opts.h||300, L=56, R=16, T=14, B=44;
+  container.innerHTML = '';
+  const svg = S('svg', {viewBox:`0 0 ${w} ${h}`, role:'img'}, container);
+  let all = []; opts.series.forEach(s => all = all.concat(s.data));
+  const yMin = opts.yMin !== undefined ? opts.yMin : Math.min(...all);
+  const yMax = opts.yMax !== undefined ? opts.yMax : Math.max(...all);
+  const n = Math.max(...opts.series.map(s=>s.data.length));
+  const x0 = opts.xStart||0;
+  const X = i => L + (w-L-R) * (n<=1?0:i/(n-1));
+  const Y = v => T + (h-T-B) * (1 - (v-yMin)/((yMax-yMin)||1));
+  for (let k=0;k<=4;k++){
+    const v = yMin + (yMax-yMin)*k/4, y = Y(v);
+    S('line',{x1:L,x2:w-R,y1:y,y2:y,stroke:'#e5e7eb'},svg);
+    S('text',{x:L-6,y:y+4,'text-anchor':'end','font-size':11,fill:'#64748b',text:(Math.abs(yMax-yMin)<5?fmt(v,2):Math.round(v))},svg);
+  }
+  for (let k=0;k<=4;k++){
+    const i = Math.round((n-1)*k/4), x = X(i);
+    S('text',{x:x,y:h-B+16,'text-anchor':'middle','font-size':11,fill:'#64748b',text:x0+i},svg);
+  }
+  S('line',{x1:L,x2:L,y1:T,y2:h-B,stroke:'#94a3b8'},svg);
+  S('line',{x1:L,x2:w-R,y1:h-B,y2:h-B,stroke:'#94a3b8'},svg);
+  if (opts.xLabel) S('text',{x:(L+w-R)/2,y:h-6,'text-anchor':'middle','font-size':12,fill:'#334155',text:opts.xLabel},svg);
+  if (opts.yLabel) S('text',{x:14,y:(T+h-B)/2,'text-anchor':'middle','font-size':12,fill:'#334155',transform:`rotate(-90 14 ${(T+h-B)/2})`,text:opts.yLabel},svg);
+  opts.series.forEach(s=>{
+    const pts = s.data.map((v,i)=>`${X(i).toFixed(1)},${Y(Math.max(yMin,Math.min(yMax,v))).toFixed(1)}`).join(' ');
+    S('polyline',{points:pts,fill:'none',stroke:s.color,'stroke-width':2.2,'stroke-dasharray':s.dash||'', 'stroke-linejoin':'round'},svg);
+  });
+  const lg = document.createElement('div'); lg.className='legend';
+  opts.series.forEach(s=>{ const sp=document.createElement('span'); sp.style.setProperty('--c',s.color); sp.textContent=s.label; lg.appendChild(sp); });
+  container.appendChild(lg);
+}
+
+// ---------- table of contents ----------
+function buildTOC(){
+  const toc = $('toc'); if (!toc) return;
+  const hs = [...document.querySelectorAll('main > section > h2, main > h2')].filter(h=>!h.closest('.quiz'));
+  const ol = document.createElement('ol');
+  hs.forEach((h,i)=>{ if(!h.id) h.id='sec'+(i+1); const li=document.createElement('li'); li.innerHTML=`<a href="#${h.id}">${h.textContent}</a>`; ol.appendChild(li); });
+  const li=document.createElement('li'); li.innerHTML='<a href="#quiz">Quiz (10 questions)</a>'; ol.appendChild(li);
+  toc.appendChild(ol);
+}
+
+// ---------- quiz ----------
+// item: {q, o:[4 options], a:index, e:[4 explanations]}
+function renderQuiz(items){
+  const box = $('quizItems'); box.innerHTML = '';
+  let answered = 0, correct = 0;
+  const bar = $('scoreText'), fin = $('finalMsg');
+  function upd(){
+    bar.textContent = `Answered ${answered}/${items.length} · Correct ${correct}`;
+    if (answered === items.length){
+      fin.style.display='block';
+      const pct = correct/items.length;
+      fin.innerHTML = `<b>You scored ${correct}/${items.length}.</b> ` + (pct===1 ? 'Perfect. You have mastered this lesson.' : pct>=0.7 ? 'Good work. Read the explanations for the questions you missed, then move on.' : 'Re-read the sections linked in the contents above, then press "Retry quiz".');
+    } else fin.style.display='none';
+  }
+  items = items.map(it0=>{ // shuffle option order so the answer is not always in the same place
+    const idx=[0,1,2,3].slice(0,it0.o.length); for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+    return {q:it0.q,o:idx.map(i=>it0.o[i]),e:idx.map(i=>it0.e[i]),a:idx.indexOf(it0.a),orig:it0};
+  });
+  items.forEach((it, qi)=>{
+    const d = document.createElement('div'); d.className='q';
+    d.innerHTML = `<p class="qt">${qi+1}. ${it.q}</p>`;
+    const btns = [];
+    it.o.forEach((t,j)=>{
+      const b = document.createElement('button'); b.className='opt';
+      b.innerHTML = `<b>${String.fromCharCode(65+j)}.</b> ${t}<span class="why">${j===it.a?'✔ ':'✘ '}${it.e[j]}</span>`;
+      b.onclick = ()=>{
+        if (d.classList.contains('done')) return;
+        d.classList.add('done'); answered++;
+        btns[it.a].classList.add('right');
+        if (j===it.a){ correct++; v.innerHTML='<span class="ok">Correct!</span> All options are explained below.'; }
+        else { b.classList.add('wrong'); v.innerHTML=`<span class="bad">Not quite.</span> The answer is ${String.fromCharCode(65+it.a)}. Read why each option is right or wrong.`; }
+        upd();
+      };
+      btns.push(b); d.appendChild(b);
+    });
+    const v = document.createElement('div'); v.className='verdict'; d.insertBefore(v, d.children[1]);
+    box.appendChild(d);
+  });
+  $('retry').onclick = ()=>{ renderQuiz(items.map(x=>x.orig)); $('quiz').scrollIntoView(); };
+  upd();
+}
+</script>
+<script>
+function softmax(th,tau){tau=tau||1;const m=Math.max(...th);const e=th.map(x=>Math.exp((x-m)/tau));const s=e.reduce((a,b)=>a+b,0);return e.map(x=>x/s);}
+function bars(svg,probs,labels,colors,sub){
+  svg.innerHTML=''; const base=190, H=160, bw=70;
+  S('line',{x1:20,x2:300,y1:base,y2:base,stroke:'#94a3b8'},svg);
+  probs.forEach((p,i)=>{const x=35+i*95;
+    S('rect',{x:x,y:base-p*H,width:bw,height:p*H,rx:5,fill:colors[i],style:'transition:all .3s'},svg);
+    S('text',{x:x+bw/2,y:base-p*H-6,'text-anchor':'middle','font-size':14,'font-weight':700,text:fmt(p,2)},svg);
+    S('text',{x:x+bw/2,y:base+18,'text-anchor':'middle','font-size':13,text:labels[i]},svg);
+    if(sub) S('text',{x:x+bw/2,y:base+34,'text-anchor':'middle','font-size':11,fill:'#64748b',text:sub[i]},svg);
+  });
+}
+const COLS=['#2563eb','#ea580c','#16a34a'];
+(function(){
+  function upd(){ const th=[+$('t0').value,+$('t1').value,+$('t2').value], tau=+$('tau').value;
+    $('t0v').textContent=fmt(th[0],1);$('t1v').textContent=fmt(th[1],1);$('t2v').textContent=fmt(th[2],1);$('tauv').textContent=fmt(tau,1);
+    bars($('smSvg'),softmax(th,tau),['A','B','C'],COLS,th.map(x=>'θ='+fmt(x,1))); }
+  ['t0','t1','t2','tau'].forEach(id=>$(id).oninput=upd); upd();
+})();
+(function(){
+  const MU=[4,4.5,5], ETA=0.1; let th,avg,n,hist,auto=null,last=null;
+  function stepPG(useB,state){ const pi=softmax(state.th); const u=Math.random(); let a=0,c=0; for(;a<2;a++){c+=pi[a];if(u<c)break;}
+    const r=MU[a]+randn(); const b=useB?state.avg:0; for(let k=0;k<3;k++) state.th[k]+=ETA*(r-b)*((k===a?1:0)-pi[k]);
+    state.n++; state.avg+=(r-state.avg)/state.n; return {a,r,b,pi}; }
+  let st;
+  function reset(){ st={th:[0,0,0],avg:0,n:0}; hist=[[1/3],[1/3],[1/3]]; last=null; draw(); }
+  function draw(){ const pi=softmax(st.th);
+    bars($('pgBars'),pi,['Arm 1 (avg 4)','Arm 2 (avg 4.5)','Arm 3 (avg 5)'],COLS,st.th.map(x=>'θ='+fmt(x,2)));
+    lineChart($('pgHist'),{w:420,h:250,series:[0,1,2].map(i=>({label:'π(arm '+(i+1)+')',color:COLS[i],data:hist[i]})),xLabel:'Training step',yLabel:'Probability',yMin:0,yMax:1});
+    $('pgLog').textContent=last?`Step ${st.n}: picked arm ${last.a+1}, reward ${fmt(last.r,2)}, baseline b = ${fmt(last.b,2)}, so (R − b) = ${fmt(last.r-last.b,2)} → arm ${last.a+1} becomes ${last.r-last.b>0?'MORE':'LESS'} likely.`:'Press "Train 1 step".'; }
+  function one(dr){ last=stepPG($('pgBase').checked,st); const pi=softmax(st.th); for(let i=0;i<3;i++)hist[i].push(pi[i]); if(dr!==false)draw(); }
+  function stopA(){ if(auto){clearInterval(auto);auto=null;$('pgAuto').textContent='▶ Auto';} }
+  $('pg1').onclick=()=>{stopA();one();}; $('pg200').onclick=()=>{stopA();for(let i=0;i<199;i++)one(false);one();};
+  $('pgAuto').onclick=()=>{ if(auto){stopA();return;} $('pgAuto').textContent='⏸ Pause'; auto=setInterval(()=>one(),120); };
+  $('pgR').onclick=()=>{stopA();reset();}; $('pgBase').onchange=()=>{stopA();reset();};
+  reset();
+  $('pgExp').onclick=async()=>{ $('pgExp').disabled=true; const RUNS=300,T=500; const w=new Float64Array(T),wo=new Float64Array(T);
+    for(let run=0;run<RUNS;run++){ const s1={th:[0,0,0],avg:0,n:0}, s2={th:[0,0,0],avg:0,n:0};
+      for(let t=0;t<T;t++){ stepPG(true,s1); stepPG(false,s2); w[t]+=softmax(s1.th)[2]; wo[t]+=softmax(s2.th)[2]; }
+      if(run%50===49){$('pgExpP').textContent=`Runs: ${run+1}/${RUNS}`;await sleep(0);} }
+    lineChart($('pgChart'),{series:[{label:'With baseline',color:'#16a34a',data:[...w].map(x=>x/RUNS)},{label:'Without baseline',color:'#94a3b8',data:[...wo].map(x=>x/RUNS)}],xLabel:'Training step',yLabel:'Probability of best arm',yMin:0,yMax:1,xStart:1});
+    $('pgExpP').textContent='Done.'; $('pgExp').disabled=false; };
+})();
+
+const QUIZ=[
+{q:"What does a policy-based method learn?",
+ o:["The action probabilities π(a | s, θ) directly","Only the Q-table","Only the reward function","The rules of the environment"],a:0,
+ e:["Correct. It adjusts the policy's parameters θ, not a table of values.","A Q-table is what value-based methods learn.","Rewards come from the environment; they are not learned.","Learning the rules would be model-based RL."]},
+{q:"Which is a good reason to prefer a policy-based method?",
+ o:["The best strategy is random, as in rock–paper–scissors","The problem has very few states and actions","You want to store one value per state–action pair","Rewards are always zero"],a:0,
+ e:["Correct. A learned policy can represent exact probabilities such as ⅓ each.","Small problems are often handled well by tabular value-based methods.","That describes a Q-table.","With zero rewards nothing can be learned by any method."]},
+{q:"Preferences are θ = (0, 0). What does softmax give?",
+ o:["(0.5, 0.5)","(0, 0)","(1, 0)","(0.73, 0.27)"],a:0,
+ e:["Correct: e⁰ = 1 for both, so each gets 1/2.","Softmax probabilities are always positive and sum to 1.","Equal preferences cannot give unequal probabilities.","That would need preferences that differ by 1."]},
+{q:"In softmax, what happens if you add 5 to every preference?",
+ o:["Nothing: the probabilities stay the same","Every probability increases","The first action becomes certain","The probabilities no longer add up to 1"],a:0,
+ e:["Correct. Only differences between preferences matter.","They cannot all increase, because they must still sum to 1.","Adding the same constant does not favour any action.","Softmax always gives probabilities that add up to 1."]},
+{q:"What does a very low temperature τ do to a softmax policy?",
+ o:["It becomes almost greedy: nearly always the action with the highest preference","It becomes almost uniform","It stops producing probabilities","It reverses the preferences"],a:0,
+ e:["Correct. Dividing by a small τ magnifies the differences between preferences.","High temperature makes it uniform.","It still produces valid probabilities.","The order of preferences is kept."]},
+{q:"What is gradient ascent on J(θ)?",
+ o:["Repeatedly changing θ a little in the direction that increases expected return","Choosing θ at random","Decreasing the reward","Storing every return in a table"],a:0,
+ e:["Correct. Like climbing a hill by always stepping uphill.","Random search is not gradient ascent.","We want to increase the expected return.","Storing returns is not the method."]},
+{q:"In REINFORCE (bandit, softmax), the taken action a gets the update θₐ ← θₐ + η(R − b)(1 − π(a)). If R − b > 0, what happens?",
+ o:["θₐ increases, so action a becomes more likely","θₐ decreases","Nothing changes","All preferences become equal"],a:0,
+ e:["Correct. Both (R − b) and (1 − π(a)) are positive.","It would decrease only if R − b were negative.","A non-zero (R − b) always causes a change.","The update separates the actions; it does not equalize them."]},
+{q:"θ = (0, 0, 0), η = 0.5, b = 0. The agent takes arm 1 and gets R = 2. What is the new θ₁?",
+ o:["0.667","1.0","0.333","2.0"],a:0,
+ e:["Correct: 0 + 0.5 × 2 × (1 − ⅓) = 1 × ⅔ ≈ 0.667.","That ignores the (1 − π) factor of ⅔.","That uses R = 1 instead of 2.","The step size and the (1 − π) factor shrink the change."]},
+{q:"Why does a baseline b help REINFORCE?",
+ o:["It reduces the noise of updates: actions are judged as better or worse than usual, without changing the average direction","It makes rewards larger","It removes the need for exploration","It turns REINFORCE into Q-learning"],a:0,
+ e:["Correct. With all-positive rewards and no baseline, every action is pushed up; the baseline fixes this.","It shifts the comparison point; it does not scale rewards.","Exploration still comes from the stochastic policy.","It remains a policy-gradient method."]},
+{q:"In an actor–critic method, what does the critic do?",
+ o:["Learns a value function and computes the TD error that tells the actor whether an action was better or worse than expected","Chooses the actions","Generates the rewards","Stores the full episode before any learning"],a:0,
+ e:["Correct. The critic's TD error replaces the noisy (G − b) of REINFORCE.","Choosing actions is the actor's job.","Rewards come from the environment.","Actor–critic can learn after every step."]}
+];
+</script>
+<script>
+buildTOC();
+renderQuiz(QUIZ);
+</script>
+</body>
+</html>

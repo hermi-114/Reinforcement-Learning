@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reinforcement Learning from Zero</title>
+<style>
+:root{--ink:#1c2430;--muted:#5d6878;--bg:#f7f7f3;--line:#e3e6ea;--accent:#2563eb;--accent-soft:#dbeafe}
+*{box-sizing:border-box}
+body{margin:0;font:16.5px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+.hero{background:linear-gradient(135deg,#1e3a8a,#2563eb 60%,#7c3aed);color:#fff;padding:48px 18px 56px}
+.wrap{max-width:900px;margin:0 auto;padding:0 18px}
+.hero .wrap{padding:0}
+.hero h1{font-size:2.3rem;line-height:1.15;margin:0 0 10px}
+.hero p{margin:0;max-width:640px;opacity:.92;font-size:1.08rem}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.pills span{background:rgba(255,255,255,.16);border-radius:999px;padding:3px 12px;font-size:.88rem}
+main{padding-bottom:70px}
+.day{margin-top:36px}
+.day h2{display:flex;align-items:baseline;gap:10px;font-size:1.3rem;margin:0 0 4px}
+.day h2 small{font-size:.8rem;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.05em}
+.day>p{margin:0 0 12px;color:var(--muted)}
+.cards{display:grid;gap:12px}
+a.card{display:flex;gap:14px;align-items:flex-start;text-decoration:none;color:inherit;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;transition:border-color .15s,box-shadow .15s,transform .15s}
+a.card:hover{border-color:var(--accent);box-shadow:0 4px 14px rgba(37,99,235,.12);transform:translateY(-1px)}
+.num{flex:none;width:38px;height:38px;border-radius:50%;background:var(--accent-soft);color:#1e3a8a;font-weight:700;display:flex;align-items:center;justify-content:center}
+.card h3{margin:0 0 2px;font-size:1.08rem}
+.card p{margin:0 0 6px;color:var(--muted);font-size:.95rem}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tags span{font-size:.76rem;background:#f1f5f9;border-radius:6px;padding:1px 8px;color:#475569}
+.go{margin-left:auto;align-self:center;color:var(--accent);font-weight:600;white-space:nowrap}
+.how{margin-top:40px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 20px}
+.how h2{margin:0 0 6px;font-size:1.1rem}
+.how ul{margin:0;padding-left:20px}
+.how li{margin:4px 0}
+@media (max-width:560px){.hero h1{font-size:1.8rem}.go{display:none}}
+</style>
+</head>
+<body>
+<header class="hero"><div class="wrap">
+<h1>Reinforcement Learning from Zero</h1>
+<p>A three-day course for complete beginners. Each lesson has clear explanations, worked examples, interactive demos and animations, and a 10-question quiz with explanations for every answer.</p>
+<div class="pills"><span>3 days</span><span>7 lessons</span><span>No prior knowledge needed</span><span>70 quiz questions</span></div>
+</div></header>
+
+<main class="wrap">
+
+<section class="day">
+<h2><small>Day 1</small> Foundations</h2>
+<p>What RL is, and how to measure "good" behaviour.</p>
+<div class="cards">
+<a class="card" href="lesson1.html"><div class="num">1</div><div><h3>What Is Reinforcement Learning?</h3><p>Trial-and-error learning, the agent–environment loop, and the key vocabulary. Play a grid game as the agent.</p><div class="tags"><span>agent</span><span>environment</span><span>state</span><span>action</span><span>reward</span><span>policy</span></div></div><div class="go">Open →</div></a>
+<a class="card" href="lesson2.html"><div class="num">2</div><div><h3>Rewards, Return and Value</h3><p>Discounted return, deterministic vs. stochastic policies, V(s) and Q(s, a), and the Bellman idea.</p><div class="tags"><span>return</span><span>discount γ</span><span>V and Q</span><span>Bellman</span></div></div><div class="go">Open →</div></a>
+</div>
+</section>
+
+<section class="day">
+<h2><small>Day 2</small> Value-based methods</h2>
+<p>Learn how good actions are, then pick the best one.</p>
+<div class="cards">
+<a class="card" href="lesson3.html"><div class="num">3</div><div><h3>Exploration vs. Exploitation</h3><p>The central dilemma, on slot machines: greedy, ε-greedy, optimistic initialization (X = 10) and UCB.</p><div class="tags"><span>ε-greedy</span><span>optimistic start</span><span>UCB</span></div></div><div class="go">Open →</div></a>
+<a class="card" href="lesson4.html"><div class="num">4</div><div><h3>Monte Carlo and TD Learning</h3><p>Learn values from experience without a model: wait for the episode to end, or learn after every step.</p><div class="tags"><span>Monte Carlo</span><span>TD(0)</span><span>bootstrapping</span></div></div><div class="go">Open →</div></a>
+<a class="card" href="lesson5.html"><div class="num">5</div><div><h3>Sarsa and Q-learning</h3><p>Learn Q-values and act on them. On-policy vs. off-policy on a cliff walk, and tabular vs. approximate RL.</p><div class="tags"><span>Sarsa</span><span>Q-learning</span><span>Q-table</span><span>DQN</span></div></div><div class="go">Open →</div></a>
+</div>
+</section>
+
+<section class="day">
+<h2><small>Day 3</small> Policies and applications</h2>
+<p>Learn behaviour directly, then use everything on real problems.</p>
+<div class="cards">
+<a class="card" href="lesson6.html"><div class="num">6</div><div><h3>Policy-based Reinforcement Learning</h3><p>Softmax policies, policy gradient, REINFORCE with a baseline, and actor–critic methods.</p><div class="tags"><span>softmax</span><span>policy gradient</span><span>REINFORCE</span><span>actor–critic</span></div></div><div class="go">Open →</div></a>
+<a class="card" href="lesson7.html"><div class="num">7</div><div><h3>Multi-armed Bandits and Applications</h3><p>Play against RL agents, run the X = 10 experiment, train a traffic-light controller, and review the whole course.</p><div class="tags"><span>bandits</span><span>regret</span><span>traffic control</span><span>course review</span></div></div><div class="go">Open →</div></a>
+</div>
+</section>
+
+<section class="how">
+<h2>How to use this course</h2>
+<ul>
+<li>Take the lessons in order: each one builds on the previous.</li>
+<li>Try every interactive demo: change the settings and see what happens.</li>
+<li>Take the quiz at the end of each lesson, and read the explanation for every option, including the wrong ones.</li>
+<li>Suggested pace: Day 1 = lessons 1–2, Day 2 = lessons 3–5, Day 3 = lessons 6–7.</li>
+</ul>
+</section>
+
+</main>
+</body>
+</html>

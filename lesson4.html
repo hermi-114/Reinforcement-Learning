@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RL 4: Monte Carlo and TD Learning</title>
+<style>:root{
+  --ink:#1c2430;--muted:#5d6878;--bg:#f7f7f3;--card:#ffffff;--line:#e3e6ea;
+  --accent:#2563eb;--accent-soft:#dbeafe;--ok:#15803d;--ok-soft:#dcfce7;--bad:#b91c1c;--bad-soft:#fee2e2;
+  --warn:#b45309;--warn-soft:#fef3c7;--purple:#7c3aed;--purple-soft:#ede9fe;
+  --c1:#2563eb;--c2:#ea580c;--c3:#16a34a;--c4:#7c3aed;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font:16.5px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+main{max-width:860px;margin:0 auto;padding:0 18px 80px}
+header.top{max-width:860px;margin:0 auto;padding:22px 18px 6px}
+.crumbs{font-size:.85rem;color:var(--muted);letter-spacing:.02em;text-transform:uppercase;font-weight:600}
+h1{font-size:2rem;line-height:1.2;margin:.25em 0 .35em}
+h2{font-size:1.35rem;margin:2.2em 0 .6em;padding-top:.3em;border-top:1px solid var(--line)}
+h3{font-size:1.08rem;margin:1.5em 0 .4em}
+.lead{color:var(--muted);font-size:1.05rem;margin-top:0}
+nav.course{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
+nav.course a{font-size:.82rem;text-decoration:none;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 10px}
+nav.course a.cur{background:var(--accent);border-color:var(--accent);color:#fff}
+.toc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin:18px 0}
+.toc b{display:block;margin-bottom:4px}
+.toc ol{margin:0;padding-left:20px}
+.toc a{color:var(--accent);text-decoration:none}
+.goals{background:var(--ok-soft);border-radius:12px;padding:12px 18px;margin:16px 0}
+.goals ul{margin:.3em 0 0;padding-left:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:18px 0}
+.demo{background:var(--card);border:2px solid var(--accent-soft);border-radius:14px;padding:16px 18px;margin:20px 0}
+.demo>.tag,.card>.tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.box{border-radius:10px;padding:10px 14px;margin:14px 0}
+.key{background:var(--accent-soft);border-left:4px solid var(--accent)}
+.analogy{background:var(--purple-soft);border-left:4px solid var(--purple)}
+.warn{background:var(--warn-soft);border-left:4px solid var(--warn)}
+.example{background:#f1f5f9;border-left:4px solid #64748b}
+.box b.lbl{display:block;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.analogy b.lbl{color:var(--purple)}.key b.lbl{color:var(--accent)}.warn b.lbl{color:var(--warn)}.example b.lbl{color:#475569}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.95rem;background:#fff}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:#f1f5f9}
+.formula{font-family:ui-monospace,Menlo,Consolas,monospace;background:#fff;border:1px dashed #cbd5e1;border-radius:10px;padding:12px;text-align:center;font-size:1.05rem;margin:14px 0;overflow-x:auto}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92rem}
+.note{color:var(--muted);font-size:.92rem}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.center{text-align:center}
+button{font:inherit;font-size:.95rem;padding:7px 14px;border-radius:9px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+button.alt{background:#fff;color:var(--accent)}
+button:disabled{opacity:.45;cursor:default}
+input[type=range]{width:180px;vertical-align:middle}
+svg{max-width:100%;height:auto;display:block;margin:0 auto}
+svg text{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:.88rem;margin-top:4px}
+.legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+.log{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88rem;background:#f8fafc;border-radius:8px;padding:10px 12px;white-space:pre-wrap;min-height:3.2em}
+.steps{counter-reset:s;list-style:none;padding-left:0}
+.steps li{counter-increment:s;position:relative;padding-left:38px;margin:10px 0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:.85rem;display:flex;align-items:center;justify-content:center}
+pre.code{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow-x:auto;font-size:.86rem;line-height:1.55}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:640px){.grid2{grid-template-columns:1fr}h1{font-size:1.6rem}}
+/* quiz */
+.quiz{background:#fff;border:2px solid var(--line);border-radius:16px;padding:18px 20px;margin-top:40px}
+.quiz h2{border:0;margin-top:0;padding-top:0}
+.q{margin:22px 0;padding-bottom:14px;border-bottom:1px dashed var(--line)}
+.q p.qt{font-weight:600;margin:0 0 8px}
+.opt{display:block;width:100%;text-align:left;margin:6px 0;padding:10px 12px;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:9px}
+.opt:hover{border-color:var(--accent)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt .why{display:none;font-size:.9rem;color:var(--muted);margin-top:4px}
+.q.done .opt .why{display:block}
+.q.done .opt{cursor:default}
+.verdict{display:none;font-weight:700;margin-top:6px}
+.q.done .verdict{display:block}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.scorebar{position:sticky;bottom:10px;background:#0f172a;color:#fff;border-radius:12px;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px}
+.scorebar button{background:#fff;color:#0f172a;border-color:#fff}
+.final{display:none;margin-top:14px;padding:14px;border-radius:12px;background:var(--accent-soft)}
+footer.pn{display:flex;justify-content:space-between;gap:10px;margin-top:30px}
+footer.pn a{flex:1;text-decoration:none;border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px 14px;color:var(--ink)}
+footer.pn a small{display:block;color:var(--muted)}
+footer.pn a.next{text-align:right}
+@media (max-width:640px){nav.course{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}nav.course a{white-space:nowrap}}
+</style>
+</head>
+<body>
+<header class="top">
+<div class="crumbs">Reinforcement Learning from Zero · Day 2 · Lesson 4 of 7</div>
+<nav class="course"><a href="lesson1.html" class="">1. What Is Reinforcement Learning?</a><a href="lesson2.html" class="">2. Rewards, Return and Value</a><a href="lesson3.html" class="">3. Exploration vs. Exploitation</a><a href="lesson4.html" class="cur">4. Monte Carlo and TD Learning</a><a href="lesson5.html" class="">5. Sarsa and Q-learning</a><a href="lesson6.html" class="">6. Policy-based Reinforcement Learning</a><a href="lesson7.html" class="">7. Multi-armed Bandits and Applications</a></nav>
+</header>
+<main>
+<h1>Lesson 4: Monte Carlo and TD Learning</h1>
+<p class="lead">The bandit had one state. Real problems have many states, and the reward often arrives many steps after the decisions that caused it. This lesson shows the two basic ways to learn values from experience in that setting: Monte Carlo, which waits for the end, and Temporal Difference (TD), which learns after every step.</p>
+
+<div class="goals"><b>After this lesson you can:</b>
+<ul>
+<li>Explain what "model-free prediction" means.</li>
+<li>Update a value estimate with the Monte Carlo rule, using the real return.</li>
+<li>Update a value estimate with the TD(0) rule, and compute the TD target and TD error.</li>
+<li>Explain bootstrapping and compare MC and TD (when each can update, bias and variance).</li>
+</ul></div>
+
+<div class="toc" id="toc"><b>Contents</b></div>
+
+<h2>1. The task: learn values from experience</h2>
+<p>In Lesson 2 we computed values in the grid world because we knew the rules of the world: where each move leads and what reward it gives. Usually an agent does <b>not</b> know these rules. It only has its own experience: the states it saw, the actions it took and the rewards it received.</p>
+<p>Methods that learn directly from experience, without knowing the rules, are called <b>model-free</b>. (A "model" here means the rules: "if I do this, where do I end up and what reward do I get?")</p>
+<p>In this lesson we solve the <b>prediction problem</b>: the agent's policy is fixed, and we want to estimate V(s), how good each state is under that policy. In Lesson 5 we use the same ideas for the <b>control problem</b>: finding a good policy.</p>
+
+<h2>2. A running example: the random walk</h2>
+<div class="card"><span class="tag">Diagram</span>
+<svg viewBox="0 0 680 120">
+  <rect x="10" y="40" width="60" height="44" rx="8" fill="#e2e8f0"/><text x="40" y="67" text-anchor="middle" font-size="13">END</text><text x="40" y="104" text-anchor="middle" font-size="12" fill="#64748b">reward 0</text>
+  <rect x="610" y="40" width="60" height="44" rx="8" fill="#bbf7d0"/><text x="640" y="67" text-anchor="middle" font-size="13">END</text><text x="640" y="104" text-anchor="middle" font-size="12" fill="#15803d">reward +1</text>
+  <g font-size="16" font-weight="700">
+  <circle cx="140" cy="62" r="26" fill="#fff" stroke="#2563eb" stroke-width="2"/><text x="140" y="68" text-anchor="middle">A</text>
+  <circle cx="235" cy="62" r="26" fill="#fff" stroke="#2563eb" stroke-width="2"/><text x="235" y="68" text-anchor="middle">B</text>
+  <circle cx="330" cy="62" r="26" fill="#dbeafe" stroke="#2563eb" stroke-width="3"/><text x="330" y="68" text-anchor="middle">C</text>
+  <circle cx="425" cy="62" r="26" fill="#fff" stroke="#2563eb" stroke-width="2"/><text x="425" y="68" text-anchor="middle">D</text>
+  <circle cx="520" cy="62" r="26" fill="#fff" stroke="#2563eb" stroke-width="2"/><text x="520" y="68" text-anchor="middle">E</text></g>
+  <g stroke="#94a3b8" stroke-width="2"><line x1="70" y1="62" x2="114" y2="62"/><line x1="166" y1="62" x2="209" y2="62"/><line x1="261" y1="62" x2="304" y2="62"/><line x1="356" y1="62" x2="399" y2="62"/><line x1="451" y1="62" x2="494" y2="62"/><line x1="546" y1="62" x2="610" y2="62"/></g>
+  <text x="330" y="22" text-anchor="middle" font-size="12" fill="#2563eb">start</text>
+</svg>
+</div>
+<p>Five states A to E sit in a row. Every episode starts in the middle, at C. At each step the agent moves left or right with equal chance (50% each). The episode ends when it walks off either end. Walking off the right end gives reward <b>+1</b>; every other step gives 0. We use no discounting (γ = 1).</p>
+<p>Because the only reward is +1 at the right end, the value of a state equals the <b>probability of finishing on the right</b> from there. The true values are:</p>
+<table><tr><th>State</th><td>A</td><td>B</td><td>C</td><td>D</td><td>E</td></tr>
+<tr><th>True V(s)</th><td>1/6 ≈ 0.17</td><td>2/6 ≈ 0.33</td><td>3/6 = 0.5</td><td>4/6 ≈ 0.67</td><td>5/6 ≈ 0.83</td></tr></table>
+<p>The agent does not know these numbers. Can it learn them just by watching episodes? Both methods below can, and you can watch them do it.</p>
+
+<h2>3. Monte Carlo: learn from complete episodes</h2>
+<p><b>Idea:</b> play a whole episode. When it ends, you know the actual return G from every state you visited. Move each state's estimate toward the return that actually happened.</p>
+<div class="formula">V(s) ← V(s) + α × ( G − V(s) )</div>
+<p>This is the pattern from Lesson 3 again: the <b>target</b> is the real return G, and α (alpha, for example 0.1) is the step size. If we used α = 1/(number of visits), V(s) would simply be the average of all returns observed from s, which is where the name comes from: <i>Monte Carlo</i> methods estimate things by averaging random samples (the name comes from the casino in Monaco).</p>
+<div class="box example"><b class="lbl">Worked example (α = 0.1, all estimates start at 0.5)</b>
+Episode: C → D → E → off the right end. Rewards: 0, 0, +1. Return from every visited state: G = 0 + 0 + 1 = 1.<br>
+V(C) ← 0.5 + 0.1 × (1 − 0.5) = <b>0.55</b>. The same happens for D and E: each becomes 0.55.<br>
+Next episode: C → B → A → off the left end. G = 0 for C, B and A.<br>
+V(C) ← 0.55 + 0.1 × (0 − 0.55) = <b>0.495</b>. V(B) and V(A): 0.5 + 0.1 × (0 − 0.5) = <b>0.45</b>.</div>
+<div class="box analogy"><b class="lbl">Analogy: timing your commute</b>
+To estimate how long your trip home takes, you note the total time each day after you arrive, and average them. You never update your estimate during the trip, only at the end. That is Monte Carlo.</div>
+<p><b>Strengths:</b> the target G is the real outcome, so the estimate is <b>unbiased</b>: on average it aims at exactly the right value.<br>
+<b>Weaknesses:</b> you must wait until the episode ends, so it cannot be used for tasks that never end; and the return G can vary a lot between episodes (high <b>variance</b>), so learning can be slow and noisy.</p>
+
+<h2>4. Temporal Difference: learn from every step</h2>
+<p><b>Idea:</b> do not wait for the end. After a single step from s to s′ with reward R, you already have a better guess of the return: the reward you just got plus your current estimate of the next state.</p>
+<div class="formula">V(s) ← V(s) + α × ( R + γ·V(s′) − V(s) )</div>
+<ul>
+<li><b>TD target:</b> R + γ·V(s′). It replaces the real return G that Monte Carlo had to wait for.</li>
+<li><b>TD error</b> (written δ, delta): δ = R + γ·V(s′) − V(s). Positive δ means "things turned out better than I expected", so V(s) goes up. Negative δ means worse, so V(s) goes down.</li>
+</ul>
+<p>This is the method called <b>TD(0)</b>. Using an estimate (V(s′)) to update another estimate (V(s)) is called <b>bootstrapping</b>, from the saying "pulling yourself up by your own bootstraps".</p>
+<div class="box example"><b class="lbl">Worked example (α = 0.1, γ = 1, all estimates start at 0.5)</b>
+Step C → D, reward 0: target = 0 + 1 × V(D) = 0.5. δ = 0.5 − 0.5 = 0. No change.<br>
+Step D → E, reward 0: target = 0 + 0.5 = 0.5. δ = 0. No change.<br>
+Step E → right end, reward +1: the end state has value 0, so target = 1 + 0 = 1. δ = 1 − 0.5 = 0.5.<br>
+V(E) ← 0.5 + 0.1 × 0.5 = <b>0.55</b>. Only E changed in this episode. In later episodes, the good news about E spreads back to D, then to C, one step at a time.</div>
+<div class="box analogy"><b class="lbl">Analogy: updating your arrival time on the way home</b>
+You leave work expecting a 30-minute trip. At the car park you see it is raining, so you now expect 40 minutes. On the highway traffic moves fast, so you revise to 35. You update your prediction at each stage, using the newest information and your current guess of the remaining time. You do not have to arrive home first. That is TD learning.</div>
+
+<h2>5. Watch them learn</h2>
+<div class="demo"><span class="tag">Animated simulation</span>
+<div class="row">
+  <label><input type="radio" name="m" value="td" checked> TD(0)</label>
+  <label><input type="radio" name="m" value="mc"> Monte Carlo</label>
+  <label>α = <b id="aTxt" class="mono"></b> <input type="range" id="aSl" min="0.01" max="0.5" step="0.01" value="0.1"></label>
+</div>
+<div class="row">
+  <button id="ep1">▶ Play one episode (animated)</button>
+  <button id="ep10" class="alt">+10 episodes</button>
+  <button id="ep100" class="alt">+100 episodes</button>
+  <button id="epR" class="alt">Reset</button>
+  <span class="note" id="epN"></span>
+</div>
+<svg viewBox="0 0 680 300" id="rwSvg"></svg>
+<div class="log" id="rwLog"></div>
+<p class="note" style="margin-bottom:0">Blue bars: current estimates. Dashed lines: true values. In TD mode, a state flashes the moment it is updated. In Monte Carlo mode, nothing changes until the episode ends, then every visited state updates at once.</p>
+</div>
+
+<h2>6. Which one learns faster?</h2>
+<p>The chart measures the <b>error</b> of the estimates (the root-mean-square difference between the estimates and the true values, averaged over the 5 states) after each episode. Each curve is averaged over 100 independent runs, all starting from V = 0.5.</p>
+<div class="demo"><span class="tag">Experiment</span>
+<div class="row"><button id="cmpRun">Run comparison (100 runs × 100 episodes)</button><span class="note" id="cmpProg"></span></div>
+<div id="cmpChart"><p class="note center">Press the button to run.</p></div>
+</div>
+<p>On this problem TD reaches a low error much sooner than Monte Carlo. Larger α learns faster at first but stays noisier; smaller α is slower but steadier. This trade-off appears in every RL method.</p>
+
+<h2>7. Monte Carlo vs. TD side by side</h2>
+<table>
+<tr><th></th><th>Monte Carlo</th><th>TD(0)</th></tr>
+<tr><td>Target</td><td>Real return G</td><td>R + γ·V(s′)</td></tr>
+<tr><td>When it updates</td><td>After the episode ends</td><td>After every step</td></tr>
+<tr><td>Works for never-ending tasks?</td><td>No</td><td>Yes</td></tr>
+<tr><td>Bootstraps?</td><td>No</td><td>Yes</td></tr>
+<tr><td>Bias</td><td>None (target is the real outcome)</td><td>Some, while V(s′) is still inaccurate</td></tr>
+<tr><td>Variance</td><td>High (G depends on many random steps)</td><td>Low (target depends on one step)</td></tr>
+<tr><td>Typical speed</td><td>Slower</td><td>Usually faster</td></tr>
+</table>
+
+<h3>Pseudocode</h3>
+<div class="grid2">
+<pre class="code">Monte Carlo prediction
+for each episode:
+    play the episode with policy π,
+    recording S₀, R₁, S₁, R₂, …, S_T
+    G ← 0
+    for t = T−1 down to 0:
+        G ← R_(t+1) + γ·G
+        V(S_t) ← V(S_t) + α·(G − V(S_t))</pre>
+<pre class="code">TD(0) prediction
+for each episode:
+    S ← start state
+    while S is not terminal:
+        A ← action chosen by π in S
+        take A, observe R and S′
+        V(S) ← V(S) + α·(R + γ·V(S′) − V(S))
+        S ← S′</pre>
+</div>
+<p class="note">Notice the Monte Carlo loop uses the recursive return from Lesson 2 (G ← R + γG) to compute every return in one backward pass.</p>
+
+<h2>8. From prediction to control</h2>
+<p>Knowing V(s) tells us how good states are under the current policy, but to <b>choose</b> actions without knowing the rules of the world, we need to know how good each <b>action</b> is: Q(s, a). Both Monte Carlo and TD can estimate Q(s, a) in the same way as V(s). Combined with ε-greedy action choice from Lesson 3, this gives algorithms that improve the policy as they learn. The TD versions of this are <b>Sarsa</b> and <b>Q-learning</b>, the subject of the next lesson.</p>
+
+<h2>9. Summary</h2>
+<ul>
+<li><b>Model-free</b> methods learn values from experience, without knowing the environment's rules.</li>
+<li><b>Monte Carlo</b> waits until the episode ends, then moves V(s) toward the real return G.</li>
+<li><b>TD(0)</b> updates after each step, moving V(s) toward R + γV(s′). The difference is the TD error δ.</li>
+<li>TD <b>bootstraps</b> (uses its own estimates), which gives lower variance and works for never-ending tasks, at the cost of some bias.</li>
+</ul>
+
+
+
+<section class="quiz" id="quiz">
+<h2>Quiz: check your understanding</h2>
+<p class="note">10 multiple-choice questions. Click an answer: you will see whether it is right, and an explanation for <b>every</b> option.</p>
+<div id="quizItems"></div>
+<div class="final" id="finalMsg"></div>
+<div class="scorebar"><span id="scoreText"></span><button id="retry">Retry quiz</button></div>
+</section>
+<footer class="pn"><a href="lesson3.html"><small>← Previous</small>3. Exploration vs. Exploitation</a><a class="next" href="lesson5.html"><small>Next →</small>5. Sarsa and Q-learning</a></footer>
+</main>
+<script>// ---------- small helpers ----------
+const $ = id => document.getElementById(id);
+const NS = 'http://www.w3.org/2000/svg';
+function S(tag, attrs, parent){
+  const e = document.createElementNS(NS, tag);
+  for (const k in (attrs||{})) {
+    if (k === 'text') e.textContent = attrs[k]; else e.setAttribute(k, attrs[k]);
+  }
+  if (parent) parent.appendChild(e);
+  return e;
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const fmt = (x, d=2) => (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toFixed(d);
+function argmaxRand(arr){
+  const m = Math.max(...arr); const c = [];
+  arr.forEach((v,i)=>{ if (v === m) c.push(i); });
+  return c[Math.floor(Math.random()*c.length)];
+}
+function randn(){ let u=0,v=0; while(!u)u=Math.random(); while(!v)v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+
+// ---------- line chart ----------
+// opts: {w,h,series:[{label,color,data:[y..], dash}], xLabel,yLabel,yMin,yMax,xStart}
+function lineChart(container, opts){
+  const w = opts.w||640, h = opts.h||300, L=56, R=16, T=14, B=44;
+  container.innerHTML = '';
+  const svg = S('svg', {viewBox:`0 0 ${w} ${h}`, role:'img'}, container);
+  let all = []; opts.series.forEach(s => all = all.concat(s.data));
+  const yMin = opts.yMin !== undefined ? opts.yMin : Math.min(...all);
+  const yMax = opts.yMax !== undefined ? opts.yMax : Math.max(...all);
+  const n = Math.max(...opts.series.map(s=>s.data.length));
+  const x0 = opts.xStart||0;
+  const X = i => L + (w-L-R) * (n<=1?0:i/(n-1));
+  const Y = v => T + (h-T-B) * (1 - (v-yMin)/((yMax-yMin)||1));
+  for (let k=0;k<=4;k++){
+    const v = yMin + (yMax-yMin)*k/4, y = Y(v);
+    S('line',{x1:L,x2:w-R,y1:y,y2:y,stroke:'#e5e7eb'},svg);
+    S('text',{x:L-6,y:y+4,'text-anchor':'end','font-size':11,fill:'#64748b',text:(Math.abs(yMax-yMin)<5?fmt(v,2):Math.round(v))},svg);
+  }
+  for (let k=0;k<=4;k++){
+    const i = Math.round((n-1)*k/4), x = X(i);
+    S('text',{x:x,y:h-B+16,'text-anchor':'middle','font-size':11,fill:'#64748b',text:x0+i},svg);
+  }
+  S('line',{x1:L,x2:L,y1:T,y2:h-B,stroke:'#94a3b8'},svg);
+  S('line',{x1:L,x2:w-R,y1:h-B,y2:h-B,stroke:'#94a3b8'},svg);
+  if (opts.xLabel) S('text',{x:(L+w-R)/2,y:h-6,'text-anchor':'middle','font-size':12,fill:'#334155',text:opts.xLabel},svg);
+  if (opts.yLabel) S('text',{x:14,y:(T+h-B)/2,'text-anchor':'middle','font-size':12,fill:'#334155',transform:`rotate(-90 14 ${(T+h-B)/2})`,text:opts.yLabel},svg);
+  opts.series.forEach(s=>{
+    const pts = s.data.map((v,i)=>`${X(i).toFixed(1)},${Y(Math.max(yMin,Math.min(yMax,v))).toFixed(1)}`).join(' ');
+    S('polyline',{points:pts,fill:'none',stroke:s.color,'stroke-width':2.2,'stroke-dasharray':s.dash||'', 'stroke-linejoin':'round'},svg);
+  });
+  const lg = document.createElement('div'); lg.className='legend';
+  opts.series.forEach(s=>{ const sp=document.createElement('span'); sp.style.setProperty('--c',s.color); sp.textContent=s.label; lg.appendChild(sp); });
+  container.appendChild(lg);
+}
+
+// ---------- table of contents ----------
+function buildTOC(){
+  const toc = $('toc'); if (!toc) return;
+  const hs = [...document.querySelectorAll('main > section > h2, main > h2')].filter(h=>!h.closest('.quiz'));
+  const ol = document.createElement('ol');
+  hs.forEach((h,i)=>{ if(!h.id) h.id='sec'+(i+1); const li=document.createElement('li'); li.innerHTML=`<a href="#${h.id}">${h.textContent}</a>`; ol.appendChild(li); });
+  const li=document.createElement('li'); li.innerHTML='<a href="#quiz">Quiz (10 questions)</a>'; ol.appendChild(li);
+  toc.appendChild(ol);
+}
+
+// ---------- quiz ----------
+// item: {q, o:[4 options], a:index, e:[4 explanations]}
+function renderQuiz(items){
+  const box = $('quizItems'); box.innerHTML = '';
+  let answered = 0, correct = 0;
+  const bar = $('scoreText'), fin = $('finalMsg');
+  function upd(){
+    bar.textContent = `Answered ${answered}/${items.length} · Correct ${correct}`;
+    if (answered === items.length){
+      fin.style.display='block';
+      const pct = correct/items.length;
+      fin.innerHTML = `<b>You scored ${correct}/${items.length}.</b> ` + (pct===1 ? 'Perfect. You have mastered this lesson.' : pct>=0.7 ? 'Good work. Read the explanations for the questions you missed, then move on.' : 'Re-read the sections linked in the contents above, then press "Retry quiz".');
+    } else fin.style.display='none';
+  }
+  items = items.map(it0=>{ // shuffle option order so the answer is not always in the same place
+    const idx=[0,1,2,3].slice(0,it0.o.length); for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+    return {q:it0.q,o:idx.map(i=>it0.o[i]),e:idx.map(i=>it0.e[i]),a:idx.indexOf(it0.a),orig:it0};
+  });
+  items.forEach((it, qi)=>{
+    const d = document.createElement('div'); d.className='q';
+    d.innerHTML = `<p class="qt">${qi+1}. ${it.q}</p>`;
+    const btns = [];
+    it.o.forEach((t,j)=>{
+      const b = document.createElement('button'); b.className='opt';
+      b.innerHTML = `<b>${String.fromCharCode(65+j)}.</b> ${t}<span class="why">${j===it.a?'✔ ':'✘ '}${it.e[j]}</span>`;
+      b.onclick = ()=>{
+        if (d.classList.contains('done')) return;
+        d.classList.add('done'); answered++;
+        btns[it.a].classList.add('right');
+        if (j===it.a){ correct++; v.innerHTML='<span class="ok">Correct!</span> All options are explained below.'; }
+        else { b.classList.add('wrong'); v.innerHTML=`<span class="bad">Not quite.</span> The answer is ${String.fromCharCode(65+it.a)}. Read why each option is right or wrong.`; }
+        upd();
+      };
+      btns.push(b); d.appendChild(b);
+    });
+    const v = document.createElement('div'); v.className='verdict'; d.insertBefore(v, d.children[1]);
+    box.appendChild(d);
+  });
+  $('retry').onclick = ()=>{ renderQuiz(items.map(x=>x.orig)); $('quiz').scrollIntoView(); };
+  upd();
+}
+</script>
+<script>
+(function(){
+  const TRUEV=[1,2,3,4,5].map(x=>x/6), NAMES=['A','B','C','D','E'];
+  const X=i=>140+i*95, Y0=210;
+  let V, eps=0, busy=false, flash=new Set(), pos=null;
+  const mode=()=>document.querySelector('input[name=m]:checked').value;
+  const alpha=()=>+$('aSl').value;
+  function draw(){
+    $('aTxt').textContent=fmt(alpha(),2);
+    const svg=$('rwSvg'); svg.innerHTML='';
+    S('text',{x:40,y:24,'font-size':12,fill:'#475569',text:'value'},svg);
+    S('line',{x1:90,x2:570,y1:Y0-150,y2:Y0-150,stroke:'#f1f5f9'},svg);
+    S('text',{x:84,y:Y0-146,'text-anchor':'end','font-size':11,fill:'#94a3b8',text:'1.0'},svg);
+    S('text',{x:84,y:Y0-71,'text-anchor':'end','font-size':11,fill:'#94a3b8',text:'0.5'},svg);
+    S('text',{x:84,y:Y0+4,'text-anchor':'end','font-size':11,fill:'#94a3b8',text:'0'},svg);
+    S('line',{x1:90,x2:570,y1:Y0-75,y2:Y0-75,stroke:'#f1f5f9'},svg);
+    for(let i=0;i<5;i++){
+      const h=V[i]*150, fl=flash.has(i);
+      S('rect',{x:X(i)-24,y:Y0-h,width:48,height:h,rx:4,fill:fl?'#f59e0b':'#60a5fa',style:'transition:all .35s'},svg);
+      const ty=Y0-TRUEV[i]*150;
+      S('line',{x1:X(i)-32,x2:X(i)+32,y1:ty,y2:ty,stroke:'#0f172a','stroke-width':2,'stroke-dasharray':'5 3'},svg);
+      S('text',{x:X(i),y:h>24?Y0-h+17:Y0-h-6,'text-anchor':'middle','font-size':12,'font-weight':700,fill:h>24?'#fff':'#1e3a8a',text:fmt(V[i],2)},svg);
+    }
+    S('line',{x1:60,x2:620,y1:Y0,y2:Y0,stroke:'#94a3b8'},svg);
+    // chain
+    const cy=Y0+50;
+    S('rect',{x:30,y:cy-20,width:56,height:40,rx:8,fill:'#e2e8f0'},svg); S('text',{x:58,y:cy+5,'text-anchor':'middle','font-size':12,text:'0'},svg);
+    S('rect',{x:594,y:cy-20,width:56,height:40,rx:8,fill:'#bbf7d0'},svg); S('text',{x:622,y:cy+5,'text-anchor':'middle','font-size':12,text:'+1'},svg);
+    for(let i=0;i<5;i++){ S('circle',{cx:X(i),cy:cy,r:22,fill:flash.has(i)?'#fef3c7':'#fff',stroke:'#2563eb','stroke-width':2},svg); S('text',{x:X(i),y:cy+6,'text-anchor':'middle','font-size':16,'font-weight':700,text:NAMES[i]},svg); }
+    if(pos!==null){ const px=pos<0?58:pos>4?622:X(pos); S('circle',{cx:px,cy:cy-34,r:9,fill:'#dc2626'},svg); S('polygon',{points:`${px-6},${cy-27} ${px+6},${cy-27} ${px},${cy-20}`,fill:'#dc2626'},svg); }
+    $('epN').textContent='Episodes: '+eps;
+  }
+  function genEpisode(){ let s=2; const path=[s]; while(s>=0&&s<=4){ s+=Math.random()<.5?-1:1; path.push(s);} return path; }
+  function applyEpisode(path, log){
+    const a=alpha(), lines=[];
+    if(mode()==='td'){
+      for(let k=0;k<path.length-1;k++){ const s=path[k], n=path[k+1]; const r=n===5?1:0; const vn=(n<0||n>4)?0:V[n]; const old=V[s]; V[s]+=a*(r+vn-V[s]);
+        if(log) lines.push(`${NAMES[s]}→${n<0?'END(left)':n>4?'END(right)':NAMES[n]}: target=${r}+${fmt(vn,2)}=${fmt(r+vn,2)}, δ=${fmt(r+vn-old,2)}, V(${NAMES[s]}) ${fmt(old,2)}→${fmt(V[s],2)}`); }
+    } else {
+      const G=path[path.length-1]===5?1:0; const seen=new Set();
+      for(let k=0;k<path.length-1;k++){ const s=path[k]; if(seen.has(s))continue; seen.add(s); const old=V[s]; V[s]+=a*(G-V[s]); if(log) lines.push(`V(${NAMES[s]}) ${fmt(old,2)} → ${fmt(V[s],2)}  (moved toward G = ${G})`); }
+    }
+    eps++; return lines;
+  }
+  async function animate(){
+    if(busy)return; busy=true; document.querySelectorAll('#ep1,#ep10,#ep100,#epR').forEach(b=>b.disabled=true);
+    const path=genEpisode(), a=alpha(), td=mode()==='td', lines=[];
+    const pathTxt=path.map(s=>s<0?'END(0)':s>4?'END(+1)':NAMES[s]).join(' → ');
+    for(let k=0;k<path.length;k++){
+      pos=path[k]; flash.clear();
+      if(td&&k>0){ const s=path[k-1], n=path[k]; const r=n===5?1:0; const vn=(n<0||n>4)?0:V[n]; const old=V[s]; V[s]+=a*(r+vn-V[s]); flash.add(s);
+        lines.push(`${NAMES[s]}→${n<0?'END':n>4?'END':NAMES[n]}: R=${r}, target=${fmt(r+vn,2)}, δ=${fmt(r+vn-old,3)} → V(${NAMES[s]})=${fmt(V[s],3)}`); }
+      draw(); $('rwLog').textContent=`Episode path: ${path.slice(0,k+1).map(s=>s<0?'END(0)':s>4?'END(+1)':NAMES[s]).join(' → ')}\n`+(td?lines.slice(-6).join('\n'):'Monte Carlo: waiting for the episode to end…');
+      await sleep(550);
+    }
+    if(!td){ const G=path[path.length-1]===5?1:0; const seen=new Set(); flash.clear();
+      for(let k=0;k<path.length-1;k++){ const s=path[k]; if(seen.has(s))continue; seen.add(s); const old=V[s]; V[s]+=a*(G-V[s]); flash.add(s); lines.push(`V(${NAMES[s]}): ${fmt(old,3)} → ${fmt(V[s],3)}`);}
+      draw(); $('rwLog').textContent=`Episode path: ${pathTxt}\nEpisode over. Return G = ${G} for every visited state. Updates:\n`+lines.join('\n'); }
+    eps++; await sleep(700); flash.clear(); pos=null; draw();
+    busy=false; document.querySelectorAll('#ep1,#ep10,#ep100,#epR').forEach(b=>b.disabled=false);
+  }
+  function many(n){ if(busy)return; for(let i=0;i<n;i++) applyEpisode(genEpisode(),false); flash.clear(); draw();
+    const rms=Math.sqrt(V.reduce((s,v,i)=>s+(v-TRUEV[i])**2,0)/5); $('rwLog').textContent=`Ran ${n} episodes with ${mode()==='td'?'TD(0)':'Monte Carlo'}. Current error (RMS) = ${fmt(rms,3)}`; }
+  function reset(){ V=Array(5).fill(0.5); eps=0; flash.clear(); pos=null; draw(); $('rwLog').textContent='All estimates start at 0.5. Press play.'; }
+  $('ep1').onclick=animate; $('ep10').onclick=()=>many(10); $('ep100').onclick=()=>many(100); $('epR').onclick=reset;
+  $('aSl').oninput=draw; document.querySelectorAll('input[name=m]').forEach(r=>r.onchange=reset);
+  reset();
+
+  // comparison experiment
+  $('cmpRun').onclick=async()=>{
+    $('cmpRun').disabled=true;
+    const cfg=[{l:'TD, α = 0.05',c:'#2563eb',td:1,a:.05},{l:'TD, α = 0.1',c:'#60a5fa',td:1,a:.1},{l:'MC, α = 0.02',c:'#ea580c',td:0,a:.02},{l:'MC, α = 0.04',c:'#fb923c',td:0,a:.04}];
+    const RUNS=100, EP=100; const err=cfg.map(()=>new Float64Array(EP+1));
+    for(let run=0;run<RUNS;run++){
+      cfg.forEach((c,ci)=>{ const v=Array(5).fill(.5); const rms=()=>Math.sqrt(v.reduce((s,x,i)=>s+(x-TRUEV[i])**2,0)/5); err[ci][0]+=rms();
+        for(let e=1;e<=EP;e++){ const p=genEpisode();
+          if(c.td){ for(let k=0;k<p.length-1;k++){const s=p[k],n=p[k+1];const r=n===5?1:0;const vn=(n<0||n>4)?0:v[n];v[s]+=c.a*(r+vn-v[s]);} }
+          else { const G=p[p.length-1]===5?1:0; const seen=new Set(); for(let k=0;k<p.length-1;k++){const s=p[k];if(seen.has(s))continue;seen.add(s);v[s]+=c.a*(G-v[s]);} }
+          err[ci][e]+=rms(); } });
+      if(run%20===19){$('cmpProg').textContent=`Runs: ${run+1}/${RUNS}`;await sleep(0);}
+    }
+    lineChart($('cmpChart'),{series:cfg.map((c,i)=>({label:c.l,color:c.c,data:[...err[i]].map(x=>x/RUNS),dash:c.td?'':'6 4'})),xLabel:'Episodes',yLabel:'Error (RMS)',yMin:0,yMax:0.25});
+    $('cmpProg').textContent='Done.'; $('cmpRun').disabled=false;
+  };
+})();
+
+const QUIZ=[
+{q:"What does \"model-free\" mean?",
+ o:["The agent learns from experience without knowing the environment's rules (where actions lead and what rewards they give)","The agent has no policy","The agent uses no rewards","The agent uses a neural network"],a:0,
+ e:["Correct. A model is the set of rules; model-free methods do not need them.","Every agent has a policy; model-free refers to the environment's rules.","Rewards are essential to model-free learning.","Model-free methods can use tables or networks; that is a separate question."]},
+{q:"What target does Monte Carlo use to update V(s)?",
+ o:["R + γ·V(s′)","The actual return G observed until the end of the episode","The largest Q-value","A random number"],a:1,
+ e:["That is the TD target.","Correct. MC moves V(s) toward the real return.","Max over Q-values appears in Q-learning.","Targets come from experience, not randomness."]},
+{q:"Why can Monte Carlo not be used directly on a task that never ends?",
+ o:["It needs a complete episode to compute the return G","It needs labeled data","It cannot use a step size","It only works with γ = 0"],a:0,
+ e:["Correct. Without an end, the return is never known.","MC needs no labels.","MC uses a step size α (or 1/n).","MC works with any γ."]},
+{q:"With α = 0.1, V(s) = 0.4 and observed return G = 1, what is the new Monte Carlo estimate?",
+ o:["0.46","1.0","0.5","0.34"],a:0,
+ e:["Correct: 0.4 + 0.1 × (1 − 0.4) = 0.4 + 0.06 = 0.46.","That would need α = 1.","0.4 + 0.1 = 0.5 forgets to multiply the error (0.6) by α.","The estimate moves toward G = 1, so it must increase."]},
+{q:"In TD(0), what is the TD target?",
+ o:["G","R + γ·V(s′)","V(s) − V(s′)","α × R"],a:1,
+ e:["G is the Monte Carlo target.","Correct. The reward just received plus the discounted estimate of the next state.","This has no reward and the wrong form.","The step size is not part of the target."]},
+{q:"R = 0, γ = 1, V(s) = 0.6, V(s′) = 0.8. What is the TD error δ?",
+ o:["0.2","−0.2","0.8","1.4"],a:0,
+ e:["Correct: δ = 0 + 1 × 0.8 − 0.6 = 0.2.","The sign is reversed: target (0.8) minus estimate (0.6) is positive.","That is the target, not the error.","Errors subtract the estimate; they do not add it."]},
+{q:"A positive TD error means:",
+ o:["The outcome was better than expected, so V(s) should increase","The outcome was worse than expected, so V(s) should decrease","The estimate is exactly right","The episode is over"],a:0,
+ e:["Correct. The target is above the current estimate.","That describes a negative error.","An exactly right estimate gives δ = 0.","δ says nothing about the end of an episode."]},
+{q:"What is bootstrapping?",
+ o:["Updating an estimate using another estimate, such as V(s′) in the TD target","Restarting an episode","Averaging many full returns","Choosing actions at random"],a:0,
+ e:["Correct. TD uses its current guess of V(s′) as part of its target.","Restarting episodes is not bootstrapping.","That is what Monte Carlo does, which does not bootstrap.","That is exploration."]},
+{q:"In the random walk, why is the true value of state C equal to 0.5?",
+ o:["Because the walk is symmetric from C, so it ends on the right (+1) half the time","Because every step gives reward 0.5","Because α = 0.5","Because C is the third state"],a:0,
+ e:["Correct. Value = expected return = probability of reaching the +1 end, which is 1/2 from the middle.","All steps give 0 except the final step off the right end.","α is a learning setting, not part of the true value.","The position matters only through the probability of ending on the right."]},
+{q:"Which statement about MC and TD is correct?",
+ o:["MC has no bias but high variance; TD has some bias but lower variance and can learn during an episode","TD must wait until the episode ends","MC bootstraps and TD does not","They always give identical updates"],a:0,
+ e:["Correct. This is the core trade-off between the two methods.","TD updates after every step.","It is the other way around: TD bootstraps, MC does not.","They use different targets, so their updates differ."]}
+];
+</script>
+<script>
+buildTOC();
+renderQuiz(QUIZ);
+</script>
+</body>
+</html>

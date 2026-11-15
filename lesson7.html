@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RL 7: Multi-armed Bandits and Applications</title>
+<style>:root{
+  --ink:#1c2430;--muted:#5d6878;--bg:#f7f7f3;--card:#ffffff;--line:#e3e6ea;
+  --accent:#2563eb;--accent-soft:#dbeafe;--ok:#15803d;--ok-soft:#dcfce7;--bad:#b91c1c;--bad-soft:#fee2e2;
+  --warn:#b45309;--warn-soft:#fef3c7;--purple:#7c3aed;--purple-soft:#ede9fe;
+  --c1:#2563eb;--c2:#ea580c;--c3:#16a34a;--c4:#7c3aed;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font:16.5px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+main{max-width:860px;margin:0 auto;padding:0 18px 80px}
+header.top{max-width:860px;margin:0 auto;padding:22px 18px 6px}
+.crumbs{font-size:.85rem;color:var(--muted);letter-spacing:.02em;text-transform:uppercase;font-weight:600}
+h1{font-size:2rem;line-height:1.2;margin:.25em 0 .35em}
+h2{font-size:1.35rem;margin:2.2em 0 .6em;padding-top:.3em;border-top:1px solid var(--line)}
+h3{font-size:1.08rem;margin:1.5em 0 .4em}
+.lead{color:var(--muted);font-size:1.05rem;margin-top:0}
+nav.course{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
+nav.course a{font-size:.82rem;text-decoration:none;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 10px}
+nav.course a.cur{background:var(--accent);border-color:var(--accent);color:#fff}
+.toc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin:18px 0}
+.toc b{display:block;margin-bottom:4px}
+.toc ol{margin:0;padding-left:20px}
+.toc a{color:var(--accent);text-decoration:none}
+.goals{background:var(--ok-soft);border-radius:12px;padding:12px 18px;margin:16px 0}
+.goals ul{margin:.3em 0 0;padding-left:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:18px 0}
+.demo{background:var(--card);border:2px solid var(--accent-soft);border-radius:14px;padding:16px 18px;margin:20px 0}
+.demo>.tag,.card>.tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.box{border-radius:10px;padding:10px 14px;margin:14px 0}
+.key{background:var(--accent-soft);border-left:4px solid var(--accent)}
+.analogy{background:var(--purple-soft);border-left:4px solid var(--purple)}
+.warn{background:var(--warn-soft);border-left:4px solid var(--warn)}
+.example{background:#f1f5f9;border-left:4px solid #64748b}
+.box b.lbl{display:block;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.analogy b.lbl{color:var(--purple)}.key b.lbl{color:var(--accent)}.warn b.lbl{color:var(--warn)}.example b.lbl{color:#475569}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.95rem;background:#fff}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:#f1f5f9}
+.formula{font-family:ui-monospace,Menlo,Consolas,monospace;background:#fff;border:1px dashed #cbd5e1;border-radius:10px;padding:12px;text-align:center;font-size:1.05rem;margin:14px 0;overflow-x:auto}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92rem}
+.note{color:var(--muted);font-size:.92rem}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.center{text-align:center}
+button{font:inherit;font-size:.95rem;padding:7px 14px;border-radius:9px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+button.alt{background:#fff;color:var(--accent)}
+button:disabled{opacity:.45;cursor:default}
+input[type=range]{width:180px;vertical-align:middle}
+svg{max-width:100%;height:auto;display:block;margin:0 auto}
+svg text{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:.88rem;margin-top:4px}
+.legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+.log{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88rem;background:#f8fafc;border-radius:8px;padding:10px 12px;white-space:pre-wrap;min-height:3.2em}
+.steps{counter-reset:s;list-style:none;padding-left:0}
+.steps li{counter-increment:s;position:relative;padding-left:38px;margin:10px 0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:.85rem;display:flex;align-items:center;justify-content:center}
+pre.code{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow-x:auto;font-size:.86rem;line-height:1.55}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:640px){.grid2{grid-template-columns:1fr}h1{font-size:1.6rem}}
+/* quiz */
+.quiz{background:#fff;border:2px solid var(--line);border-radius:16px;padding:18px 20px;margin-top:40px}
+.quiz h2{border:0;margin-top:0;padding-top:0}
+.q{margin:22px 0;padding-bottom:14px;border-bottom:1px dashed var(--line)}
+.q p.qt{font-weight:600;margin:0 0 8px}
+.opt{display:block;width:100%;text-align:left;margin:6px 0;padding:10px 12px;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:9px}
+.opt:hover{border-color:var(--accent)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt .why{display:none;font-size:.9rem;color:var(--muted);margin-top:4px}
+.q.done .opt .why{display:block}
+.q.done .opt{cursor:default}
+.verdict{display:none;font-weight:700;margin-top:6px}
+.q.done .verdict{display:block}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.scorebar{position:sticky;bottom:10px;background:#0f172a;color:#fff;border-radius:12px;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px}
+.scorebar button{background:#fff;color:#0f172a;border-color:#fff}
+.final{display:none;margin-top:14px;padding:14px;border-radius:12px;background:var(--accent-soft)}
+footer.pn{display:flex;justify-content:space-between;gap:10px;margin-top:30px}
+footer.pn a{flex:1;text-decoration:none;border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px 14px;color:var(--ink)}
+footer.pn a small{display:block;color:var(--muted)}
+footer.pn a.next{text-align:right}
+@media (max-width:640px){nav.course{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}nav.course a{white-space:nowrap}}
+</style>
+</head>
+<body>
+<header class="top">
+<div class="crumbs">Reinforcement Learning from Zero · Day 3 · Lesson 7 of 7</div>
+<nav class="course"><a href="lesson1.html" class="">1. What Is Reinforcement Learning?</a><a href="lesson2.html" class="">2. Rewards, Return and Value</a><a href="lesson3.html" class="">3. Exploration vs. Exploitation</a><a href="lesson4.html" class="">4. Monte Carlo and TD Learning</a><a href="lesson5.html" class="">5. Sarsa and Q-learning</a><a href="lesson6.html" class="">6. Policy-based Reinforcement Learning</a><a href="lesson7.html" class="cur">7. Multi-armed Bandits and Applications</a></nav>
+</header>
+<main>
+<h1>Lesson 7: Multi-armed Bandits and Applications</h1>
+<p class="lead">The last lesson brings everything together. First, the multi-armed bandit problem from your course slides, solved step by step and compared with your own play. Then real applications, including a traffic-light controller that you will train with Q-learning in your browser. It ends with a review of the whole course.</p>
+
+<div class="goals"><b>After this lesson you can:</b>
+<ul>
+<li>Formulate a problem as RL by naming its goal, actions, states and reward.</li>
+<li>Solve a multi-armed bandit with ε-greedy and optimistic initialization (X = 10), and explain the results.</li>
+<li>Explain regret, and why bandits are used for advertising, recommendations and trials.</li>
+<li>Explain how a traffic light can be controlled with Q-learning.</li>
+<li>Summarize every main idea of the course in your own words.</li>
+</ul></div>
+
+<div class="toc" id="toc"><b>Contents</b></div>
+
+<h2>1. The multi-armed bandit problem</h2>
+<p>The name comes from casino slot machines, once nicknamed "one-armed bandits" because they take your money. Picture a row of <b>k</b> such machines. Each turn you pull one arm and receive some points. Each machine pays randomly, around its own average, and you do not know the averages.</p>
+<table>
+<tr><th>RL element</th><th>In the bandit game</th></tr>
+<tr><td><b>Goal</b></td><td>Maximize the total points after all turns</td></tr>
+<tr><td><b>Action</b></td><td>Which arm to pull (k choices)</td></tr>
+<tr><td><b>Reward</b></td><td>Points received on that turn</td></tr>
+<tr><td><b>State</b></td><td>Only one: the machines never change, so pulling an arm does not change what comes next</td></tr>
+<tr><td><b>Value</b></td><td>q*(a), the true average payout of arm a; the agent's estimate is Q(a)</td></tr>
+</table>
+<p>Because there is only one state, there is no delayed reward and no credit assignment problem. What remains is the pure <b>exploration vs. exploitation</b> dilemma from Lesson 3. That is why bandits are the standard first problem for RL.</p>
+<div class="box key"><b class="lbl">Regret: measuring how well you play</b>
+If you had known the best arm from the start, you would have pulled it every time. <b>Regret</b> is the difference between that ideal total and what you actually expected to get. Exploration causes regret now (you pull worse arms to learn) but reduces regret later (you find the best arm). Good strategies keep total regret small.</div>
+
+<h2>2. Play it yourself</h2>
+<div class="demo"><span class="tag">Game: you vs. RL agents</span>
+<p class="note" style="margin-top:0">Five machines, <b>25 pulls</b>. Each machine pays a random whole number around a hidden average. Click a machine to pull it. At the end, the averages are revealed and your score is compared with RL agents on the same machines.</p>
+<svg viewBox="0 0 680 210" id="ygSvg"></svg>
+<div class="row"><button id="ygNew">New game</button><span class="mono" id="ygStat"></span></div>
+<div class="log" id="ygLog"></div>
+</div>
+<p>Notice what you did. In the first pulls you probably tried every machine (exploration). Once one seemed good, you kept pulling it (exploitation), perhaps checking another now and then. RL algorithms make exactly this trade-off, but by a precise rule.</p>
+
+<h2>3. Solving the bandit with RL, step by step</h2>
+<ol class="steps">
+<li><b>Initialize</b> an estimate Q(a) and a counter N(a) = 0 for each arm. Usually Q(a) = 0, or a high value X for an optimistic start.</li>
+<li><b>Choose</b> an arm with a strategy: ε-greedy, optimistic greedy, UCB or a softmax policy.</li>
+<li><b>Pull</b> the arm and observe the reward R.</li>
+<li><b>Update</b>: N(a) ← N(a) + 1; Q(a) ← Q(a) + (1/N(a)) × (R − Q(a)). (Or use a fixed step size α.)</li>
+<li><b>Repeat</b> until the turns run out.</li>
+</ol>
+<p>A table that stores one Q(a) per arm is the simplest example of <b>tabular RL</b>: a Q-table with a single row.</p>
+
+<h2>4. The optimistic strategy with X = 10</h2>
+<p>Your course slides use the <b>optimistic initial values</b> strategy with <b>X = 10</b>. "X" is the starting value given to every estimate Q(a) before any pull. Here the machines pay on average between 2 and 8 points, so 10 is higher than any machine can really deliver: every machine starts out looking excellent.</p>
+<div class="box example"><b class="lbl">Worked example (sample-average updates)</b>
+All five estimates start at Q = 10. The greedy agent picks (say) machine 1 and gets 4 points. Q(1) = 10 + (1/1)(4 − 10) = <b>4</b>.<br>
+Machines 2–5 still show 10, so the greedy agent tries machine 2 next; it pays 7, so Q(2) = 7. Then machines 3, 4 and 5 in turn.<br>
+After five pulls, every machine has been tried once, with no random exploration at all. From then on the agent pulls whichever looks best, and its estimates keep improving.<br>
+With a fixed step size α = 0.1 instead, Q(1) = 10 + 0.1 × (4 − 10) = 9.4: the optimism fades slowly, so each machine is tried <i>several</i> times before the agent settles. That is more exploration, at a higher early cost.</div>
+
+<div class="demo"><span class="tag">Experiment: four strategies on the same five machines</span>
+<p class="note" style="margin-top:0">True averages 2, 3.5, 5, 6.5 and 8 (in random order each run), noise ±2.5. 200 pulls per run, averaged over 1,000 runs.</p>
+<div class="row"><button id="xRun">Run experiment</button><span class="note" id="xProg"></span></div>
+<h3 style="margin-top:4px">How often the best machine is chosen (%)</h3>
+<div id="xChart"><p class="note center">Press the button to run.</p></div>
+<div id="xTable"></div>
+</div>
+<p>What the results show:</p>
+<ul>
+<li><b>Greedy from 0</b> is stuck at about 20%: every machine pays more than 0, so after the first pull that machine's estimate is positive while the others stay at 0. The agent never tries anything else, and picks the best machine only when its very first choice happened to be the best (1 in 5).</li>
+<li><b>ε-greedy</b> improves steadily, but 10% of its pulls are always random, so it learns slowly and keeps paying for exploration.</li>
+<li><b>Optimistic greedy with X = 10</b> tries every machine in the first five pulls, then exploits. It finds a good machine fastest and usually collects the most points, which is why the slides use this strategy.</li>
+<li><b>X = 10 with α = 0.1</b> explores longer, so it starts slower, but it ends up choosing the best machine most often.</li>
+</ul>
+
+<h2>5. Real applications of bandits</h2>
+<div class="grid2">
+<div class="card" style="margin:0"><span class="tag">Online advertising and A/B tests</span><br>Each version of an advert or web page is an arm; a click is reward 1. A bandit sends more visitors to the better versions while still testing, instead of splitting traffic 50/50 for weeks as a classic A/B test does.</div>
+<div class="card" style="margin:0"><span class="tag">News and recommendations</span><br>Each article or product is an arm. The system learns which ones readers engage with. When information about the reader is used too, this is called a <i>contextual</i> bandit.</div>
+<div class="card" style="margin:0"><span class="tag">Clinical trials</span><br>Each treatment is an arm and a successful outcome is the reward. Adaptive designs move more patients to treatments that look better as the evidence grows.</div>
+<div class="card" style="margin:0"><span class="tag">Games and points</span><br>The slot-machine game from your slides: the goal is total points after all turns, and the reward is the points per turn.</div>
+</div>
+
+<h2>6. A full RL application: traffic light control</h2>
+<p>Unlike a bandit, a traffic light's actions <b>change the future</b>: keeping a light green now affects how long the queues will be later. So it is a full RL problem with states, as in Lessons 4 and 5.</p>
+<table>
+<tr><th>RL element</th><th>Traffic light</th></tr>
+<tr><td><b>Goal</b></td><td>Reduce congestion</td></tr>
+<tr><td><b>State</b></td><td>Length of the north–south queue, length of the east–west queue, which direction is green</td></tr>
+<tr><td><b>Actions</b></td><td>Keep the current green, or switch (switching wastes one time step, like an amber phase)</td></tr>
+<tr><td><b>Reward</b></td><td>Minus the total number of waiting cars at each time step: fewer waiting cars → higher reward</td></tr>
+</table>
+<p>In this simulation, cars arrive more often from the north–south road (40% chance each step) than from the east–west road (20%). One car per step can pass on green. The simple controller switches every 10 steps no matter what. The RL controller learns with <b>Q-learning</b> (Lesson 5) using a Q-table: about 240 states × 2 actions.</p>
+
+<div class="demo"><span class="tag">Interactive: train and watch</span>
+<div class="row">
+  <button id="tTrain">1. Train RL controller (Q-learning, 200,000 steps)</button>
+  <span class="note" id="tTrainP"></span>
+</div>
+<div class="row">
+  <button id="tFixed" class="alt">▶ Watch fixed timer</button>
+  <button id="tRL" class="alt" disabled>▶ Watch RL controller</button>
+  <button id="tStop" class="alt">⏸ Stop</button>
+</div>
+<div class="grid2">
+  <svg viewBox="0 0 320 320" id="tSvg" style="max-width:330px"></svg>
+  <div><div class="log" id="tLog">Train the controller first, or watch the fixed timer.</div><div id="tEval"></div></div>
+</div>
+</div>
+<p>After training, the RL controller gives the busier north–south road longer green phases and switches when a queue builds up on the other road. Nobody programmed that rule: it emerged from maximizing the reward (fewer waiting cars). Real research systems use the same idea with richer states, such as camera images and many connected intersections, and neural networks in place of the table (approximate RL, Lesson 5).</p>
+
+<h2>7. Course review</h2>
+<table>
+<tr><th>Lesson</th><th>Main idea</th><th>Key formula or rule</th></tr>
+<tr><td>1. What is RL</td><td>An agent learns by trial and error to maximize total reward</td><td>Loop: state → action → reward + next state</td></tr>
+<tr><td>2. Return and value</td><td>Return = discounted sum of rewards; value = expected return</td><td>Gₜ = Rₜ₊₁ + γGₜ₊₁ ; Q(s,a) = r + γV(s′)</td></tr>
+<tr><td>3. Exploration</td><td>Balance trying new actions with using the best known</td><td>ε-greedy; optimistic start X; UCB; Q ← Q + (1/n)(R − Q)</td></tr>
+<tr><td>4. MC and TD</td><td>Learn values from experience without a model</td><td>MC: V ← V + α(G − V) ; TD: V ← V + α(R + γV(s′) − V)</td></tr>
+<tr><td>5. Sarsa and Q-learning</td><td>Learn Q(s,a) and act ε-greedily; tables or neural networks</td><td>Sarsa: R + γQ(S′,A′) ; Q-learning: R + γ max Q(S′,·)</td></tr>
+<tr><td>6. Policy-based</td><td>Learn action probabilities directly with gradient ascent</td><td>Softmax; θₖ ← θₖ + η(R − b)(1[k=a] − π(k))</td></tr>
+<tr><td>7. Applications</td><td>Bandits, traffic control, recommendations, games</td><td>Goal + actions + state + reward = an RL problem</td></tr>
+</table>
+<div class="box key"><b class="lbl">One pattern to remember</b>
+Almost every algorithm in this course updates an estimate with:<br><span class="mono">estimate ← estimate + step size × (target − estimate)</span><br>The methods differ only in what they use as the target: a reward (bandit), a full return (Monte Carlo), a reward plus a bootstrapped estimate (TD, Sarsa, Q-learning), or a reward compared to a baseline (REINFORCE).</div>
+<p><b>Course source code:</b> the Colab notebook linked in your slides contains the bandit implementation: <a href="https://colab.research.google.com/drive/1-_6DVuOjJWBp2V5x53uTZC9U5Z1IoYiT" target="_blank" rel="noopener">open the notebook in Google Colab</a>.</p>
+<p><b>Where to go next:</b> the free online textbook <i>Reinforcement Learning: An Introduction</i> by Sutton and Barto (2nd edition, 2018), chapters 2 (bandits), 6 (TD, Sarsa, Q-learning) and 13 (policy gradient); and the Python library <i>Gymnasium</i>, which has ready-made environments such as CliffWalking and FrozenLake where you can implement Q-learning yourself.</p>
+
+
+
+<section class="quiz" id="quiz">
+<h2>Quiz: check your understanding</h2>
+<p class="note">10 multiple-choice questions. Click an answer: you will see whether it is right, and an explanation for <b>every</b> option.</p>
+<div id="quizItems"></div>
+<div class="final" id="finalMsg"></div>
+<div class="scorebar"><span id="scoreText"></span><button id="retry">Retry quiz</button></div>
+</section>
+<footer class="pn"><a href="lesson6.html"><small>← Previous</small>6. Policy-based Reinforcement Learning</a><span></span></footer>
+</main>
+<script>// ---------- small helpers ----------
+const $ = id => document.getElementById(id);
+const NS = 'http://www.w3.org/2000/svg';
+function S(tag, attrs, parent){
+  const e = document.createElementNS(NS, tag);
+  for (const k in (attrs||{})) {
+    if (k === 'text') e.textContent = attrs[k]; else e.setAttribute(k, attrs[k]);
+  }
+  if (parent) parent.appendChild(e);
+  return e;
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const fmt = (x, d=2) => (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toFixed(d);
+function argmaxRand(arr){
+  const m = Math.max(...arr); const c = [];
+  arr.forEach((v,i)=>{ if (v === m) c.push(i); });
+  return c[Math.floor(Math.random()*c.length)];
+}
+function randn(){ let u=0,v=0; while(!u)u=Math.random(); while(!v)v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+
+// ---------- line chart ----------
+// opts: {w,h,series:[{label,color,data:[y..], dash}], xLabel,yLabel,yMin,yMax,xStart}
+function lineChart(container, opts){
+  const w = opts.w||640, h = opts.h||300, L=56, R=16, T=14, B=44;
+  container.innerHTML = '';
+  const svg = S('svg', {viewBox:`0 0 ${w} ${h}`, role:'img'}, container);
+  let all = []; opts.series.forEach(s => all = all.concat(s.data));
+  const yMin = opts.yMin !== undefined ? opts.yMin : Math.min(...all);
+  const yMax = opts.yMax !== undefined ? opts.yMax : Math.max(...all);
+  const n = Math.max(...opts.series.map(s=>s.data.length));
+  const x0 = opts.xStart||0;
+  const X = i => L + (w-L-R) * (n<=1?0:i/(n-1));
+  const Y = v => T + (h-T-B) * (1 - (v-yMin)/((yMax-yMin)||1));
+  for (let k=0;k<=4;k++){
+    const v = yMin + (yMax-yMin)*k/4, y = Y(v);
+    S('line',{x1:L,x2:w-R,y1:y,y2:y,stroke:'#e5e7eb'},svg);
+    S('text',{x:L-6,y:y+4,'text-anchor':'end','font-size':11,fill:'#64748b',text:(Math.abs(yMax-yMin)<5?fmt(v,2):Math.round(v))},svg);
+  }
+  for (let k=0;k<=4;k++){
+    const i = Math.round((n-1)*k/4), x = X(i);
+    S('text',{x:x,y:h-B+16,'text-anchor':'middle','font-size':11,fill:'#64748b',text:x0+i},svg);
+  }
+  S('line',{x1:L,x2:L,y1:T,y2:h-B,stroke:'#94a3b8'},svg);
+  S('line',{x1:L,x2:w-R,y1:h-B,y2:h-B,stroke:'#94a3b8'},svg);
+  if (opts.xLabel) S('text',{x:(L+w-R)/2,y:h-6,'text-anchor':'middle','font-size':12,fill:'#334155',text:opts.xLabel},svg);
+  if (opts.yLabel) S('text',{x:14,y:(T+h-B)/2,'text-anchor':'middle','font-size':12,fill:'#334155',transform:`rotate(-90 14 ${(T+h-B)/2})`,text:opts.yLabel},svg);
+  opts.series.forEach(s=>{
+    const pts = s.data.map((v,i)=>`${X(i).toFixed(1)},${Y(Math.max(yMin,Math.min(yMax,v))).toFixed(1)}`).join(' ');
+    S('polyline',{points:pts,fill:'none',stroke:s.color,'stroke-width':2.2,'stroke-dasharray':s.dash||'', 'stroke-linejoin':'round'},svg);
+  });
+  const lg = document.createElement('div'); lg.className='legend';
+  opts.series.forEach(s=>{ const sp=document.createElement('span'); sp.style.setProperty('--c',s.color); sp.textContent=s.label; lg.appendChild(sp); });
+  container.appendChild(lg);
+}
+
+// ---------- table of contents ----------
+function buildTOC(){
+  const toc = $('toc'); if (!toc) return;
+  const hs = [...document.querySelectorAll('main > section > h2, main > h2')].filter(h=>!h.closest('.quiz'));
+  const ol = document.createElement('ol');
+  hs.forEach((h,i)=>{ if(!h.id) h.id='sec'+(i+1); const li=document.createElement('li'); li.innerHTML=`<a href="#${h.id}">${h.textContent}</a>`; ol.appendChild(li); });
+  const li=document.createElement('li'); li.innerHTML='<a href="#quiz">Quiz (10 questions)</a>'; ol.appendChild(li);
+  toc.appendChild(ol);
+}
+
+// ---------- quiz ----------
+// item: {q, o:[4 options], a:index, e:[4 explanations]}
+function renderQuiz(items){
+  const box = $('quizItems'); box.innerHTML = '';
+  let answered = 0, correct = 0;
+  const bar = $('scoreText'), fin = $('finalMsg');
+  function upd(){
+    bar.textContent = `Answered ${answered}/${items.length} · Correct ${correct}`;
+    if (answered === items.length){
+      fin.style.display='block';
+      const pct = correct/items.length;
+      fin.innerHTML = `<b>You scored ${correct}/${items.length}.</b> ` + (pct===1 ? 'Perfect. You have mastered this lesson.' : pct>=0.7 ? 'Good work. Read the explanations for the questions you missed, then move on.' : 'Re-read the sections linked in the contents above, then press "Retry quiz".');
+    } else fin.style.display='none';
+  }
+  items = items.map(it0=>{ // shuffle option order so the answer is not always in the same place
+    const idx=[0,1,2,3].slice(0,it0.o.length); for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+    return {q:it0.q,o:idx.map(i=>it0.o[i]),e:idx.map(i=>it0.e[i]),a:idx.indexOf(it0.a),orig:it0};
+  });
+  items.forEach((it, qi)=>{
+    const d = document.createElement('div'); d.className='q';
+    d.innerHTML = `<p class="qt">${qi+1}. ${it.q}</p>`;
+    const btns = [];
+    it.o.forEach((t,j)=>{
+      const b = document.createElement('button'); b.className='opt';
+      b.innerHTML = `<b>${String.fromCharCode(65+j)}.</b> ${t}<span class="why">${j===it.a?'✔ ':'✘ '}${it.e[j]}</span>`;
+      b.onclick = ()=>{
+        if (d.classList.contains('done')) return;
+        d.classList.add('done'); answered++;
+        btns[it.a].classList.add('right');
+        if (j===it.a){ correct++; v.innerHTML='<span class="ok">Correct!</span> All options are explained below.'; }
+        else { b.classList.add('wrong'); v.innerHTML=`<span class="bad">Not quite.</span> The answer is ${String.fromCharCode(65+it.a)}. Read why each option is right or wrong.`; }
+        upd();
+      };
+      btns.push(b); d.appendChild(b);
+    });
+    const v = document.createElement('div'); v.className='verdict'; d.insertBefore(v, d.children[1]);
+    box.appendChild(d);
+  });
+  $('retry').onclick = ()=>{ renderQuiz(items.map(x=>x.orig)); $('quiz').scrollIntoView(); };
+  upd();
+}
+</script>
+<script>
+// ----- play yourself -----
+(function(){
+  const MEANS=[2,3.5,5,6.5,8], SD=2.5, T=25, K=5, COL=['#2563eb','#ea580c','#16a34a','#7c3aed','#db2777'];
+  let mu,cnt,sum,turn,total,lastA,lastR,over,log;
+  const pay=a=>Math.round(mu[a]+SD*randn());
+  function agentAvg(kind){ let tot=0; const RUNS=2000; for(let r=0;r<RUNS;r++){ const Q=Array(K).fill(kind==='opt'?10:0),N=Array(K).fill(0); for(let t=0;t<T;t++){ const a=(kind==='eps'&&Math.random()<0.1)?Math.floor(Math.random()*K):argmaxRand(Q); const x=pay(a); N[a]++; Q[a]+=(x-Q[a])/N[a]; tot+=x; } } return tot/RUNS; }
+  function draw(){
+    const svg=$('ygSvg'); svg.innerHTML='';
+    for(let a=0;a<K;a++){ const x=15+a*133, act=lastA===a;
+      const g=S('g',{style:over?'':'cursor:pointer'},svg);
+      S('rect',{x:x,y:10,width:118,height:150,rx:14,fill:act?'#fef3c7':'#f8fafc',stroke:COL[a],'stroke-width':act?4:2},g);
+      S('rect',{x:x+14,y:28,width:90,height:42,rx:6,fill:'#0f172a'},g);
+      S('text',{x:x+59,y:56,'text-anchor':'middle','font-size':18,'font-weight':700,fill:act?'#fde047':'#64748b',text:act?(lastR>0?'+':'')+lastR:'?'},g);
+      S('text',{x:x+59,y:94,'text-anchor':'middle','font-size':14,'font-weight':700,fill:COL[a],text:'Machine '+(a+1)},g);
+      S('text',{x:x+59,y:116,'text-anchor':'middle','font-size':12,fill:'#475569',text:'pulled '+cnt[a]+'×'},g);
+      S('text',{x:x+59,y:136,'text-anchor':'middle','font-size':12,fill:'#475569',text:cnt[a]?'your avg '+fmt(sum[a]/cnt[a],1):'not tried'},g);
+      if(over) S('text',{x:x+59,y:190,'text-anchor':'middle','font-size':13,'font-weight':700,fill:mu[a]===8?'#15803d':'#334155',text:'true avg '+mu[a]+(mu[a]===8?' ★':'')},svg);
+      g.onclick=()=>pull(a);
+    }
+    $('ygStat').textContent=`Pull ${turn}/${T} · Your total: ${total}`;
+    $('ygLog').textContent=log;
+  }
+  function pull(a){ if(over)return; const r=pay(a); cnt[a]++; sum[a]+=r; total+=r; turn++; lastA=a; lastR=r;
+    log=`Pull ${turn}: machine ${a+1} paid ${r}.`;
+    if(turn>=T){ over=true; const best=8*T, e=agentAvg('eps'), o=agentAvg('opt'), g=agentAvg('greedy');
+      log=`Game over! Your total: ${total} points.\nIf you had known the best machine (avg 8) from the start: about ${best} points on average. Your regret ≈ ${best-total}.\n\nRL agents on the same machines (average over 2,000 games each):\n  Greedy from 0:              ${fmt(g,1)}\n  ε-greedy (ε = 0.1):         ${fmt(e,1)}\n  Optimistic greedy (X = 10): ${fmt(o,1)}\n\nWith only 25 pulls there is little time to explore, which is why systematic exploration (X = 10) works well.`; }
+    draw(); }
+  function newGame(){ mu=MEANS.slice().sort(()=>Math.random()-.5); cnt=Array(K).fill(0); sum=Array(K).fill(0); turn=0; total=0; lastA=null; over=false; log='Click a machine to pull its arm.'; draw(); }
+  $('ygNew').onclick=newGame; newGame();
+})();
+
+// ----- X = 10 experiment -----
+$('xRun').onclick=async()=>{
+  $('xRun').disabled=true; const MEANS=[2,3.5,5,6.5,8], SD=2.5, K=5, T=200, RUNS=1000;
+  const ags=[{l:'Greedy, start 0',c:'#94a3b8',eps:0,x:0,al:0},{l:'ε-greedy (0.1), start 0',c:'#2563eb',eps:.1,x:0,al:0},{l:'Optimistic greedy, X = 10',c:'#16a34a',eps:0,x:10,al:0},{l:'Optimistic greedy, X = 10, α = 0.1',c:'#ea580c',eps:0,x:10,al:.1}];
+  const opt=ags.map(()=>new Float64Array(T)), tot=ags.map(()=>0);
+  for(let run=0;run<RUNS;run++){ const mu=MEANS.slice().sort(()=>Math.random()-.5), best=mu.indexOf(8);
+    ags.forEach((ag,i)=>{ const Q=Array(K).fill(ag.x),N=Array(K).fill(0); for(let t=0;t<T;t++){ const a=Math.random()<ag.eps?Math.floor(Math.random()*K):argmaxRand(Q); const r=mu[a]+SD*randn(); N[a]++; Q[a]+=(ag.al||1/N[a])*(r-Q[a]); tot[i]+=r; if(a===best)opt[i][t]++; } });
+    if(run%200===199){$('xProg').textContent=`Runs: ${run+1}/${RUNS}`;await sleep(0);} }
+  lineChart($('xChart'),{series:ags.map((ag,i)=>({label:ag.l,color:ag.c,data:[...opt[i]].map(x=>100*x/RUNS)})),xLabel:'Pull number',yLabel:'% best machine',yMin:0,yMax:100,xStart:1});
+  $('xTable').innerHTML='<table><tr><th>Strategy</th><th>Average total points in 200 pulls</th><th>Regret (vs. 1,600 ideal)</th></tr>'+ags.map((ag,i)=>`<tr><td>${ag.l}</td><td>${fmt(tot[i]/RUNS,0)}</td><td>${fmt(1600-tot[i]/RUNS,0)}</td></tr>`).join('')+'</table>';
+  $('xProg').textContent='Done.'; $('xRun').disabled=false;
+};
+
+// ----- traffic light -----
+(function(){
+  const PN=0.4, PE=0.2, CAP=30, B=10, GAM=0.95, AL=0.1, EP=0.1;
+  let Q=null, timer=null;
+  const sIdx=(qn,qe,g)=>(Math.min(qn,B)*(B+1)+Math.min(qe,B))*2+g;
+  function newState(){return {qn:0,qe:0,g:0,t:0,sinceSwitch:0,amber:false};}
+  function tick(s,act){ // act 0 keep, 1 switch
+    s.amber=false;
+    if(act===1){ s.g=1-s.g; s.sinceSwitch=0; s.amber=true; }
+    if(Math.random()<PN) s.qn=Math.min(CAP,s.qn+1);
+    if(Math.random()<PE) s.qe=Math.min(CAP,s.qe+1);
+    if(!s.amber){ if(s.g===0&&s.qn>0)s.qn--; else if(s.g===1&&s.qe>0)s.qe--; }
+    s.t++; s.sinceSwitch++;
+    return -(s.qn+s.qe);
+  }
+  const fixedPolicy=s=>s.sinceSwitch>=10?1:0;
+  const rlPolicy=s=>{const q=Q[sIdx(s.qn,s.qe,s.g)];return q[1]>q[0]?1:0;};
+  function evaluate(pol){ const s=newState(); let tot=0, N=20000; for(let i=0;i<N;i++){ tot+=-tick(s,pol(s)); } return tot/N; }
+  $('tTrain').onclick=async()=>{ $('tTrain').disabled=true; Q=[...Array((B+1)*(B+1)*2)].map(()=>[0,0]); const s=newState();
+    for(let i=0;i<200000;i++){ const k=sIdx(s.qn,s.qe,s.g); const a=Math.random()<EP?(Math.random()<.5?0:1):(Q[k][1]>Q[k][0]?1:(Q[k][1]<Q[k][0]?0:(Math.random()<.5?0:1)));
+      const r=tick(s,a); const k2=sIdx(s.qn,s.qe,s.g); Q[k][a]+=AL*(r+GAM*Math.max(Q[k2][0],Q[k2][1])-Q[k][a]);
+      if(i%40000===39999){$('tTrainP').textContent=`Trained ${i+1} steps`;await sleep(0);} }
+    const ef=evaluate(fixedPolicy), er=evaluate(rlPolicy);
+    $('tEval').innerHTML=`<table><tr><th>Controller</th><th>Average cars waiting (lower is better)</th></tr><tr><td>Fixed timer (switch every 10 steps)</td><td class="mono">${fmt(ef,1)}</td></tr><tr><td><b>RL controller (Q-learning)</b></td><td class="mono"><b>${fmt(er,1)}</b></td></tr></table><p class="note">Measured over 20,000 simulated steps each.</p>`;
+    $('tTrainP').textContent='Training done.'; $('tRL').disabled=false; $('tTrain').disabled=false; };
+  function draw(s,label,stats){
+    const svg=$('tSvg'); svg.innerHTML='';
+    S('rect',{x:0,y:0,width:320,height:320,fill:'#dcfce7'},svg);
+    S('rect',{x:130,y:0,width:60,height:320,fill:'#475569'},svg); S('rect',{x:0,y:130,width:320,height:60,fill:'#475569'},svg);
+    S('rect',{x:130,y:130,width:60,height:60,fill:'#334155'},svg);
+    for(let y=4;y<320;y+=24){ if(y>120&&y<196)continue; S('rect',{x:158,y:y,width:4,height:12,fill:'#e2e8f0'},svg);} for(let x=4;x<320;x+=24){ if(x>120&&x<196)continue; S('rect',{x:x,y:158,width:12,height:4,fill:'#e2e8f0'},svg);}
+    // NS queue: cars coming down in the left lane above the intersection
+    for(let i=0;i<Math.min(s.qn,10);i++) S('rect',{x:136,y:112-i*12,width:18,height:10,rx:2,fill:'#2563eb'},svg);
+    for(let i=0;i<Math.min(s.qe,10);i++) S('rect',{x:112-i*12,y:166,width:10,height:18,rx:2,fill:'#ea580c'},svg);
+    const nsCol=s.amber?'#f59e0b':s.g===0?'#22c55e':'#ef4444', ewCol=s.amber?'#f59e0b':s.g===1?'#22c55e':'#ef4444';
+    S('rect',{x:196,y:96,width:22,height:30,rx:5,fill:'#0f172a'},svg); S('circle',{cx:207,cy:111,r:8,fill:nsCol},svg);
+    S('rect',{x:96,y:196,width:30,height:22,rx:5,fill:'#0f172a'},svg); S('circle',{cx:111,cy:207,r:8,fill:ewCol},svg);
+    S('text',{x:222,y:20,'font-size':12,'font-weight':700,fill:'#14532d',text:'N–S queue: '+s.qn},svg);
+    S('text',{x:200,y:300,'font-size':12,'font-weight':700,fill:'#14532d',text:'E–W queue: '+s.qe},svg);
+    S('text',{x:8,y:20,'font-size':12,'font-weight':700,fill:'#0f172a',text:label},svg);
+    $('tLog').textContent=`${label}\nStep ${s.t}: ${s.amber?'SWITCHING (amber, no car passes)':(s.g===0?'North–south has green':'East–west has green')}\nWaiting now: ${s.qn+s.qe}   Average waiting so far: ${fmt(stats.sum/Math.max(1,s.t),2)}`;
+  }
+  function watch(pol,label){ stop(); const s=newState(), stats={sum:0}; draw(s,label,stats);
+    timer=setInterval(()=>{ const r=tick(s,pol(s)); stats.sum+=-r; draw(s,label,stats); },250); }
+  function stop(){ if(timer){clearInterval(timer);timer=null;} }
+  $('tFixed').onclick=()=>watch(fixedPolicy,'Fixed timer');
+  $('tRL').onclick=()=>{ if(Q) watch(rlPolicy,'RL controller'); };
+  $('tStop').onclick=stop;
+  draw(newState(),'Not running',{sum:0});
+})();
+
+const QUIZ=[
+{q:"In the slot-machine game from the slides, what are the goal and the reward?",
+ o:["Goal: maximize total points after all turns; reward: points received each turn","Goal: pull every machine equally; reward: the number of machines","Goal: find the slowest machine; reward: time","Goal: minimize the number of turns; reward: −1 per turn"],a:0,
+ e:["Correct. This is exactly how the slides define it.","Pulling all machines equally ignores the points.","Speed is not part of the problem.","The number of turns is fixed in this game."]},
+{q:"Why does a multi-armed bandit have only one state?",
+ o:["Pulling an arm does not change the situation: the same machines are there every turn","Because there is only one arm","Because rewards are always the same","Because the agent cannot observe anything"],a:0,
+ e:["Correct. Actions affect the reward, not what comes next.","A bandit has several arms (k > 1).","Rewards are random.","The agent observes its rewards."]},
+{q:"What is regret?",
+ o:["The difference between the reward you would expect by always pulling the best arm and what you actually got","The number of times the worst arm was pulled","The reward of the last pull","A penalty the environment gives for exploring"],a:0,
+ e:["Correct. Good strategies keep total regret small.","Pulls of bad arms contribute to regret, but regret is measured in reward.","One pull says little about overall performance.","The environment does not penalize exploring; the cost is lost reward."]},
+{q:"In the optimistic strategy with X = 10, what is X?",
+ o:["The starting value of every estimate Q(a), chosen higher than any machine can really pay","The number of machines","The number of turns","The value of ε"],a:0,
+ e:["Correct. Starting high makes every untried machine look attractive.","The number of machines is k.","The number of turns is separate.","ε is a probability between 0 and 1."]},
+{q:"All estimates start at X = 10 (sample-average updates). Machine 2 is pulled and pays 6. What is Q(2) now?",
+ o:["6","10","8","16"],a:0,
+ e:["Correct: 10 + (1/1)(6 − 10) = 6. With 1/n after one pull, the estimate equals that reward.","The estimate must change after a pull.","That would be a step size of 1/2.","Estimates move toward the reward, not add to it."]},
+{q:"Why is a traffic light a full RL problem rather than a bandit?",
+ o:["Its actions change future states (the queues), so decisions have delayed consequences","It has no actions","It has only one possible reward","Cars are labelled data"],a:0,
+ e:["Correct. Keeping green now affects how long queues are later.","Keep or switch are its actions.","The reward varies with the queue lengths.","There are no labels in this problem."]},
+{q:"In the traffic simulation, which reward encourages less congestion?",
+ o:["Minus the total number of waiting cars at each step","Plus the total number of waiting cars","+1 every time the light switches","A random number"],a:0,
+ e:["Correct. Fewer waiting cars means a higher (less negative) reward.","This would reward traffic jams.","This would make the light switch constantly, wasting time.","Random rewards cannot teach a strategy."]},
+{q:"Which application is a natural fit for a bandit algorithm?",
+ o:["Choosing which version of an advert to show to maximize clicks","Steering a car through a city","Playing a full game of chess","Controlling a robot arm over many steps"],a:0,
+ e:["Correct. Each version is an arm, and a click is the reward; showing an advert does not change the next situation much.","Steering involves many states and delayed consequences.","Chess has many states and delayed rewards.","A robot arm's actions change its future state."]},
+{q:"Which update pattern is shared by almost all algorithms in this course?",
+ o:["estimate ← estimate + step size × (target − estimate)","estimate ← target × step size","estimate ← random value","estimate ← estimate − reward"],a:0,
+ e:["Correct. The methods differ only in the target they use.","This throws away the old estimate.","Estimates are learned, not random.","This ignores the target and step size."]},
+{q:"Which pair is matched correctly?",
+ o:["Q-learning — target R + γ max Q(S′, ·); REINFORCE — learns action probabilities directly","Monte Carlo — updates after every step; TD — waits for the episode to end","Sarsa — off-policy; Q-learning — on-policy","ε-greedy — never explores"],a:0,
+ e:["Correct. Both descriptions are accurate.","It is the other way around.","Sarsa is on-policy and Q-learning is off-policy.","ε-greedy explores with probability ε."]}
+];
+</script>
+<script>
+buildTOC();
+renderQuiz(QUIZ);
+</script>
+</body>
+</html>

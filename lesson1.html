@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RL 1: What Is Reinforcement Learning?</title>
+<style>:root{
+  --ink:#1c2430;--muted:#5d6878;--bg:#f7f7f3;--card:#ffffff;--line:#e3e6ea;
+  --accent:#2563eb;--accent-soft:#dbeafe;--ok:#15803d;--ok-soft:#dcfce7;--bad:#b91c1c;--bad-soft:#fee2e2;
+  --warn:#b45309;--warn-soft:#fef3c7;--purple:#7c3aed;--purple-soft:#ede9fe;
+  --c1:#2563eb;--c2:#ea580c;--c3:#16a34a;--c4:#7c3aed;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font:16.5px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+main{max-width:860px;margin:0 auto;padding:0 18px 80px}
+header.top{max-width:860px;margin:0 auto;padding:22px 18px 6px}
+.crumbs{font-size:.85rem;color:var(--muted);letter-spacing:.02em;text-transform:uppercase;font-weight:600}
+h1{font-size:2rem;line-height:1.2;margin:.25em 0 .35em}
+h2{font-size:1.35rem;margin:2.2em 0 .6em;padding-top:.3em;border-top:1px solid var(--line)}
+h3{font-size:1.08rem;margin:1.5em 0 .4em}
+.lead{color:var(--muted);font-size:1.05rem;margin-top:0}
+nav.course{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
+nav.course a{font-size:.82rem;text-decoration:none;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 10px}
+nav.course a.cur{background:var(--accent);border-color:var(--accent);color:#fff}
+.toc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin:18px 0}
+.toc b{display:block;margin-bottom:4px}
+.toc ol{margin:0;padding-left:20px}
+.toc a{color:var(--accent);text-decoration:none}
+.goals{background:var(--ok-soft);border-radius:12px;padding:12px 18px;margin:16px 0}
+.goals ul{margin:.3em 0 0;padding-left:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:18px 0}
+.demo{background:var(--card);border:2px solid var(--accent-soft);border-radius:14px;padding:16px 18px;margin:20px 0}
+.demo>.tag,.card>.tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.box{border-radius:10px;padding:10px 14px;margin:14px 0}
+.key{background:var(--accent-soft);border-left:4px solid var(--accent)}
+.analogy{background:var(--purple-soft);border-left:4px solid var(--purple)}
+.warn{background:var(--warn-soft);border-left:4px solid var(--warn)}
+.example{background:#f1f5f9;border-left:4px solid #64748b}
+.box b.lbl{display:block;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.analogy b.lbl{color:var(--purple)}.key b.lbl{color:var(--accent)}.warn b.lbl{color:var(--warn)}.example b.lbl{color:#475569}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.95rem;background:#fff}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:#f1f5f9}
+.formula{font-family:ui-monospace,Menlo,Consolas,monospace;background:#fff;border:1px dashed #cbd5e1;border-radius:10px;padding:12px;text-align:center;font-size:1.05rem;margin:14px 0;overflow-x:auto}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92rem}
+.note{color:var(--muted);font-size:.92rem}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.center{text-align:center}
+button{font:inherit;font-size:.95rem;padding:7px 14px;border-radius:9px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+button.alt{background:#fff;color:var(--accent)}
+button:disabled{opacity:.45;cursor:default}
+input[type=range]{width:180px;vertical-align:middle}
+svg{max-width:100%;height:auto;display:block;margin:0 auto}
+svg text{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:.88rem;margin-top:4px}
+.legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+.log{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88rem;background:#f8fafc;border-radius:8px;padding:10px 12px;white-space:pre-wrap;min-height:3.2em}
+.steps{counter-reset:s;list-style:none;padding-left:0}
+.steps li{counter-increment:s;position:relative;padding-left:38px;margin:10px 0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:.85rem;display:flex;align-items:center;justify-content:center}
+pre.code{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow-x:auto;font-size:.86rem;line-height:1.55}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:640px){.grid2{grid-template-columns:1fr}h1{font-size:1.6rem}}
+/* quiz */
+.quiz{background:#fff;border:2px solid var(--line);border-radius:16px;padding:18px 20px;margin-top:40px}
+.quiz h2{border:0;margin-top:0;padding-top:0}
+.q{margin:22px 0;padding-bottom:14px;border-bottom:1px dashed var(--line)}
+.q p.qt{font-weight:600;margin:0 0 8px}
+.opt{display:block;width:100%;text-align:left;margin:6px 0;padding:10px 12px;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:9px}
+.opt:hover{border-color:var(--accent)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt .why{display:none;font-size:.9rem;color:var(--muted);margin-top:4px}
+.q.done .opt .why{display:block}
+.q.done .opt{cursor:default}
+.verdict{display:none;font-weight:700;margin-top:6px}
+.q.done .verdict{display:block}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.scorebar{position:sticky;bottom:10px;background:#0f172a;color:#fff;border-radius:12px;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px}
+.scorebar button{background:#fff;color:#0f172a;border-color:#fff}
+.final{display:none;margin-top:14px;padding:14px;border-radius:12px;background:var(--accent-soft)}
+footer.pn{display:flex;justify-content:space-between;gap:10px;margin-top:30px}
+footer.pn a{flex:1;text-decoration:none;border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px 14px;color:var(--ink)}
+footer.pn a small{display:block;color:var(--muted)}
+footer.pn a.next{text-align:right}
+@media (max-width:640px){nav.course{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}nav.course a{white-space:nowrap}}
+</style>
+</head>
+<body>
+<header class="top">
+<div class="crumbs">Reinforcement Learning from Zero · Day 1 · Lesson 1 of 7</div>
+<nav class="course"><a href="lesson1.html" class="cur">1. What Is Reinforcement Learning?</a><a href="lesson2.html" class="">2. Rewards, Return and Value</a><a href="lesson3.html" class="">3. Exploration vs. Exploitation</a><a href="lesson4.html" class="">4. Monte Carlo and TD Learning</a><a href="lesson5.html" class="">5. Sarsa and Q-learning</a><a href="lesson6.html" class="">6. Policy-based Reinforcement Learning</a><a href="lesson7.html" class="">7. Multi-armed Bandits and Applications</a></nav>
+</header>
+<main>
+<h1>Lesson 1: What Is Reinforcement Learning?</h1>
+<p class="lead">Start here. You need no math and no prior machine-learning knowledge. By the end of this lesson you will know what reinforcement learning is, the words people use to describe it, and how it differs from other kinds of machine learning.</p>
+
+<div class="goals"><b>After this lesson you can:</b>
+<ul>
+<li>Explain reinforcement learning (RL) in one sentence, using an everyday example.</li>
+<li>Name the parts of an RL problem: agent, environment, state, action, reward, policy and value.</li>
+<li>Describe the agent–environment loop and write down a trajectory.</li>
+<li>Say how RL differs from supervised and unsupervised learning.</li>
+</ul></div>
+
+<div class="toc" id="toc"><b>Contents</b></div>
+
+<h2>1. Learning by trial and error</h2>
+<p>Think about how a child learns to ride a bicycle. Nobody gives the child a list of the right muscle movements for every moment. The child tries, wobbles, falls, tries again, and slowly figures out what keeps the bike upright. The world gives feedback: falling hurts, riding smoothly feels great. Over many attempts, the child's behaviour improves.</p>
+<p><b>Reinforcement learning</b> is the branch of machine learning that copies this idea. A computer program, called the <b>agent</b>, learns how to behave by <b>interacting</b> with a world, called the <b>environment</b>. Nobody tells the agent the correct action. Instead, after each action it receives a number, called a <b>reward</b>, that says how good the outcome was. The agent's job is to discover, by trial and error, which actions lead to the most reward in the long run.</p>
+
+<div class="box analogy"><b class="lbl">Analogy: training a puppy</b>
+You say "sit". The puppy does something random: it jumps, barks, lies down, or sits. When it happens to sit, it gets a treat. After enough repetitions, the puppy learns that sitting when it hears "sit" earns treats. The puppy is the <b>agent</b>, you and the room are the <b>environment</b>, the treat is the <b>reward</b>, and "what to do when I hear a word" is the <b>policy</b> the puppy learns.</div>
+
+<p>Richard Sutton and Andrew Barto, who wrote the standard textbook on the subject, describe RL as learning <i>what to do</i> (how to map situations to actions) so as to maximize a numerical reward signal. Two features make RL special:</p>
+<ul>
+<li><b>Trial and error:</b> the agent is not told which action is best. It must try actions and see what happens.</li>
+<li><b>Delayed reward:</b> an action can affect not only the next reward, but also every situation and reward after it. A good move now may only pay off much later.</li>
+</ul>
+
+<h2>2. The agent–environment loop</h2>
+<p>Every RL problem has the same basic shape: a loop between the agent and the environment. Watch the animation: the dots carry information around the loop.</p>
+
+<div class="demo"><span class="tag">Animation</span>
+<svg viewBox="0 0 680 305" id="loopSvg">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker>
+  </defs>
+  <!-- agent -->
+  <rect x="30" y="95" width="180" height="110" rx="16" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <rect x="95" y="112" width="50" height="40" rx="8" fill="#2563eb"/>
+  <circle cx="110" cy="130" r="5" fill="#fff"/><circle cx="130" cy="130" r="5" fill="#fff"/>
+  <line x1="120" y1="104" x2="120" y2="112" stroke="#2563eb" stroke-width="3"/><circle cx="120" cy="102" r="4" fill="#ea580c"/>
+  <text x="120" y="178" text-anchor="middle" font-size="17" font-weight="700" fill="#1e3a8a">Agent</text>
+  <text x="120" y="196" text-anchor="middle" font-size="12" fill="#334155">(the learner / decision maker)</text>
+  <!-- environment -->
+  <rect x="470" y="95" width="180" height="110" rx="16" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <g transform="translate(530,108)">
+    <rect width="60" height="45" fill="#fff" stroke="#16a34a"/>
+    <line x1="20" y1="0" x2="20" y2="45" stroke="#86efac"/><line x1="40" y1="0" x2="40" y2="45" stroke="#86efac"/>
+    <line x1="0" y1="15" x2="60" y2="15" stroke="#86efac"/><line x1="0" y1="30" x2="60" y2="30" stroke="#86efac"/>
+    <rect x="41" y="1" width="18" height="13" fill="#16a34a"/>
+  </g>
+  <text x="560" y="178" text-anchor="middle" font-size="17" font-weight="700" fill="#14532d">Environment</text>
+  <text x="560" y="196" text-anchor="middle" font-size="12" fill="#334155">(the world it acts in)</text>
+  <!-- arrows -->
+  <path id="pAct" d="M210,120 C300,40 380,40 470,120" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#ah)"/>
+  <path id="pRew" d="M470,165 C380,235 300,235 210,165" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#ah)"/>
+  <path id="pSt" d="M470,190 C380,290 300,290 210,190" fill="none" stroke="#64748b" stroke-width="2.5" stroke-dasharray="5 4" marker-end="url(#ah)"/>
+  <text x="340" y="48" text-anchor="middle" font-size="15" font-weight="700" fill="#ea580c">action Aₜ</text>
+  <text x="340" y="178" text-anchor="middle" font-size="15" font-weight="700" fill="#7c3aed">reward Rₜ₊₁</text>
+  <text x="340" y="298" text-anchor="middle" font-size="15" font-weight="700" fill="#2563eb">new state Sₜ₊₁</text>
+  <circle r="8" fill="#ea580c"><animateMotion dur="3s" repeatCount="indefinite" keyPoints="0;1;1" keyTimes="0;0.33;1" calcMode="linear"><mpath href="#pAct"/></animateMotion></circle>
+  <circle r="8" fill="#7c3aed"><animateMotion dur="3s" repeatCount="indefinite" keyPoints="0;0;1;1" keyTimes="0;0.33;0.66;1" calcMode="linear"><mpath href="#pRew"/></animateMotion></circle>
+  <circle r="8" fill="#2563eb"><animateMotion dur="3s" repeatCount="indefinite" keyPoints="0;0;1;1" keyTimes="0;0.33;0.66;1" calcMode="linear"><mpath href="#pSt"/></animateMotion></circle>
+</svg>
+</div>
+
+<p>At each time step <b>t</b> = 0, 1, 2, …</p>
+<ol class="steps">
+<li>The agent observes the current <b>state</b> Sₜ (what the situation looks like now).</li>
+<li>Using its <b>policy</b>, the agent chooses an <b>action</b> Aₜ.</li>
+<li>The environment reacts. It moves to a <b>new state</b> Sₜ₊₁ and gives a <b>reward</b> Rₜ₊₁ (a single number).</li>
+<li>The agent uses this experience to <b>learn</b>: it adjusts its policy so that good outcomes become more likely. Then the loop repeats.</li>
+</ol>
+<p>Writing down everything that happens gives a sequence called a <b>trajectory</b>:</p>
+<div class="formula">S₀, A₀, R₁, S₁, A₁, R₂, S₂, A₂, R₃, …</div>
+<p class="note">Why is the reward numbered t+1? Because it arrives <i>after</i> the action taken at time t, together with the next state. This is the convention used in the Sutton and Barto textbook.</p>
+
+<h2>3. Try it: you are the agent</h2>
+<p>Below is a small world of 4×4 squares. You control the robot. You do <b>not</b> know where the good and bad squares are: squares are hidden until you step on them, which is exactly the situation a real agent is in at the start of learning.</p>
+<ul>
+<li>Every move costs <b>−1</b> (so a shorter route is better).</li>
+<li>Somewhere there is a <b>goal worth +10</b> and a <b>trap worth −10</b>. Both end the episode.</li>
+<li>Walking into the outer wall leaves you where you are (and still costs −1).</li>
+</ul>
+
+<div class="demo"><span class="tag">Interactive game</span>
+<div class="grid2">
+  <div>
+    <svg viewBox="0 0 300 300" id="gw" style="max-width:300px"></svg>
+    <div class="center" style="margin-top:8px">
+      <div><button class="alt" data-a="0">↑ Up</button></div>
+      <div style="margin:6px 0"><button class="alt" data-a="3">← Left</button> <button class="alt" data-a="1">Right →</button></div>
+      <div><button class="alt" data-a="2">↓ Down</button></div>
+    </div>
+  </div>
+  <div>
+    <div class="row"><button id="gwReset">New episode</button> <label><input type="checkbox" id="gwShow"> Reveal the map</label></div>
+    <p class="mono" id="gwStat"></p>
+    <div class="log" id="gwLog" style="max-height:260px;overflow:auto"></div>
+  </div>
+</div>
+<p class="note">Play a few episodes. In the first one you have to explore. Once you know the map, you can go straight to the goal. That change, from exploring to using what you learned, is what RL algorithms do automatically.</p>
+</div>
+
+<p>What did you just do? You played the role of an RL agent:</p>
+<ul>
+<li>The <b>state</b> was your square (row, column).</li>
+<li>Your <b>actions</b> were Up, Down, Left, Right.</li>
+<li>The <b>rewards</b> were −1, +10 or −10.</li>
+<li>The <b>episode</b> was one game, from start until you reached the goal or the trap.</li>
+<li>The <b>return</b> was your total reward for the episode. The best possible return here is <b>+5</b>: the shortest safe route takes six moves, five of them cost −1 and the last one lands on the goal and pays +10.</li>
+<li>After a few episodes, you had a <b>policy</b>: a rule in your head like "from here, go up".</li>
+</ul>
+
+<h2>4. The vocabulary of RL</h2>
+<p>These seven words appear in every lesson that follows. Take time to understand each one.</p>
+<table>
+<tr><th style="width:20%">Term</th><th>Meaning</th><th style="width:30%">In the grid game</th></tr>
+<tr><td><b>Agent</b></td><td>The learner and decision maker. It observes, acts, and learns.</td><td>The robot (you)</td></tr>
+<tr><td><b>Environment</b></td><td>Everything outside the agent. It responds to actions with new states and rewards. The agent cannot change its rules.</td><td>The 4×4 world and its hidden squares</td></tr>
+<tr><td><b>State</b> (s)</td><td>All the information that is useful for choosing the next action.</td><td>Your current square</td></tr>
+<tr><td><b>Action</b> (a)</td><td>One of the choices the agent can make. The set of all actions is the <i>action space</i>.</td><td>Up, Down, Left, Right</td></tr>
+<tr><td><b>Reward</b> (r)</td><td>A single number (a <i>scalar</i>) the environment sends after each action. It measures how good that step was. It can be positive, zero or negative.</td><td>−1 per move, +10 goal, −10 trap</td></tr>
+<tr><td><b>Policy</b> (π)</td><td>The agent's strategy: a rule that maps each state to an action (or to probabilities of actions). Learning a good policy is the goal.</td><td>"In the bottom-left corner, go right"</td></tr>
+<tr><td><b>Value</b></td><td>The total reward the agent can expect to collect from now on. Reward is about <i>now</i>; value is about the <i>long run</i>.</td><td>A square next to the goal has high value</td></tr>
+</table>
+
+<div class="box key"><b class="lbl">Reward vs. value</b>
+Reward is like the pleasure or pain you feel right now. Value is like your judgment of how good your whole situation is. Paying for university gives a negative reward today but puts you in a high-value state. RL agents choose actions based on value, not only on immediate reward.</div>
+
+<h3>The same words in other problems</h3>
+<table>
+<tr><th>Problem</th><th>State</th><th>Action</th><th>Reward</th></tr>
+<tr><td>Chess</td><td>Positions of all pieces</td><td>A legal move</td><td>+1 win, −1 loss, 0 otherwise</td></tr>
+<tr><td>Traffic light control</td><td>Number of cars waiting in each direction</td><td>Which direction gets the green light</td><td>Minus the total waiting time</td></tr>
+<tr><td>Slot-machine game (multi-armed bandit)</td><td>Just one situation, always the same</td><td>Which machine (arm) to pull</td><td>Points paid out by that pull</td></tr>
+<tr><td>Robot learning to walk</td><td>Joint angles and speeds</td><td>Force applied to each motor</td><td>Distance moved forward, minus a penalty for falling</td></tr>
+</table>
+
+<h2>5. The goal: the most reward in the long run</h2>
+<p>RL is built on the <b>reward hypothesis</b>: every goal we care about can be described as maximizing the <i>expected cumulative reward</i>, meaning the total reward collected over time, on average.</p>
+<p>The word <b>cumulative</b> is important. An agent that only grabs the biggest reward right now is usually not the best agent. In chess, sacrificing your queen loses material now but can win the game. In the grid game, a move that costs −1 is worth it if it brings you closer to +10.</p>
+
+<div class="box warn"><b class="lbl">The credit assignment problem</b>
+When a chess game is won after 40 moves, which moves deserved the credit? The reward arrives only at the end, but the decisions were made much earlier. Spreading credit back to the earlier actions that caused a reward is one of the central difficulties of RL, and much of Day 2 is about how algorithms solve it.</div>
+
+<h3>Episodes and continuing tasks</h3>
+<ul>
+<li><b>Episodic tasks</b> end naturally: a game finishes, a robot reaches its goal. Each run from start to end is an <b>episode</b>, and then everything resets.</li>
+<li><b>Continuing tasks</b> go on without end: a traffic light runs day and night. Lesson 2 shows how a <i>discount factor</i> keeps the total reward finite in this case.</li>
+</ul>
+
+<h2>6. How RL differs from other machine learning</h2>
+<p>Machine learning is often divided into three families. Compare what each one receives and what it tries to do.</p>
+
+<div class="card"><span class="tag">Diagram</span>
+<svg viewBox="0 0 690 250">
+  <g>
+    <rect x="5" y="5" width="220" height="240" rx="14" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="115" y="30" text-anchor="middle" font-weight="700" font-size="15">Supervised</text>
+    <g font-size="12">
+      <rect x="25" y="50" width="70" height="50" rx="6" fill="#fde68a"/><text x="60" y="80" text-anchor="middle">photo</text>
+      <text x="110" y="80">→</text><rect x="130" y="58" width="72" height="34" rx="6" fill="#bbf7d0"/><text x="166" y="80" text-anchor="middle">"cat" ✔</text>
+      <rect x="25" y="115" width="70" height="50" rx="6" fill="#fde68a"/><text x="60" y="145" text-anchor="middle">photo</text>
+      <text x="110" y="145">→</text><rect x="130" y="123" width="72" height="34" rx="6" fill="#bbf7d0"/><text x="166" y="145" text-anchor="middle">"dog" ✔</text>
+    </g>
+    <text x="115" y="198" text-anchor="middle" font-size="12" fill="#334155">Learns from examples with</text>
+    <text x="115" y="215" text-anchor="middle" font-size="12" fill="#334155">the correct answer (label)</text>
+  </g>
+  <g transform="translate(235,0)">
+    <rect x="5" y="5" width="220" height="240" rx="14" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="115" y="30" text-anchor="middle" font-weight="700" font-size="15">Unsupervised</text>
+    <g fill="#2563eb"><circle cx="50" cy="70" r="6"/><circle cx="65" cy="85" r="6"/><circle cx="45" cy="95" r="6"/><circle cx="70" cy="62" r="6"/></g>
+    <g fill="#ea580c"><circle cx="160" cy="80" r="6"/><circle cx="175" cy="95" r="6"/><circle cx="150" cy="100" r="6"/><circle cx="180" cy="72" r="6"/></g>
+    <g fill="#16a34a"><circle cx="105" cy="150" r="6"/><circle cx="120" cy="160" r="6"/><circle cx="95" cy="165" r="6"/><circle cx="118" cy="140" r="6"/></g>
+    <circle cx="58" cy="80" r="30" fill="none" stroke="#2563eb" stroke-dasharray="4 3"/>
+    <circle cx="165" cy="86" r="30" fill="none" stroke="#ea580c" stroke-dasharray="4 3"/>
+    <circle cx="110" cy="154" r="28" fill="none" stroke="#16a34a" stroke-dasharray="4 3"/>
+    <text x="115" y="208" text-anchor="middle" font-size="12" fill="#334155">Finds hidden structure</text>
+    <text x="115" y="225" text-anchor="middle" font-size="12" fill="#334155">in data with no labels</text>
+  </g>
+  <g transform="translate(470,0)">
+    <rect x="5" y="5" width="215" height="240" rx="14" fill="#eff6ff" stroke="#2563eb"/>
+    <text x="112" y="30" text-anchor="middle" font-weight="700" font-size="15" fill="#1e3a8a">Reinforcement</text>
+    <rect x="25" y="70" width="60" height="44" rx="8" fill="#dbeafe" stroke="#2563eb"/><text x="55" y="97" text-anchor="middle" font-size="12">agent</text>
+    <rect x="135" y="70" width="65" height="44" rx="8" fill="#dcfce7" stroke="#16a34a"/><text x="167" y="97" text-anchor="middle" font-size="12">world</text>
+    <path d="M85,80 L133,80" stroke="#ea580c" stroke-width="2" marker-end="url(#ah)"/>
+    <path d="M135,105 L87,105" stroke="#7c3aed" stroke-width="2" marker-end="url(#ah)"/>
+    <text x="110" y="74" text-anchor="middle" font-size="11" fill="#ea580c">action</text>
+    <text x="110" y="124" text-anchor="middle" font-size="11" fill="#7c3aed">reward</text>
+    <text x="112" y="170" text-anchor="middle" font-size="12" fill="#334155">Learns from interaction</text>
+    <text x="112" y="187" text-anchor="middle" font-size="12" fill="#334155">and rewards; no correct</text>
+    <text x="112" y="204" text-anchor="middle" font-size="12" fill="#334155">answers are given</text>
+  </g>
+</svg>
+</div>
+
+<table>
+<tr><th></th><th>Supervised learning</th><th>Unsupervised learning</th><th>Reinforcement learning</th></tr>
+<tr><td><b>Data</b></td><td>Inputs with correct answers (labels)</td><td>Inputs only</td><td>Experience the agent creates by acting</td></tr>
+<tr><td><b>Feedback</b></td><td>"The right answer was X"</td><td>None</td><td>"That was worth +3", but not what would have been best</td></tr>
+<tr><td><b>Goal</b></td><td>Predict the label of new inputs</td><td>Find groups or patterns</td><td>Maximize total reward over time</td></tr>
+<tr><td><b>Decisions affect future data?</b></td><td>No</td><td>No</td><td>Yes: the agent's actions decide what it sees next</td></tr>
+</table>
+
+<div class="box warn"><b class="lbl">Common mistake</b>
+"Rewards are just labels." They are not. A label says <i>which</i> answer is correct. A reward only says <i>how good</i> the chosen action turned out. The agent never learns what would have happened with the other actions unless it tries them. This is why RL needs exploration (Lesson 3).</div>
+
+<h2>7. The two main families of RL methods</h2>
+<p>An RL agent must answer one question over and over: <b>how do I choose a good action?</b> There are two main approaches, and this course covers both.</p>
+<div class="card">
+<svg viewBox="0 0 680 230">
+  <rect x="230" y="10" width="220" height="50" rx="12" fill="#0f172a"/>
+  <text x="340" y="41" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">How do I choose a good action?</text>
+  <path d="M300,60 L170,105" stroke="#64748b" stroke-width="2" marker-end="url(#ah)"/>
+  <path d="M380,60 L510,105" stroke="#64748b" stroke-width="2" marker-end="url(#ah)"/>
+  <rect x="20" y="108" width="300" height="110" rx="12" fill="#dbeafe" stroke="#2563eb"/>
+  <text x="170" y="134" text-anchor="middle" font-weight="700" font-size="14" fill="#1e3a8a">Value-based RL (Day 2)</text>
+  <text x="170" y="157" text-anchor="middle" font-size="12">Judge how good each action is</text>
+  <text x="170" y="175" text-anchor="middle" font-size="12">(its value), then pick the best one.</text>
+  <text x="170" y="200" text-anchor="middle" font-size="12" fill="#475569">Monte Carlo, TD, Sarsa, Q-learning</text>
+  <rect x="360" y="108" width="300" height="110" rx="12" fill="#ede9fe" stroke="#7c3aed"/>
+  <text x="510" y="134" text-anchor="middle" font-weight="700" font-size="14" fill="#4c1d95">Policy-based RL (Day 3)</text>
+  <text x="510" y="157" text-anchor="middle" font-size="12">Learn the policy directly: adjust the</text>
+  <text x="510" y="175" text-anchor="middle" font-size="12">probability of each action.</text>
+  <text x="510" y="200" text-anchor="middle" font-size="12" fill="#475569">Softmax policy, REINFORCE</text>
+</svg>
+</div>
+<p>Where is RL used in practice? Programs that learned to play Go, chess and video games better than humans, robots that learn to walk or grasp objects, traffic-light controllers, and systems that choose which advertisement or news article to show (a version of the multi-armed bandit problem in Lesson 7).</p>
+
+<h2>8. Summary</h2>
+<ul>
+<li>RL is learning <b>what to do</b> by trial and error, guided by a reward signal.</li>
+<li>The agent observes a <b>state</b>, takes an <b>action</b>, and receives a <b>reward</b> and a new state. This loop repeats.</li>
+<li>The agent's strategy is its <b>policy</b>. Its goal is to maximize the <b>cumulative reward</b>, not just the next reward.</li>
+<li>Unlike supervised learning, RL is never told the correct action, and its own choices decide what data it sees.</li>
+<li>Next lesson: how to measure "total reward over time" precisely (return, discount, value).</li>
+</ul>
+
+
+
+<section class="quiz" id="quiz">
+<h2>Quiz: check your understanding</h2>
+<p class="note">10 multiple-choice questions. Click an answer: you will see whether it is right, and an explanation for <b>every</b> option.</p>
+<div id="quizItems"></div>
+<div class="final" id="finalMsg"></div>
+<div class="scorebar"><span id="scoreText"></span><button id="retry">Retry quiz</button></div>
+</section>
+<footer class="pn"><span></span><a class="next" href="lesson2.html"><small>Next →</small>2. Rewards, Return and Value</a></footer>
+</main>
+<script>// ---------- small helpers ----------
+const $ = id => document.getElementById(id);
+const NS = 'http://www.w3.org/2000/svg';
+function S(tag, attrs, parent){
+  const e = document.createElementNS(NS, tag);
+  for (const k in (attrs||{})) {
+    if (k === 'text') e.textContent = attrs[k]; else e.setAttribute(k, attrs[k]);
+  }
+  if (parent) parent.appendChild(e);
+  return e;
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const fmt = (x, d=2) => (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toFixed(d);
+function argmaxRand(arr){
+  const m = Math.max(...arr); const c = [];
+  arr.forEach((v,i)=>{ if (v === m) c.push(i); });
+  return c[Math.floor(Math.random()*c.length)];
+}
+function randn(){ let u=0,v=0; while(!u)u=Math.random(); while(!v)v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+
+// ---------- line chart ----------
+// opts: {w,h,series:[{label,color,data:[y..], dash}], xLabel,yLabel,yMin,yMax,xStart}
+function lineChart(container, opts){
+  const w = opts.w||640, h = opts.h||300, L=56, R=16, T=14, B=44;
+  container.innerHTML = '';
+  const svg = S('svg', {viewBox:`0 0 ${w} ${h}`, role:'img'}, container);
+  let all = []; opts.series.forEach(s => all = all.concat(s.data));
+  const yMin = opts.yMin !== undefined ? opts.yMin : Math.min(...all);
+  const yMax = opts.yMax !== undefined ? opts.yMax : Math.max(...all);
+  const n = Math.max(...opts.series.map(s=>s.data.length));
+  const x0 = opts.xStart||0;
+  const X = i => L + (w-L-R) * (n<=1?0:i/(n-1));
+  const Y = v => T + (h-T-B) * (1 - (v-yMin)/((yMax-yMin)||1));
+  for (let k=0;k<=4;k++){
+    const v = yMin + (yMax-yMin)*k/4, y = Y(v);
+    S('line',{x1:L,x2:w-R,y1:y,y2:y,stroke:'#e5e7eb'},svg);
+    S('text',{x:L-6,y:y+4,'text-anchor':'end','font-size':11,fill:'#64748b',text:(Math.abs(yMax-yMin)<5?fmt(v,2):Math.round(v))},svg);
+  }
+  for (let k=0;k<=4;k++){
+    const i = Math.round((n-1)*k/4), x = X(i);
+    S('text',{x:x,y:h-B+16,'text-anchor':'middle','font-size':11,fill:'#64748b',text:x0+i},svg);
+  }
+  S('line',{x1:L,x2:L,y1:T,y2:h-B,stroke:'#94a3b8'},svg);
+  S('line',{x1:L,x2:w-R,y1:h-B,y2:h-B,stroke:'#94a3b8'},svg);
+  if (opts.xLabel) S('text',{x:(L+w-R)/2,y:h-6,'text-anchor':'middle','font-size':12,fill:'#334155',text:opts.xLabel},svg);
+  if (opts.yLabel) S('text',{x:14,y:(T+h-B)/2,'text-anchor':'middle','font-size':12,fill:'#334155',transform:`rotate(-90 14 ${(T+h-B)/2})`,text:opts.yLabel},svg);
+  opts.series.forEach(s=>{
+    const pts = s.data.map((v,i)=>`${X(i).toFixed(1)},${Y(Math.max(yMin,Math.min(yMax,v))).toFixed(1)}`).join(' ');
+    S('polyline',{points:pts,fill:'none',stroke:s.color,'stroke-width':2.2,'stroke-dasharray':s.dash||'', 'stroke-linejoin':'round'},svg);
+  });
+  const lg = document.createElement('div'); lg.className='legend';
+  opts.series.forEach(s=>{ const sp=document.createElement('span'); sp.style.setProperty('--c',s.color); sp.textContent=s.label; lg.appendChild(sp); });
+  container.appendChild(lg);
+}
+
+// ---------- table of contents ----------
+function buildTOC(){
+  const toc = $('toc'); if (!toc) return;
+  const hs = [...document.querySelectorAll('main > section > h2, main > h2')].filter(h=>!h.closest('.quiz'));
+  const ol = document.createElement('ol');
+  hs.forEach((h,i)=>{ if(!h.id) h.id='sec'+(i+1); const li=document.createElement('li'); li.innerHTML=`<a href="#${h.id}">${h.textContent}</a>`; ol.appendChild(li); });
+  const li=document.createElement('li'); li.innerHTML='<a href="#quiz">Quiz (10 questions)</a>'; ol.appendChild(li);
+  toc.appendChild(ol);
+}
+
+// ---------- quiz ----------
+// item: {q, o:[4 options], a:index, e:[4 explanations]}
+function renderQuiz(items){
+  const box = $('quizItems'); box.innerHTML = '';
+  let answered = 0, correct = 0;
+  const bar = $('scoreText'), fin = $('finalMsg');
+  function upd(){
+    bar.textContent = `Answered ${answered}/${items.length} · Correct ${correct}`;
+    if (answered === items.length){
+      fin.style.display='block';
+      const pct = correct/items.length;
+      fin.innerHTML = `<b>You scored ${correct}/${items.length}.</b> ` + (pct===1 ? 'Perfect. You have mastered this lesson.' : pct>=0.7 ? 'Good work. Read the explanations for the questions you missed, then move on.' : 'Re-read the sections linked in the contents above, then press "Retry quiz".');
+    } else fin.style.display='none';
+  }
+  items = items.map(it0=>{ // shuffle option order so the answer is not always in the same place
+    const idx=[0,1,2,3].slice(0,it0.o.length); for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+    return {q:it0.q,o:idx.map(i=>it0.o[i]),e:idx.map(i=>it0.e[i]),a:idx.indexOf(it0.a),orig:it0};
+  });
+  items.forEach((it, qi)=>{
+    const d = document.createElement('div'); d.className='q';
+    d.innerHTML = `<p class="qt">${qi+1}. ${it.q}</p>`;
+    const btns = [];
+    it.o.forEach((t,j)=>{
+      const b = document.createElement('button'); b.className='opt';
+      b.innerHTML = `<b>${String.fromCharCode(65+j)}.</b> ${t}<span class="why">${j===it.a?'✔ ':'✘ '}${it.e[j]}</span>`;
+      b.onclick = ()=>{
+        if (d.classList.contains('done')) return;
+        d.classList.add('done'); answered++;
+        btns[it.a].classList.add('right');
+        if (j===it.a){ correct++; v.innerHTML='<span class="ok">Correct!</span> All options are explained below.'; }
+        else { b.classList.add('wrong'); v.innerHTML=`<span class="bad">Not quite.</span> The answer is ${String.fromCharCode(65+it.a)}. Read why each option is right or wrong.`; }
+        upd();
+      };
+      btns.push(b); d.appendChild(b);
+    });
+    const v = document.createElement('div'); v.className='verdict'; d.insertBefore(v, d.children[1]);
+    box.appendChild(d);
+  });
+  $('retry').onclick = ()=>{ renderQuiz(items.map(x=>x.orig)); $('quiz').scrollIntoView(); };
+  upd();
+}
+</script>
+<script>
+(function(){
+  const N=4, C=70, OFF=10;
+  const GOAL=[0,3], TRAP=[1,2], START=[3,0];
+  const svg=$('gw'); let pos, seen, total, t, done, logLines;
+  const eq=(a,b)=>a[0]===b[0]&&a[1]===b[1];
+  const names=['Up','Right','Down','Left'], D=[[-1,0],[0,1],[1,0],[0,-1]];
+  function draw(){
+    svg.innerHTML='';
+    const show=$('gwShow').checked;
+    for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+      const k=r+','+c, vis=show||seen.has(k);
+      let fill=vis?'#fff':'#cbd5e1', label='';
+      if(vis&&eq([r,c],GOAL)){fill='#bbf7d0';label='+10';}
+      if(vis&&eq([r,c],TRAP)){fill='#fecaca';label='−10';}
+      if(vis&&eq([r,c],START)){label=label||'start';}
+      if(!vis)label='?';
+      S('rect',{x:OFF+c*C,y:OFF+r*C,width:C-4,height:C-4,rx:8,fill:fill,stroke:'#94a3b8'},svg);
+      S('text',{x:OFF+c*C+(C-4)/2,y:OFF+r*C+(C-4)/2+5,'text-anchor':'middle','font-size':label==='start'?12:16,fill:'#475569',text:label},svg);
+    }
+    const g=S('g',{style:`transform:translate(${OFF+pos[1]*C+(C-4)/2}px,${OFF+pos[0]*C+(C-4)/2}px);transition:transform .25s`},svg);
+    S('circle',{r:20,fill:'#2563eb'},g);
+    S('circle',{cx:-7,cy:-3,r:4,fill:'#fff'},g);S('circle',{cx:7,cy:-3,r:4,fill:'#fff'},g);
+    $('gwStat').textContent=`Step t = ${t} · State = (row ${pos[0]}, col ${pos[1]}) · Return so far = ${total}`+(done?' · Episode over':'');
+    $('gwLog').textContent=logLines.join('\n')||'Use the arrow buttons (or keyboard arrows) to move.';
+  }
+  function reset(){pos=START.slice();seen=new Set([START.join(',')]);total=0;t=0;done=false;logLines=[];draw();}
+  function act(a){
+    if(done)return;
+    const s0=pos.slice();
+    const r1=pos[0]+D[a][0], c1=pos[1]+D[a][1];
+    if(r1>=0&&r1<N&&c1>=0&&c1<N) pos=[r1,c1];
+    seen.add(pos.join(','));
+    let r=-1, end='';
+    if(eq(pos,GOAL)){r=10;done=true;end='  → reached the GOAL. Episode ends.';}
+    else if(eq(pos,TRAP)){r=-10;done=true;end='  → fell into the TRAP. Episode ends.';}
+    total+=r;
+    logLines.push(`t=${t}: S=(${s0}) A=${names[a]} → R=${r>0?'+':''}${r}, next S=(${pos})${end}`);
+    t++;
+    if(done) logLines.push(`Return of this episode G = ${total}`);
+    draw();
+  }
+  document.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>act(+b.dataset.a));
+  document.addEventListener('keydown',e=>{const m={ArrowUp:0,ArrowRight:1,ArrowDown:2,ArrowLeft:3}[e.key]; if(m!==undefined && document.activeElement.tagName!=='INPUT'){const r=$('gw').getBoundingClientRect(); if(r.top<innerHeight&&r.bottom>0){e.preventDefault();act(m);}}});
+  $('gwReset').onclick=reset; $('gwShow').onchange=draw;
+  reset();
+})();
+
+const QUIZ=[
+{q:"Which sentence best describes reinforcement learning?",
+ o:["Learning from a dataset where every example has the correct answer","Learning which actions to take by trial and error, guided by a reward signal","Grouping unlabeled data into clusters","Copying the actions of a human expert exactly"],a:1,
+ e:["This is supervised learning. In RL nobody provides the correct answer.","RL agents act, observe rewards, and improve their behaviour to collect more reward over time.","This is unsupervised learning (clustering).","Copying an expert is called imitation learning. A pure RL agent learns from its own rewards."]},
+{q:"In the puppy-training example, what is the reward?",
+ o:["The puppy","The treat","The word \"sit\"","The room"],a:1,
+ e:["The puppy is the agent: it makes decisions and learns.","The treat is the feedback signal that tells the puppy the action was good.","The spoken word is part of the state: it is information the puppy uses to decide.","The room is part of the environment."]},
+{q:"In the notation S₀, A₀, R₁, S₁, A₁, R₂, …, why is the first reward called R₁ and not R₀?",
+ o:["Because rewards are always positive","Because the reward arrives after the action A₀, together with the next state S₁","Because R₀ is always zero by definition and is skipped","It is a typing mistake in the textbook"],a:1,
+ e:["Rewards can be negative or zero. Their index has nothing to do with their sign.","The environment responds to action Aₜ with both Rₜ₊₁ and Sₜ₊₁, so the reward carries the next time index.","Nothing is skipped: there is simply no reward before the first action.","It is a deliberate convention (Sutton and Barto)."]},
+{q:"What is a policy?",
+ o:["The reward the agent receives at each step","A rule that tells the agent which action to take in each state","The set of all states","The physical world the agent lives in"],a:1,
+ e:["That is the reward signal, which comes from the environment.","Correct. A policy π maps states to actions (or to action probabilities). Learning a good policy is the goal of RL.","That is the state space.","That is the environment."]},
+{q:"What is the main difference between reward and value?",
+ o:["Reward is immediate feedback for one step; value is the total reward expected in the long run","They are two names for the same thing","Value is given by the environment; reward is computed by the agent","Reward is always larger than value"],a:0,
+ e:["Correct. Reward = now; value = the long-run total from a state onward.","They are different: a state can give a low reward now but have high value.","It is the other way round: the environment sends rewards; the agent estimates values.","There is no fixed size relation. Value adds up many rewards, so it is often larger, but it can also be smaller or negative."]},
+{q:"In the grid game, every move costs −1. What behaviour does this encourage?",
+ o:["Moving as much as possible","Reaching the goal using as few moves as possible","Staying in the start square forever","Walking into walls"],a:1,
+ e:["Every move lowers the total, so extra moves are bad.","A step cost makes shorter paths give a higher return, so the agent learns to be efficient.","Staying still is not an option, and wandering forever only adds more −1 rewards.","Bumping a wall costs −1 and gets you nowhere."]},
+{q:"How is RL different from supervised learning?",
+ o:["RL needs labeled data","In RL the agent is never told the best action and its own actions affect the data it sees next","Supervised learning interacts with an environment over time","There is no difference"],a:1,
+ e:["Labeled data is the defining feature of supervised learning, not RL.","Correct. RL learns from evaluative feedback (rewards) and its decisions shape its future experience.","Supervised learning normally learns from a fixed dataset.","They differ in data, feedback and goals."]},
+{q:"A chess program receives +1 only when it wins at the end of the game. Which difficulty does this create?",
+ o:["The credit assignment problem: deciding which earlier moves caused the win","The program cannot see the board","The action space becomes empty","Rewards become labels"],a:0,
+ e:["Correct. With a delayed reward, the agent must work out which of its many earlier decisions deserve credit.","The board is fully visible; that is the state.","The legal moves still exist.","A final win/loss is still evaluative feedback, not a label for each move."]},
+{q:"Which of these is a continuing (non-episodic) task?",
+ o:["One game of chess","A robot finding the exit of a maze","A traffic light controller running every day without stopping","One round of a card game"],a:2,
+ e:["A game of chess ends, so it is episodic.","The task ends when the exit is reached, so it is episodic.","Correct. It never naturally ends, so it is a continuing task.","A round ends, so it is episodic."]},
+{q:"Value-based and policy-based RL differ in that:",
+ o:["Value-based methods estimate how good actions are and pick the best; policy-based methods learn the action probabilities directly","Value-based methods do not use rewards","Policy-based methods require labeled data","Value-based methods have no actions"],a:0,
+ e:["Correct. This is the main split you will study on Day 2 (value-based) and Day 3 (policy-based).","Both families learn from rewards.","Neither family needs labels; both are RL.","Every RL method chooses actions."]}
+];
+</script>
+<script>
+buildTOC();
+renderQuiz(QUIZ);
+</script>
+</body>
+</html>

@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RL 3: Exploration vs. Exploitation</title>
+<style>:root{
+  --ink:#1c2430;--muted:#5d6878;--bg:#f7f7f3;--card:#ffffff;--line:#e3e6ea;
+  --accent:#2563eb;--accent-soft:#dbeafe;--ok:#15803d;--ok-soft:#dcfce7;--bad:#b91c1c;--bad-soft:#fee2e2;
+  --warn:#b45309;--warn-soft:#fef3c7;--purple:#7c3aed;--purple-soft:#ede9fe;
+  --c1:#2563eb;--c2:#ea580c;--c3:#16a34a;--c4:#7c3aed;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font:16.5px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+main{max-width:860px;margin:0 auto;padding:0 18px 80px}
+header.top{max-width:860px;margin:0 auto;padding:22px 18px 6px}
+.crumbs{font-size:.85rem;color:var(--muted);letter-spacing:.02em;text-transform:uppercase;font-weight:600}
+h1{font-size:2rem;line-height:1.2;margin:.25em 0 .35em}
+h2{font-size:1.35rem;margin:2.2em 0 .6em;padding-top:.3em;border-top:1px solid var(--line)}
+h3{font-size:1.08rem;margin:1.5em 0 .4em}
+.lead{color:var(--muted);font-size:1.05rem;margin-top:0}
+nav.course{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
+nav.course a{font-size:.82rem;text-decoration:none;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 10px}
+nav.course a.cur{background:var(--accent);border-color:var(--accent);color:#fff}
+.toc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin:18px 0}
+.toc b{display:block;margin-bottom:4px}
+.toc ol{margin:0;padding-left:20px}
+.toc a{color:var(--accent);text-decoration:none}
+.goals{background:var(--ok-soft);border-radius:12px;padding:12px 18px;margin:16px 0}
+.goals ul{margin:.3em 0 0;padding-left:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:18px 0}
+.demo{background:var(--card);border:2px solid var(--accent-soft);border-radius:14px;padding:16px 18px;margin:20px 0}
+.demo>.tag,.card>.tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.box{border-radius:10px;padding:10px 14px;margin:14px 0}
+.key{background:var(--accent-soft);border-left:4px solid var(--accent)}
+.analogy{background:var(--purple-soft);border-left:4px solid var(--purple)}
+.warn{background:var(--warn-soft);border-left:4px solid var(--warn)}
+.example{background:#f1f5f9;border-left:4px solid #64748b}
+.box b.lbl{display:block;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.analogy b.lbl{color:var(--purple)}.key b.lbl{color:var(--accent)}.warn b.lbl{color:var(--warn)}.example b.lbl{color:#475569}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.95rem;background:#fff}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:#f1f5f9}
+.formula{font-family:ui-monospace,Menlo,Consolas,monospace;background:#fff;border:1px dashed #cbd5e1;border-radius:10px;padding:12px;text-align:center;font-size:1.05rem;margin:14px 0;overflow-x:auto}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92rem}
+.note{color:var(--muted);font-size:.92rem}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.center{text-align:center}
+button{font:inherit;font-size:.95rem;padding:7px 14px;border-radius:9px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+button.alt{background:#fff;color:var(--accent)}
+button:disabled{opacity:.45;cursor:default}
+input[type=range]{width:180px;vertical-align:middle}
+svg{max-width:100%;height:auto;display:block;margin:0 auto}
+svg text{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:.88rem;margin-top:4px}
+.legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+.log{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88rem;background:#f8fafc;border-radius:8px;padding:10px 12px;white-space:pre-wrap;min-height:3.2em}
+.steps{counter-reset:s;list-style:none;padding-left:0}
+.steps li{counter-increment:s;position:relative;padding-left:38px;margin:10px 0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:.85rem;display:flex;align-items:center;justify-content:center}
+pre.code{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow-x:auto;font-size:.86rem;line-height:1.55}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:640px){.grid2{grid-template-columns:1fr}h1{font-size:1.6rem}}
+/* quiz */
+.quiz{background:#fff;border:2px solid var(--line);border-radius:16px;padding:18px 20px;margin-top:40px}
+.quiz h2{border:0;margin-top:0;padding-top:0}
+.q{margin:22px 0;padding-bottom:14px;border-bottom:1px dashed var(--line)}
+.q p.qt{font-weight:600;margin:0 0 8px}
+.opt{display:block;width:100%;text-align:left;margin:6px 0;padding:10px 12px;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:9px}
+.opt:hover{border-color:var(--accent)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt .why{display:none;font-size:.9rem;color:var(--muted);margin-top:4px}
+.q.done .opt .why{display:block}
+.q.done .opt{cursor:default}
+.verdict{display:none;font-weight:700;margin-top:6px}
+.q.done .verdict{display:block}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.scorebar{position:sticky;bottom:10px;background:#0f172a;color:#fff;border-radius:12px;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px}
+.scorebar button{background:#fff;color:#0f172a;border-color:#fff}
+.final{display:none;margin-top:14px;padding:14px;border-radius:12px;background:var(--accent-soft)}
+footer.pn{display:flex;justify-content:space-between;gap:10px;margin-top:30px}
+footer.pn a{flex:1;text-decoration:none;border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px 14px;color:var(--ink)}
+footer.pn a small{display:block;color:var(--muted)}
+footer.pn a.next{text-align:right}
+@media (max-width:640px){nav.course{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}nav.course a{white-space:nowrap}}
+</style>
+</head>
+<body>
+<header class="top">
+<div class="crumbs">Reinforcement Learning from Zero · Day 2 · Lesson 3 of 7</div>
+<nav class="course"><a href="lesson1.html" class="">1. What Is Reinforcement Learning?</a><a href="lesson2.html" class="">2. Rewards, Return and Value</a><a href="lesson3.html" class="cur">3. Exploration vs. Exploitation</a><a href="lesson4.html" class="">4. Monte Carlo and TD Learning</a><a href="lesson5.html" class="">5. Sarsa and Q-learning</a><a href="lesson6.html" class="">6. Policy-based Reinforcement Learning</a><a href="lesson7.html" class="">7. Multi-armed Bandits and Applications</a></nav>
+</header>
+<main>
+<h1>Lesson 3: Exploration vs. Exploitation</h1>
+<p class="lead">At the start, an agent knows nothing about its actions. To learn, it must try them. But every try spent on a bad action is reward lost. This lesson is about that tension, the most famous dilemma in RL, and the simple strategies used to handle it.</p>
+
+<div class="goals"><b>After this lesson you can:</b>
+<ul>
+<li>Explain exploration and exploitation, and why an agent needs both.</li>
+<li>Estimate the value of an action by averaging rewards, and update the estimate step by step.</li>
+<li>Describe the greedy, ε-greedy, decaying-ε, optimistic-initialization and UCB strategies.</li>
+<li>Read a learning-curve chart and say which strategy works better and why.</li>
+</ul></div>
+
+<div class="toc" id="toc"><b>Contents</b></div>
+
+<h2>1. The dilemma</h2>
+<p>You have moved to a new city. After a week you have found one restaurant you like: it is reliably about 7 out of 10. Tonight, do you go back there, or try one of the twenty places you have never visited?</p>
+
+<div class="card"><span class="tag">Illustration</span>
+<svg viewBox="0 0 680 250">
+  <defs><marker id="ah3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+  <circle cx="340" cy="190" r="26" fill="#2563eb"/><circle cx="331" cy="185" r="4" fill="#fff"/><circle cx="349" cy="185" r="4" fill="#fff"/>
+  <text x="340" y="238" text-anchor="middle" font-size="13" fill="#334155">You (the agent)</text>
+  <path d="M310,175 L170,110" stroke="#16a34a" stroke-width="3" marker-end="url(#ah3)"/>
+  <path d="M370,175 L510,110" stroke="#ea580c" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#ah3)"/>
+  <rect x="40" y="20" width="230" height="88" rx="12" fill="#dcfce7" stroke="#16a34a"/>
+  <text x="155" y="46" text-anchor="middle" font-weight="700" font-size="15" fill="#14532d">EXPLOIT</text>
+  <text x="155" y="68" text-anchor="middle" font-size="13">Go to your known restaurant</text>
+  <text x="155" y="88" text-anchor="middle" font-size="13">Safe: about 7/10 every time</text>
+  <rect x="410" y="20" width="230" height="88" rx="12" fill="#ffedd5" stroke="#ea580c"/>
+  <text x="525" y="46" text-anchor="middle" font-weight="700" font-size="15" fill="#7c2d12">EXPLORE</text>
+  <text x="525" y="68" text-anchor="middle" font-size="13">Try a new restaurant</text>
+  <text x="525" y="88" text-anchor="middle" font-size="13">Risky: could be 3/10 or 10/10</text>
+  <text x="175" y="160" font-size="12" fill="#16a34a">reward now</text>
+  <text x="450" y="160" font-size="12" fill="#ea580c">information for later</text>
+</svg>
+</div>
+
+<ul>
+<li><b>Exploitation</b> means choosing the action that currently looks best. It maximizes reward <i>right now</i>, based on what you already know.</li>
+<li><b>Exploration</b> means choosing some other action to learn more about it. It may cost reward now, but it can discover something better, which pays off for all the future choices.</li>
+</ul>
+
+<div class="box key"><b class="lbl">Why you cannot do only one</b>
+<b>Only exploiting:</b> you may never find the restaurant that is 10/10, because you never try it.<br>
+<b>Only exploring:</b> you keep eating at random places, including the bad ones, and never benefit from what you learned.<br>
+A good agent explores a lot when it knows little, and exploits more as its knowledge improves.</div>
+
+<h2>2. A simple test problem: the slot machines</h2>
+<p>To study this dilemma cleanly, RL uses the <b>multi-armed bandit</b> problem (Lesson 7 covers it in depth). There is a row of slot machines, called <b>arms</b>. Each pull of an arm pays a random number of points. Each arm has its own <b>true average payout</b>, written q*(a), but the agent does not know these averages. The goal: collect as many points as possible over many pulls.</p>
+<p>There is only one situation (one state), so the only question is <b>which arm to pull</b>. That makes the bandit the perfect laboratory for exploration vs. exploitation.</p>
+
+<h2>3. Estimating how good an action is</h2>
+<p>The agent keeps an <b>estimate</b> Q(a) of each arm's true average q*(a). The most natural estimate is the <b>sample average</b>: the average of all rewards received from that arm so far.</p>
+<div class="formula">Q(a) = (sum of rewards from arm a) / (number of times arm a was pulled)</div>
+<div class="box example"><b class="lbl">Worked example</b>
+Arm 2 has been pulled 4 times and paid 5, 7, 4, 8 points. Q(arm 2) = (5 + 7 + 4 + 8) / 4 = <b>6</b>.<br>
+The fifth pull pays 9. New Q = (5 + 7 + 4 + 8 + 9) / 5 = <b>6.6</b>.</div>
+
+<h3>The incremental update (no need to store every reward)</h3>
+<p>Storing all rewards would use more and more memory. Instead, we can update the average with just the old estimate and the count n:</p>
+<div class="formula">Q_new = Q_old + (1/n) × (R − Q_old)</div>
+<p>Check with the example: Q_old = 6, R = 9, n = 5 → 6 + (1/5)(9 − 6) = 6 + 0.6 = <b>6.6</b>. Same answer, no list needed.</p>
+<div class="box key"><b class="lbl">The most important pattern in RL</b>
+<span class="mono">NewEstimate ← OldEstimate + StepSize × (Target − OldEstimate)</span><br>
+(Target − OldEstimate) is the <b>error</b>: how wrong the estimate was. We move the estimate a small step towards the target. You will see this exact pattern again in Monte Carlo, TD, Sarsa and Q-learning. Often the step size is a fixed number α (alpha), such as 0.1, which lets the estimate keep adapting if the arm's payouts change over time.</div>
+
+<h2>4. Strategies for balancing the two</h2>
+<h3>4.1 Greedy</h3>
+<p>Always pick the arm with the highest estimate Q(a). Simple, but dangerous: if a good arm gives a low payout on its first pull, the greedy agent may <b>never try it again</b> and get stuck on a worse arm forever.</p>
+
+<h3>4.2 ε-greedy (epsilon-greedy)</h3>
+<p>Choose a small number ε, such as 0.1. On each step:</p>
+<ol class="steps">
+<li>With probability <b>1 − ε</b> (for example 90%), <b>exploit</b>: pull the arm with the highest Q.</li>
+<li>With probability <b>ε</b> (for example 10%), <b>explore</b>: pull an arm chosen completely at random.</li>
+</ol>
+<p>Because every arm keeps being tried now and then, every estimate eventually becomes accurate, and the agent will find the best arm. The cost: it keeps exploring even after it knows the answer, wasting about ε of its pulls.</p>
+<p><b>Decaying ε</b> fixes this: start with a large ε (explore a lot) and slowly reduce it (exploit more as knowledge grows).</p>
+
+<h3>4.3 Optimistic initialization</h3>
+<p>Instead of starting every estimate at 0, start them at a <b>high value X</b> that is better than any arm can really pay, for example X = 10 when payouts are around 2 to 6. Now even a purely greedy agent explores:</p>
+<ul>
+<li>It pulls some arm. The real payout is lower than X, so that arm's estimate drops.</li>
+<li>The other arms still look like 10, so the agent tries them next. Each one disappoints in turn.</li>
+<li>After every arm has been tried enough, the estimates are realistic and the agent settles on the truly best arm.</li>
+</ul>
+<p>The phrase "optimism in the face of uncertainty" describes this: treat what you have not tried as possibly great. It is simple and effective, but it only encourages exploration at the start.</p>
+
+<h3>4.4 Upper Confidence Bound (UCB)</h3>
+<p>UCB explores more cleverly. It adds a <b>bonus</b> to arms that have been tried only a few times, because their estimates are uncertain:</p>
+<div class="formula">choose the arm with the largest  Q(a) + c × √( ln t / N(a) )</div>
+<p>Here t is the total number of pulls, N(a) is how often arm a was pulled, and c controls how much to explore. Rarely-tried arms get a big bonus; well-known arms get a small one. Exploration goes where it is most useful, instead of being random.</p>
+
+<h2>5. Try it: four slot machines</h2>
+<div class="demo"><span class="tag">Interactive simulation</span>
+<p class="note" style="margin-top:0">Each machine pays a random amount around its hidden true average (with noise). Pick a strategy and watch the agent learn. The thin dark line on each bar marks the true average; tick "Show true averages" to see it.</p>
+<div class="row">
+  <label>Strategy:
+    <select id="bStrat" style="font:inherit;padding:4px">
+      <option value="greedy">Greedy (start at 0)</option>
+      <option value="eps" selected>ε-greedy (start at 0)</option>
+      <option value="opt">Greedy, optimistic start at X</option>
+      <option value="ucb">UCB</option>
+    </select></label>
+  <label id="epsBox">ε = <b id="epsTxt" class="mono"></b> <input type="range" id="eps" min="0" max="0.5" step="0.01" value="0.1"></label>
+  <label id="xBox" style="display:none">X = <b id="xTxt" class="mono"></b> <input type="range" id="xSl" min="0" max="15" step="1" value="10"></label>
+  <label><input type="checkbox" id="showTrue"> Show true averages</label>
+</div>
+<div class="row">
+  <button id="b1">Pull once</button>
+  <button id="bAuto" class="alt">▶ Auto play</button>
+  <button id="b100" class="alt">+100 pulls (instant)</button>
+  <button id="bReset" class="alt">Reset</button>
+</div>
+<svg viewBox="0 0 680 335" id="banditSvg"></svg>
+<div class="log" id="bLog"></div>
+</div>
+<p class="note">Experiments to try: (1) Greedy, reset several times: how often does it get stuck on a worse arm? (2) ε-greedy with ε = 0.1. (3) Optimistic start with X = 10: notice how it tries every machine first. (4) X = 0: optimism switched off, it behaves like plain greedy.</p>
+
+<h2>6. Comparing strategies fairly</h2>
+<p>One run can be lucky or unlucky. To compare strategies properly, researchers run many independent experiments and average the results. The chart below does this on a standard test: <b>10 arms</b>, each with a true average drawn at random, <b>1,000 pulls</b> per run, averaged over <b>many runs</b>. (Here true averages are around 0, so an optimistic start of X = 5 is very optimistic. The optimistic agent uses a fixed step size α = 0.1, so its optimism fades slowly.)</p>
+<div class="demo"><span class="tag">Experiment</span>
+<div class="row"><button id="expRun">Run experiment (200 runs × 1000 pulls)</button><span class="note" id="expProg"></span></div>
+<h3 style="margin-top:6px">Average reward per pull</h3>
+<div id="chartR"><p class="note center">Press the button to run.</p></div>
+<h3>How often the best arm is chosen (%)</h3>
+<div id="chartO"></div>
+</div>
+<p><b>How to read the charts:</b></p>
+<ul>
+<li><b>Greedy</b> (gray) improves quickly at first, then flattens at a lower level: it often gets stuck on a suboptimal arm.</li>
+<li><b>ε = 0.1</b> (blue) explores enough to find the best arm in most runs, but it never chooses it more than about 91% of the time, because 10% of pulls are random.</li>
+<li><b>ε = 0.01</b> (orange) learns more slowly but would end up even better in the long run.</li>
+<li><b>Optimistic, X = 5</b> (green) does badly for roughly the first 100–200 pulls, while it tries everything, then overtakes the others and ends up choosing the best arm most often.</li>
+</ul>
+
+<h2>7. The algorithm in pseudocode</h2>
+<pre class="code">Initialize, for every arm a:
+    Q(a) ← 0          # or X for an optimistic start
+    N(a) ← 0          # how many times arm a was pulled
+
+Repeat forever:
+    with probability ε:   A ← a random arm          # explore
+    otherwise:            A ← arm with largest Q(a)  # exploit
+    R ← pull arm A and observe the reward
+    N(A) ← N(A) + 1
+    Q(A) ← Q(A) + (1 / N(A)) × (R − Q(A))           # move estimate toward R</pre>
+
+<h2>8. Summary</h2>
+<ul>
+<li><b>Exploitation</b> uses current knowledge to earn reward now; <b>exploration</b> gathers information to earn more later. Both are necessary.</li>
+<li>Action values are estimated by <b>averaging rewards</b>; the incremental form is Q ← Q + step × (R − Q).</li>
+<li><b>Greedy</b> can get stuck. <b>ε-greedy</b> explores at random with probability ε. <b>Optimistic initialization</b> makes untried actions look good. <b>UCB</b> gives a bonus to uncertain actions.</li>
+<li>Next lesson: the full RL problem, with many states. How do we estimate values when rewards arrive many steps later?</li>
+</ul>
+
+
+
+<section class="quiz" id="quiz">
+<h2>Quiz: check your understanding</h2>
+<p class="note">10 multiple-choice questions. Click an answer: you will see whether it is right, and an explanation for <b>every</b> option.</p>
+<div id="quizItems"></div>
+<div class="final" id="finalMsg"></div>
+<div class="scorebar"><span id="scoreText"></span><button id="retry">Retry quiz</button></div>
+</section>
+<footer class="pn"><a href="lesson2.html"><small>← Previous</small>2. Rewards, Return and Value</a><a class="next" href="lesson4.html"><small>Next →</small>4. Monte Carlo and TD Learning</a></footer>
+</main>
+<script>// ---------- small helpers ----------
+const $ = id => document.getElementById(id);
+const NS = 'http://www.w3.org/2000/svg';
+function S(tag, attrs, parent){
+  const e = document.createElementNS(NS, tag);
+  for (const k in (attrs||{})) {
+    if (k === 'text') e.textContent = attrs[k]; else e.setAttribute(k, attrs[k]);
+  }
+  if (parent) parent.appendChild(e);
+  return e;
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const fmt = (x, d=2) => (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toFixed(d);
+function argmaxRand(arr){
+  const m = Math.max(...arr); const c = [];
+  arr.forEach((v,i)=>{ if (v === m) c.push(i); });
+  return c[Math.floor(Math.random()*c.length)];
+}
+function randn(){ let u=0,v=0; while(!u)u=Math.random(); while(!v)v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+
+// ---------- line chart ----------
+// opts: {w,h,series:[{label,color,data:[y..], dash}], xLabel,yLabel,yMin,yMax,xStart}
+function lineChart(container, opts){
+  const w = opts.w||640, h = opts.h||300, L=56, R=16, T=14, B=44;
+  container.innerHTML = '';
+  const svg = S('svg', {viewBox:`0 0 ${w} ${h}`, role:'img'}, container);
+  let all = []; opts.series.forEach(s => all = all.concat(s.data));
+  const yMin = opts.yMin !== undefined ? opts.yMin : Math.min(...all);
+  const yMax = opts.yMax !== undefined ? opts.yMax : Math.max(...all);
+  const n = Math.max(...opts.series.map(s=>s.data.length));
+  const x0 = opts.xStart||0;
+  const X = i => L + (w-L-R) * (n<=1?0:i/(n-1));
+  const Y = v => T + (h-T-B) * (1 - (v-yMin)/((yMax-yMin)||1));
+  for (let k=0;k<=4;k++){
+    const v = yMin + (yMax-yMin)*k/4, y = Y(v);
+    S('line',{x1:L,x2:w-R,y1:y,y2:y,stroke:'#e5e7eb'},svg);
+    S('text',{x:L-6,y:y+4,'text-anchor':'end','font-size':11,fill:'#64748b',text:(Math.abs(yMax-yMin)<5?fmt(v,2):Math.round(v))},svg);
+  }
+  for (let k=0;k<=4;k++){
+    const i = Math.round((n-1)*k/4), x = X(i);
+    S('text',{x:x,y:h-B+16,'text-anchor':'middle','font-size':11,fill:'#64748b',text:x0+i},svg);
+  }
+  S('line',{x1:L,x2:L,y1:T,y2:h-B,stroke:'#94a3b8'},svg);
+  S('line',{x1:L,x2:w-R,y1:h-B,y2:h-B,stroke:'#94a3b8'},svg);
+  if (opts.xLabel) S('text',{x:(L+w-R)/2,y:h-6,'text-anchor':'middle','font-size':12,fill:'#334155',text:opts.xLabel},svg);
+  if (opts.yLabel) S('text',{x:14,y:(T+h-B)/2,'text-anchor':'middle','font-size':12,fill:'#334155',transform:`rotate(-90 14 ${(T+h-B)/2})`,text:opts.yLabel},svg);
+  opts.series.forEach(s=>{
+    const pts = s.data.map((v,i)=>`${X(i).toFixed(1)},${Y(Math.max(yMin,Math.min(yMax,v))).toFixed(1)}`).join(' ');
+    S('polyline',{points:pts,fill:'none',stroke:s.color,'stroke-width':2.2,'stroke-dasharray':s.dash||'', 'stroke-linejoin':'round'},svg);
+  });
+  const lg = document.createElement('div'); lg.className='legend';
+  opts.series.forEach(s=>{ const sp=document.createElement('span'); sp.style.setProperty('--c',s.color); sp.textContent=s.label; lg.appendChild(sp); });
+  container.appendChild(lg);
+}
+
+// ---------- table of contents ----------
+function buildTOC(){
+  const toc = $('toc'); if (!toc) return;
+  const hs = [...document.querySelectorAll('main > section > h2, main > h2')].filter(h=>!h.closest('.quiz'));
+  const ol = document.createElement('ol');
+  hs.forEach((h,i)=>{ if(!h.id) h.id='sec'+(i+1); const li=document.createElement('li'); li.innerHTML=`<a href="#${h.id}">${h.textContent}</a>`; ol.appendChild(li); });
+  const li=document.createElement('li'); li.innerHTML='<a href="#quiz">Quiz (10 questions)</a>'; ol.appendChild(li);
+  toc.appendChild(ol);
+}
+
+// ---------- quiz ----------
+// item: {q, o:[4 options], a:index, e:[4 explanations]}
+function renderQuiz(items){
+  const box = $('quizItems'); box.innerHTML = '';
+  let answered = 0, correct = 0;
+  const bar = $('scoreText'), fin = $('finalMsg');
+  function upd(){
+    bar.textContent = `Answered ${answered}/${items.length} · Correct ${correct}`;
+    if (answered === items.length){
+      fin.style.display='block';
+      const pct = correct/items.length;
+      fin.innerHTML = `<b>You scored ${correct}/${items.length}.</b> ` + (pct===1 ? 'Perfect. You have mastered this lesson.' : pct>=0.7 ? 'Good work. Read the explanations for the questions you missed, then move on.' : 'Re-read the sections linked in the contents above, then press "Retry quiz".');
+    } else fin.style.display='none';
+  }
+  items = items.map(it0=>{ // shuffle option order so the answer is not always in the same place
+    const idx=[0,1,2,3].slice(0,it0.o.length); for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+    return {q:it0.q,o:idx.map(i=>it0.o[i]),e:idx.map(i=>it0.e[i]),a:idx.indexOf(it0.a),orig:it0};
+  });
+  items.forEach((it, qi)=>{
+    const d = document.createElement('div'); d.className='q';
+    d.innerHTML = `<p class="qt">${qi+1}. ${it.q}</p>`;
+    const btns = [];
+    it.o.forEach((t,j)=>{
+      const b = document.createElement('button'); b.className='opt';
+      b.innerHTML = `<b>${String.fromCharCode(65+j)}.</b> ${t}<span class="why">${j===it.a?'✔ ':'✘ '}${it.e[j]}</span>`;
+      b.onclick = ()=>{
+        if (d.classList.contains('done')) return;
+        d.classList.add('done'); answered++;
+        btns[it.a].classList.add('right');
+        if (j===it.a){ correct++; v.innerHTML='<span class="ok">Correct!</span> All options are explained below.'; }
+        else { b.classList.add('wrong'); v.innerHTML=`<span class="bad">Not quite.</span> The answer is ${String.fromCharCode(65+it.a)}. Read why each option is right or wrong.`; }
+        upd();
+      };
+      btns.push(b); d.appendChild(b);
+    });
+    const v = document.createElement('div'); v.className='verdict'; d.insertBefore(v, d.children[1]);
+    box.appendChild(d);
+  });
+  $('retry').onclick = ()=>{ renderQuiz(items.map(x=>x.orig)); $('quiz').scrollIntoView(); };
+  upd();
+}
+</script>
+<script>
+// ----- bandit demo -----
+(function(){
+  const TRUE=[3,6,4.5,2], SD=2, K=4, COLORS=['#2563eb','#ea580c','#16a34a','#7c3aed'];
+  let Q,N,t,total,last=null,auto=null,history=[];
+  const strat=()=>$('bStrat').value;
+  function init(){const x=strat()==='opt'?+$('xSl').value:0;Q=Array(K).fill(x);N=Array(K).fill(0);t=0;total=0;last=null;history=[];draw();}
+  function choose(){
+    const s=strat();
+    if(s==='eps'&&Math.random()<+$('eps').value) return {a:Math.floor(Math.random()*K),why:'explore (random)'};
+    if(s==='ucb'){ for(let a=0;a<K;a++) if(N[a]===0) return {a,why:'UCB: untried arm gets infinite bonus'};
+      const u=Q.map((q,a)=>q+2*Math.sqrt(Math.log(t+1)/N[a])); return {a:argmaxRand(u),why:'UCB: largest Q + bonus'}; }
+    return {a:argmaxRand(Q),why:'exploit (highest Q)'};
+  }
+  function pull(anim){
+    const {a,why}=choose();
+    const r=TRUE[a]+SD*randn();
+    N[a]++; t++; total+=r; const old=Q[a];
+    Q[a]+= (r-Q[a])/N[a];
+    last={a,r,why,old};
+    history.push(a);
+    if(anim!==false) draw();
+  }
+  function draw(){
+    $('epsTxt').textContent=fmt(+$('eps').value,2); $('xTxt').textContent=$('xSl').value;
+    const svg=$('banditSvg'); svg.innerHTML='';
+    const show=$('showTrue').checked;
+    const bx=a=>40+a*160;
+    for(let a=0;a<K;a++){
+      const x=bx(a), active=last&&last.a===a;
+      // machine body
+      S('rect',{x:x,y:10,width:110,height:120,rx:14,fill:active?'#fef3c7':'#f1f5f9',stroke:COLORS[a],'stroke-width':active?4:2},svg);
+      S('rect',{x:x+15,y:30,width:80,height:40,rx:6,fill:'#0f172a'},svg);
+      S('text',{x:x+55,y:57,'text-anchor':'middle','font-size':17,'font-weight':700,fill:active?'#fde047':'#94a3b8',text:active?(last.r>=0?'+':'')+fmt(last.r,1):'— —'},svg);
+      S('text',{x:x+55,y:95,'text-anchor':'middle','font-size':14,'font-weight':700,fill:COLORS[a],text:'Arm '+(a+1)},svg);
+      S('text',{x:x+55,y:116,'text-anchor':'middle','font-size':12,fill:'#475569',text:'pulled '+N[a]+'×'},svg);
+      // lever
+      const ly=active?60:30;
+      S('line',{x1:x+110,y1:70,x2:x+130,y2:ly,stroke:'#64748b','stroke-width':4,'stroke-linecap':'round'},svg);
+      S('circle',{cx:x+130,cy:ly,r:8,fill:'#dc2626'},svg);
+      // estimate bar
+      const base=288, scale=16, h=Math.max(0,Q[a])*scale;
+      S('rect',{x:x+25,y:base-Math.min(h,150),width:60,height:Math.min(h,150),rx:4,fill:COLORS[a],opacity:.75},svg);
+      S('text',{x:x+55,y:base+18,'text-anchor':'middle','font-size':13,'font-weight':700,fill:COLORS[a],text:'Q = '+fmt(Q[a],1)},svg);
+      if(show){const ty=base-TRUE[a]*scale; S('line',{x1:x+15,x2:x+95,y1:ty,y2:ty,stroke:'#0f172a','stroke-width':2.5,'stroke-dasharray':'5 3'},svg); S('text',{x:x+100,y:ty+4,'font-size':11,fill:'#0f172a',text:'q*='+TRUE[a]},svg);}
+      S('line',{x1:x+10,x2:x+100,y1:base,y2:base,stroke:'#94a3b8'},svg);
+    }
+    S('text',{x:340,y:326,'text-anchor':'middle','font-size':12,fill:'#475569',text:'Bars = the agent\'s current estimates Q(a)'},svg);
+    const best=TRUE.indexOf(Math.max(...TRUE));
+    const recent=history.slice(-100), pct=recent.length?Math.round(100*recent.filter(x=>x===best).length/recent.length):0;
+    $('bLog').textContent=(last?`Pull #${t}: ${last.why} → Arm ${last.a+1} paid ${fmt(last.r,2)}.  Q(arm ${last.a+1}): ${fmt(last.old,2)} + (1/${N[last.a]})×(${fmt(last.r,2)} − ${fmt(last.old,2)}) = ${fmt(Q[last.a],2)}\n`:'Press "Pull once" to start.\n')
+      +`Total points: ${fmt(total,1)}   Average per pull: ${t?fmt(total/t,2):'-'}   Best arm chosen in last ${recent.length} pulls: ${pct}%`;
+  }
+  function stopAuto(){ if(auto){clearInterval(auto);auto=null;$('bAuto').textContent='▶ Auto play';} }
+  $('b1').onclick=()=>{stopAuto();pull();};
+  $('b100').onclick=()=>{stopAuto();for(let i=0;i<99;i++)pull(false);pull();};
+  $('bAuto').onclick=()=>{ if(auto){stopAuto();return;} $('bAuto').textContent='⏸ Pause'; auto=setInterval(()=>pull(),350); };
+  $('bReset').onclick=()=>{stopAuto();init();};
+  $('bStrat').onchange=()=>{ const s=strat(); $('epsBox').style.display=s==='eps'?'':'none'; $('xBox').style.display=s==='opt'?'':'none'; stopAuto(); init(); };
+  $('eps').oninput=draw; $('xSl').oninput=()=>{stopAuto();init();}; $('showTrue').onchange=draw;
+  init();
+})();
+
+// ----- 10-armed testbed experiment -----
+(function(){
+  const RUNS=200, STEPS=1000, K=10;
+  const agents=[
+    {label:'Greedy (ε = 0)',color:'#64748b',eps:0,init:0,alpha:0},
+    {label:'ε-greedy, ε = 0.1',color:'#2563eb',eps:0.1,init:0,alpha:0},
+    {label:'ε-greedy, ε = 0.01',color:'#ea580c',eps:0.01,init:0,alpha:0},
+    {label:'Optimistic greedy, X = 5, α = 0.1',color:'#16a34a',eps:0,init:5,alpha:0.1}
+  ];
+  function smooth(a,w){return a.map((_,i)=>{let s=0,c=0;for(let j=Math.max(0,i-w);j<=i;j++){s+=a[j];c++;}return s/c;});}
+  $('expRun').onclick=async()=>{
+    $('expRun').disabled=true;
+    const R=agents.map(()=>new Float64Array(STEPS)), O=agents.map(()=>new Float64Array(STEPS));
+    for(let run=0;run<RUNS;run++){
+      const q=[...Array(K)].map(()=>randn()); const best=q.indexOf(Math.max(...q));
+      agents.forEach((ag,i)=>{
+        const Q=Array(K).fill(ag.init), N=Array(K).fill(0);
+        for(let t=0;t<STEPS;t++){
+          const a=(Math.random()<ag.eps)?Math.floor(Math.random()*K):argmaxRand(Q);
+          const r=q[a]+randn(); N[a]++;
+          Q[a]+=(ag.alpha||1/N[a])*(r-Q[a]);
+          R[i][t]+=r; if(a===best)O[i][t]+=1;
+        }
+      });
+      if(run%20===19){$('expProg').textContent=`Runs done: ${run+1}/${RUNS}`;await sleep(0);}
+    }
+    lineChart($('chartR'),{series:agents.map((ag,i)=>({label:ag.label,color:ag.color,data:smooth([...R[i]].map(x=>x/RUNS),5)})),xLabel:'Pull number',yLabel:'Average reward',yMin:-0.4,yMax:1.6,xStart:1});
+    lineChart($('chartO'),{series:agents.map((ag,i)=>({label:ag.label,color:ag.color,data:smooth([...O[i]].map(x=>100*x/RUNS),5)})),xLabel:'Pull number',yLabel:'% best arm',yMin:0,yMax:100,xStart:1});
+    $('expProg').textContent='Done. Run it again: the curves change slightly because the experiment is random.';
+    $('expRun').disabled=false;
+  };
+})();
+
+const QUIZ=[
+{q:"What does exploitation mean?",
+ o:["Choosing the action that currently has the highest estimated value","Choosing a random action to learn about it","Resetting all estimates","Ignoring the rewards"],a:0,
+ e:["Correct. Exploitation uses current knowledge to get the most reward right now.","That is exploration.","Resetting estimates is not part of either idea.","Exploitation relies on the rewards seen so far."]},
+{q:"Why can a purely greedy agent perform badly?",
+ o:["It explores too much","If the best arm gives a low payout early, the agent may never try it again","It cannot compute averages","It always chooses the worst arm"],a:1,
+ e:["A greedy agent does no exploration at all.","Correct. Without exploration, an unlucky early estimate is never corrected.","Averaging is easy; the problem is which arms get sampled.","It chooses the arm that looks best, which is often fine but sometimes wrong."]},
+{q:"An arm has been pulled 3 times with rewards 2, 4, 6. What is its sample-average estimate?",
+ o:["6","4","12","2"],a:1,
+ e:["That is only the last reward.","Correct: (2 + 4 + 6) / 3 = 4.","That is the sum, not the average.","That is only the first reward."]},
+{q:"Using Q_new = Q_old + (1/n)(R − Q_old) with Q_old = 4, n = 4 and R = 8, what is Q_new?",
+ o:["5","8","6","4"],a:0,
+ e:["Correct: 4 + (1/4)(8 − 4) = 4 + 1 = 5.","The estimate only moves part of the way toward R.","That would be a step size of 1/2, but n = 4 gives 1/4.","The estimate must change, since R differs from Q_old."]},
+{q:"In ε-greedy with ε = 0.2, how often does the agent pick a random arm?",
+ o:["Never","About 20% of the time","About 80% of the time","Always"],a:1,
+ e:["ε > 0 means some exploration.","Correct. ε is the probability of exploring.","80% is how often it exploits.","It explores only with probability ε."]},
+{q:"How does optimistic initialization make a greedy agent explore?",
+ o:["It adds random noise to the rewards","All arms start with a high estimate, so each one is tried until real payouts bring its estimate down","It sets ε to 1","It removes the worst arm"],a:1,
+ e:["The rewards are not changed.","Correct. Untried arms keep their high starting value, so the greedy agent is drawn to them.","ε is unrelated to the initial values.","No arm is removed."]},
+{q:"With optimistic initialization, arms pay between 2 and 6 points. Which starting value X makes sense?",
+ o:["X = 0","X = 10","X = −5","X = 3"],a:1,
+ e:["0 is below every payout, so it is pessimistic, not optimistic.","Correct. X must be higher than any arm can really pay, so every arm looks attractive at first.","A negative start would discourage exploring.","3 is below some payouts, so some arms would never look better than the first one tried."]},
+{q:"What does UCB add to each arm's estimate?",
+ o:["A bonus that is larger for arms tried only a few times","A penalty for arms tried many times only after 1000 pulls","Random noise","Nothing; UCB is the same as greedy"],a:0,
+ e:["Correct. The bonus reflects uncertainty: fewer tries means more uncertainty and a bigger bonus.","The bonus shrinks smoothly as N(a) grows; there is no fixed threshold.","UCB is deterministic; it does not use random noise.","UCB adds an exploration bonus that greedy does not have."]},
+{q:"In the experiment chart, ε-greedy with ε = 0.1 cannot choose the best arm more than about 91% of the time. Why?",
+ o:["Its estimates never become accurate","10% of its choices are random, and only 1 in 10 random choices happens to be the best arm","The best arm changes every step","The chart is averaged incorrectly"],a:1,
+ e:["Its estimates do become accurate; the limit comes from forced exploration.","Correct: 90% exploit (best arm) + 10% × 1/10 random hits = 91%.","The true averages are fixed during each run.","Averaging many runs is the correct method."]},
+{q:"Which update pattern appears in this lesson and throughout RL?",
+ o:["NewEstimate ← OldEstimate + StepSize × (Target − OldEstimate)","NewEstimate ← Target × OldEstimate","NewEstimate ← OldEstimate − Target","NewEstimate ← random number"],a:0,
+ e:["Correct. Move the estimate a step toward the target, in proportion to the error.","Multiplying target and estimate has no meaning here.","This ignores the step size and moves the wrong way.","Estimates are updated from experience, not randomly."]}
+];
+</script>
+<script>
+buildTOC();
+renderQuiz(QUIZ);
+</script>
+</body>
+</html>

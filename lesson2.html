@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RL 2: Rewards, Return and Value</title>
+<style>:root{
+  --ink:#1c2430;--muted:#5d6878;--bg:#f7f7f3;--card:#ffffff;--line:#e3e6ea;
+  --accent:#2563eb;--accent-soft:#dbeafe;--ok:#15803d;--ok-soft:#dcfce7;--bad:#b91c1c;--bad-soft:#fee2e2;
+  --warn:#b45309;--warn-soft:#fef3c7;--purple:#7c3aed;--purple-soft:#ede9fe;
+  --c1:#2563eb;--c2:#ea580c;--c3:#16a34a;--c4:#7c3aed;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font:16.5px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+main{max-width:860px;margin:0 auto;padding:0 18px 80px}
+header.top{max-width:860px;margin:0 auto;padding:22px 18px 6px}
+.crumbs{font-size:.85rem;color:var(--muted);letter-spacing:.02em;text-transform:uppercase;font-weight:600}
+h1{font-size:2rem;line-height:1.2;margin:.25em 0 .35em}
+h2{font-size:1.35rem;margin:2.2em 0 .6em;padding-top:.3em;border-top:1px solid var(--line)}
+h3{font-size:1.08rem;margin:1.5em 0 .4em}
+.lead{color:var(--muted);font-size:1.05rem;margin-top:0}
+nav.course{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
+nav.course a{font-size:.82rem;text-decoration:none;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 10px}
+nav.course a.cur{background:var(--accent);border-color:var(--accent);color:#fff}
+.toc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin:18px 0}
+.toc b{display:block;margin-bottom:4px}
+.toc ol{margin:0;padding-left:20px}
+.toc a{color:var(--accent);text-decoration:none}
+.goals{background:var(--ok-soft);border-radius:12px;padding:12px 18px;margin:16px 0}
+.goals ul{margin:.3em 0 0;padding-left:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:18px 0}
+.demo{background:var(--card);border:2px solid var(--accent-soft);border-radius:14px;padding:16px 18px;margin:20px 0}
+.demo>.tag,.card>.tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.box{border-radius:10px;padding:10px 14px;margin:14px 0}
+.key{background:var(--accent-soft);border-left:4px solid var(--accent)}
+.analogy{background:var(--purple-soft);border-left:4px solid var(--purple)}
+.warn{background:var(--warn-soft);border-left:4px solid var(--warn)}
+.example{background:#f1f5f9;border-left:4px solid #64748b}
+.box b.lbl{display:block;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.analogy b.lbl{color:var(--purple)}.key b.lbl{color:var(--accent)}.warn b.lbl{color:var(--warn)}.example b.lbl{color:#475569}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.95rem;background:#fff}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:#f1f5f9}
+.formula{font-family:ui-monospace,Menlo,Consolas,monospace;background:#fff;border:1px dashed #cbd5e1;border-radius:10px;padding:12px;text-align:center;font-size:1.05rem;margin:14px 0;overflow-x:auto}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92rem}
+.note{color:var(--muted);font-size:.92rem}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.center{text-align:center}
+button{font:inherit;font-size:.95rem;padding:7px 14px;border-radius:9px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+button.alt{background:#fff;color:var(--accent)}
+button:disabled{opacity:.45;cursor:default}
+input[type=range]{width:180px;vertical-align:middle}
+svg{max-width:100%;height:auto;display:block;margin:0 auto}
+svg text{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:.88rem;margin-top:4px}
+.legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+.log{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88rem;background:#f8fafc;border-radius:8px;padding:10px 12px;white-space:pre-wrap;min-height:3.2em}
+.steps{counter-reset:s;list-style:none;padding-left:0}
+.steps li{counter-increment:s;position:relative;padding-left:38px;margin:10px 0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:.85rem;display:flex;align-items:center;justify-content:center}
+pre.code{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow-x:auto;font-size:.86rem;line-height:1.55}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:640px){.grid2{grid-template-columns:1fr}h1{font-size:1.6rem}}
+/* quiz */
+.quiz{background:#fff;border:2px solid var(--line);border-radius:16px;padding:18px 20px;margin-top:40px}
+.quiz h2{border:0;margin-top:0;padding-top:0}
+.q{margin:22px 0;padding-bottom:14px;border-bottom:1px dashed var(--line)}
+.q p.qt{font-weight:600;margin:0 0 8px}
+.opt{display:block;width:100%;text-align:left;margin:6px 0;padding:10px 12px;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:9px}
+.opt:hover{border-color:var(--accent)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt .why{display:none;font-size:.9rem;color:var(--muted);margin-top:4px}
+.q.done .opt .why{display:block}
+.q.done .opt{cursor:default}
+.verdict{display:none;font-weight:700;margin-top:6px}
+.q.done .verdict{display:block}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.scorebar{position:sticky;bottom:10px;background:#0f172a;color:#fff;border-radius:12px;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px}
+.scorebar button{background:#fff;color:#0f172a;border-color:#fff}
+.final{display:none;margin-top:14px;padding:14px;border-radius:12px;background:var(--accent-soft)}
+footer.pn{display:flex;justify-content:space-between;gap:10px;margin-top:30px}
+footer.pn a{flex:1;text-decoration:none;border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px 14px;color:var(--ink)}
+footer.pn a small{display:block;color:var(--muted)}
+footer.pn a.next{text-align:right}
+@media (max-width:640px){nav.course{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}nav.course a{white-space:nowrap}}
+</style>
+</head>
+<body>
+<header class="top">
+<div class="crumbs">Reinforcement Learning from Zero · Day 1 · Lesson 2 of 7</div>
+<nav class="course"><a href="lesson1.html" class="">1. What Is Reinforcement Learning?</a><a href="lesson2.html" class="cur">2. Rewards, Return and Value</a><a href="lesson3.html" class="">3. Exploration vs. Exploitation</a><a href="lesson4.html" class="">4. Monte Carlo and TD Learning</a><a href="lesson5.html" class="">5. Sarsa and Q-learning</a><a href="lesson6.html" class="">6. Policy-based Reinforcement Learning</a><a href="lesson7.html" class="">7. Multi-armed Bandits and Applications</a></nav>
+</header>
+<main>
+<h1>Lesson 2: Rewards, Return and Value</h1>
+<p class="lead">Lesson 1 said the agent wants "the most reward in the long run". This lesson makes that idea exact. You will learn the return, the discount factor, policies, and the two value functions V and Q, which every algorithm on Day 2 is built on.</p>
+
+<div class="goals"><b>After this lesson you can:</b>
+<ul>
+<li>Compute the return of an episode, with and without discounting.</li>
+<li>Explain what the discount factor γ does and how to choose it.</li>
+<li>Tell a deterministic policy from a stochastic one.</li>
+<li>Explain the state value V(s) and the action value Q(s, a), and read them off a grid.</li>
+<li>Use the simple Bellman idea: value now = reward + discounted value next.</li>
+</ul></div>
+
+<div class="toc" id="toc"><b>Contents</b></div>
+
+<h2>1. Rewards: telling the agent what you want</h2>
+<p>The reward is the only way we tell an RL agent what its goal is. According to the <b>reward hypothesis</b>, any goal can be expressed as maximizing the expected total reward. In practice this means the person designing the problem must choose rewards carefully.</p>
+<table>
+<tr><th>Task</th><th>Good reward</th><th>Why</th></tr>
+<tr><td>Escape a maze</td><td>−1 for every step until the exit</td><td>The faster the escape, the higher the total</td></tr>
+<tr><td>Win at chess</td><td>+1 win, −1 loss, 0 draw</td><td>Rewards the result we actually care about</td></tr>
+<tr><td>Traffic lights</td><td>Minus the total waiting time of all cars</td><td>Less waiting gives a higher (less negative) reward</td></tr>
+<tr><td>Slot-machine game</td><td>The points won on each pull</td><td>The goal is the total points over all pulls</td></tr>
+</table>
+
+<div class="box warn"><b class="lbl">Reward what you want, not how to do it</b>
+Suppose you reward a chess agent for capturing pieces. It may learn to grab pieces greedily and lose the game. Agents optimize exactly the reward you give them, sometimes in surprising ways. A well-known example: an agent in a boat-racing game found it could score more points by circling forever to hit the same targets than by finishing the race. The reward should describe <b>what</b> to achieve, not <b>how</b> to achieve it.</div>
+
+<h2>2. The return: adding up rewards</h2>
+<p>The <b>return</b>, written Gₜ, is the total reward collected from time t onward. For an episode that ends at time T:</p>
+<div class="formula">Gₜ = Rₜ₊₁ + Rₜ₊₂ + Rₜ₊₃ + … + R_T</div>
+<p>The agent's goal is to choose actions that make the return as large as possible, on average.</p>
+
+<div class="box example"><b class="lbl">Worked example</b>
+In the grid game from Lesson 1, the robot takes the shortest route: five moves that cost −1, then one move onto the goal worth +10.<br>
+G₀ = (−1) + (−1) + (−1) + (−1) + (−1) + 10 = <b>5</b>.<br>
+A longer route with nine moves gives G₀ = 8 × (−1) + 10 = 2. The shorter route has the higher return, so it is better.</div>
+
+<h3>Why discount?</h3>
+<p>Two problems appear if we just add rewards:</p>
+<ul>
+<li><b>Continuing tasks never end,</b> so the sum can grow to infinity, and every policy might look "infinitely good".</li>
+<li><b>Sooner is usually better than later.</b> 100 points today is better than 100 points in a year, because the future is uncertain.</li>
+</ul>
+<p>The fix is a <b>discount factor</b> γ (gamma), a number between 0 and 1. A reward that arrives k steps in the future is multiplied by γᵏ:</p>
+<div class="formula">Gₜ = Rₜ₊₁ + γ·Rₜ₊₂ + γ²·Rₜ₊₃ + γ³·Rₜ₊₄ + …</div>
+
+<div class="demo"><span class="tag">Interactive: how much is a future reward worth?</span>
+<div class="row"><label>Discount γ = <b id="gTxt" class="mono"></b> <input type="range" id="gSl" min="0" max="1" step="0.01" value="0.9"></label></div>
+<svg viewBox="0 0 660 230" id="wSvg"></svg>
+<p class="note center" id="wTxt"></p>
+</div>
+<ul>
+<li><b>γ = 0:</b> only the very next reward counts. The agent is "short-sighted".</li>
+<li><b>γ close to 1</b> (for example 0.99): rewards far in the future still count a lot. The agent is "far-sighted".</li>
+<li>When γ &lt; 1 and the rewards are bounded, the sum stays finite even for tasks that never end. For example, with reward 1 every step forever, G = 1 + γ + γ² + … = 1 / (1 − γ). With γ = 0.9, that is 10.</li>
+</ul>
+
+<div class="demo"><span class="tag">Interactive: return calculator</span>
+<div class="row"><label>Rewards R₁, R₂, … (comma separated): <input id="rIn" value="-1,-1,-1,10" style="font:inherit;padding:5px 8px;width:220px;border:1px solid #cbd5e1;border-radius:6px"></label></div>
+<div class="row"><label>γ = <b id="g2Txt" class="mono"></b> <input type="range" id="g2Sl" min="0" max="1" step="0.05" value="0.9"></label></div>
+<div id="rOut"></div>
+</div>
+
+<h3>A useful shortcut: the return is recursive</h3>
+<p>Look at the formula again. Everything after the first reward is just γ times the return from the next step:</p>
+<div class="formula">Gₜ = Rₜ₊₁ + γ · Gₜ₊₁</div>
+<p>This means you can compute returns <b>backwards</b> from the end of an episode, one step at a time.</p>
+<div class="box example"><b class="lbl">Worked example (γ = 0.9, rewards −1, −1, −1, +10)</b>
+G₃ = 10 (the last reward)<br>
+G₂ = −1 + 0.9 × 10 = 8<br>
+G₁ = −1 + 0.9 × 8 = 6.2<br>
+G₀ = −1 + 0.9 × 6.2 = <b>4.58</b><br>
+This simple idea, "now = reward + γ × later", is the heart of almost every RL algorithm.</div>
+
+<h2>3. Policies: deterministic and stochastic</h2>
+<p>A <b>policy</b> π describes how the agent behaves. There are two kinds:</p>
+<div class="grid2">
+<div class="card"><span class="tag">Deterministic</span><br>Always the same action in a state: π(s) = a.<br><span class="note">Example: "In square (3,0), always go Up."</span>
+<svg viewBox="0 0 260 90"><rect x="10" y="20" width="60" height="50" rx="8" fill="#dbeafe" stroke="#2563eb"/><text x="40" y="50" text-anchor="middle" font-size="13">state s</text><path d="M72,45 L170,45" stroke="#2563eb" stroke-width="3" marker-end="url(#ah2)"/><text x="120" y="38" text-anchor="middle" font-size="12">100%</text><rect x="175" y="25" width="70" height="40" rx="8" fill="#fff" stroke="#2563eb"/><text x="210" y="50" text-anchor="middle" font-size="13">Up</text>
+<defs><marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs></svg></div>
+<div class="card"><span class="tag">Stochastic</span><br>A probability for each action: π(a | s).<br><span class="note">Example: "Up with 70%, Right with 30%."</span>
+<svg viewBox="0 0 260 90"><rect x="10" y="20" width="60" height="50" rx="8" fill="#ede9fe" stroke="#7c3aed"/><text x="40" y="50" text-anchor="middle" font-size="13">state s</text><path d="M72,38 L170,20" stroke="#7c3aed" stroke-width="3" marker-end="url(#ah2)"/><path d="M72,52 L170,72" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#ah2)"/><text x="118" y="20" font-size="12">70%</text><text x="118" y="80" font-size="12">30%</text><rect x="175" y="5" width="70" height="32" rx="8" fill="#fff" stroke="#7c3aed"/><text x="210" y="26" text-anchor="middle" font-size="13">Up</text><rect x="175" y="55" width="70" height="32" rx="8" fill="#fff" stroke="#7c3aed"/><text x="210" y="76" text-anchor="middle" font-size="13">Right</text></svg></div>
+</div>
+<p>Stochastic policies are useful while learning (randomness helps the agent try new things) and in games where being predictable is bad, such as rock–paper–scissors.</p>
+
+<h2>4. Value functions: how good is a state?</h2>
+<p>The return of a single episode depends on luck: the environment or the policy may be random. To judge a state fairly, we use the <b>average</b> return over many episodes. This average is called the <b>expected</b> return, and it gives us value functions.</p>
+<div class="box key"><b class="lbl">State value V(s)</b>
+V<sub>π</sub>(s) = the expected return if the agent starts in state s and then follows policy π.<br>In words: "How good is it to be here, if I keep behaving like this?"</div>
+<div class="box key"><b class="lbl">Action value Q(s, a)</b>
+Q<sub>π</sub>(s, a) = the expected return if the agent starts in state s, takes action a first, and then follows policy π.<br>In words: "How good is it to do this action here?"</div>
+<p>Q is the most practical one: if you know Q(s, a) for every action, choosing is easy. <b>Pick the action with the largest Q-value.</b> This is the core of value-based RL.</p>
+
+<div class="demo"><span class="tag">Interactive: value map of the grid world</span>
+<p class="note" style="margin-top:0">Same world as Lesson 1: −1 per move, +10 goal, −10 trap. Each square shows its value V(s). Green = good place to be, red = bad. Arrows show the best action. Click a square to see its four Q-values.</p>
+<div class="row">
+  <label><input type="radio" name="pol" value="opt" checked> Best policy</label>
+  <label><input type="radio" name="pol" value="rnd"> Random policy (each action 25%)</label>
+  <label>γ = <b id="g3Txt" class="mono"></b> <input type="range" id="g3Sl" min="0" max="1" step="0.05" value="0.9"></label>
+</div>
+<div class="row">
+  <button id="vSweep">One update sweep</button>
+  <button id="vConv" class="alt">Run until it settles</button>
+  <button id="vZero" class="alt">Reset values to 0</button>
+  <span class="note" id="vInfo"></span>
+</div>
+<div class="grid2">
+  <svg viewBox="0 0 300 300" id="vSvg" style="max-width:320px"></svg>
+  <div><div class="log" id="qPanel">Click a square to see its Q-values.</div></div>
+</div>
+<p class="note">Press "One update sweep" several times starting from 0. Watch how value <b>spreads outward from the goal</b>, one square per sweep. Then switch to the random policy: the same squares are worth much less, because a random walker wastes moves and sometimes falls into the trap. <b>Value always depends on the policy.</b></p>
+</div>
+
+<h2>5. The Bellman idea</h2>
+<p>How did the grid compute those values? With the same "now = reward + γ × later" idea as the recursive return. For a single move from s to s′ that gives reward r:</p>
+<div class="formula">Q(s, a) = r + γ · V(s′)</div>
+<p>And for the <b>best</b> policy, the value of a state is the value of its best action:</p>
+<div class="formula">V*(s) = max over actions a of [ r + γ · V*(s′) ]</div>
+<p>This is a simple form of the <b>Bellman equation</b>, named after Richard Bellman. It says the value of a state depends on the values of its neighbours. Each "update sweep" in the demo applies this equation once to every square. Repeating it makes the values settle to the correct answer.</p>
+
+<div class="box example"><b class="lbl">Worked example (γ = 0.9)</b>
+The square just below the goal: moving Up lands on the goal. Reward +10, and the episode ends, so V(goal) = 0.<br>
+Q(below goal, Up) = 10 + 0.9 × 0 = <b>10</b>.<br>
+One square further away: moving toward that square gives reward −1 and lands where V = 10.<br>
+Q = −1 + 0.9 × 10 = <b>8</b>. Next: −1 + 0.9 × 8 = <b>6.2</b>, and so on. Values shrink with distance from the goal.</div>
+
+<div class="box analogy"><b class="lbl">Analogy: a smell spreading</b>
+Imagine the goal gives off a smell that gets weaker with distance. A hungry robot only needs to move toward the stronger smell. Value functions are that smell: once learned, the agent just climbs towards higher value.</div>
+
+<h3>The Markov property</h3>
+<p>All of this assumes the state contains <b>everything needed</b> to predict what happens next. The past does not matter once you know the present state. This is called the <b>Markov property</b>, and a problem with this property is called a <b>Markov decision process (MDP)</b>. In the grid world, knowing your current square is enough; how you got there does not change what each move will do.</p>
+
+<h2>6. Summary</h2>
+<ul>
+<li>The <b>return</b> Gₜ is the (discounted) sum of future rewards: Gₜ = Rₜ₊₁ + γGₜ₊₁.</li>
+<li>The <b>discount</b> γ ∈ [0, 1] sets how much the future counts and keeps sums finite.</li>
+<li>A <b>policy</b> can be deterministic (one action) or stochastic (probabilities).</li>
+<li><b>V(s)</b> = expected return from a state; <b>Q(s, a)</b> = expected return from taking action a in state s. Both depend on the policy.</li>
+<li>The <b>Bellman idea</b>: value now = reward + γ × value next. Knowing Q, the agent picks the action with the highest Q.</li>
+<li>Next lesson: the agent does not know Q at the start. How does it decide between using what it knows and trying something new?</li>
+</ul>
+
+
+
+<section class="quiz" id="quiz">
+<h2>Quiz: check your understanding</h2>
+<p class="note">10 multiple-choice questions. Click an answer: you will see whether it is right, and an explanation for <b>every</b> option.</p>
+<div id="quizItems"></div>
+<div class="final" id="finalMsg"></div>
+<div class="scorebar"><span id="scoreText"></span><button id="retry">Retry quiz</button></div>
+</section>
+<footer class="pn"><a href="lesson1.html"><small>← Previous</small>1. What Is Reinforcement Learning?</a><a class="next" href="lesson3.html"><small>Next →</small>3. Exploration vs. Exploitation</a></footer>
+</main>
+<script>// ---------- small helpers ----------
+const $ = id => document.getElementById(id);
+const NS = 'http://www.w3.org/2000/svg';
+function S(tag, attrs, parent){
+  const e = document.createElementNS(NS, tag);
+  for (const k in (attrs||{})) {
+    if (k === 'text') e.textContent = attrs[k]; else e.setAttribute(k, attrs[k]);
+  }
+  if (parent) parent.appendChild(e);
+  return e;
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const fmt = (x, d=2) => (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toFixed(d);
+function argmaxRand(arr){
+  const m = Math.max(...arr); const c = [];
+  arr.forEach((v,i)=>{ if (v === m) c.push(i); });
+  return c[Math.floor(Math.random()*c.length)];
+}
+function randn(){ let u=0,v=0; while(!u)u=Math.random(); while(!v)v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+
+// ---------- line chart ----------
+// opts: {w,h,series:[{label,color,data:[y..], dash}], xLabel,yLabel,yMin,yMax,xStart}
+function lineChart(container, opts){
+  const w = opts.w||640, h = opts.h||300, L=56, R=16, T=14, B=44;
+  container.innerHTML = '';
+  const svg = S('svg', {viewBox:`0 0 ${w} ${h}`, role:'img'}, container);
+  let all = []; opts.series.forEach(s => all = all.concat(s.data));
+  const yMin = opts.yMin !== undefined ? opts.yMin : Math.min(...all);
+  const yMax = opts.yMax !== undefined ? opts.yMax : Math.max(...all);
+  const n = Math.max(...opts.series.map(s=>s.data.length));
+  const x0 = opts.xStart||0;
+  const X = i => L + (w-L-R) * (n<=1?0:i/(n-1));
+  const Y = v => T + (h-T-B) * (1 - (v-yMin)/((yMax-yMin)||1));
+  for (let k=0;k<=4;k++){
+    const v = yMin + (yMax-yMin)*k/4, y = Y(v);
+    S('line',{x1:L,x2:w-R,y1:y,y2:y,stroke:'#e5e7eb'},svg);
+    S('text',{x:L-6,y:y+4,'text-anchor':'end','font-size':11,fill:'#64748b',text:(Math.abs(yMax-yMin)<5?fmt(v,2):Math.round(v))},svg);
+  }
+  for (let k=0;k<=4;k++){
+    const i = Math.round((n-1)*k/4), x = X(i);
+    S('text',{x:x,y:h-B+16,'text-anchor':'middle','font-size':11,fill:'#64748b',text:x0+i},svg);
+  }
+  S('line',{x1:L,x2:L,y1:T,y2:h-B,stroke:'#94a3b8'},svg);
+  S('line',{x1:L,x2:w-R,y1:h-B,y2:h-B,stroke:'#94a3b8'},svg);
+  if (opts.xLabel) S('text',{x:(L+w-R)/2,y:h-6,'text-anchor':'middle','font-size':12,fill:'#334155',text:opts.xLabel},svg);
+  if (opts.yLabel) S('text',{x:14,y:(T+h-B)/2,'text-anchor':'middle','font-size':12,fill:'#334155',transform:`rotate(-90 14 ${(T+h-B)/2})`,text:opts.yLabel},svg);
+  opts.series.forEach(s=>{
+    const pts = s.data.map((v,i)=>`${X(i).toFixed(1)},${Y(Math.max(yMin,Math.min(yMax,v))).toFixed(1)}`).join(' ');
+    S('polyline',{points:pts,fill:'none',stroke:s.color,'stroke-width':2.2,'stroke-dasharray':s.dash||'', 'stroke-linejoin':'round'},svg);
+  });
+  const lg = document.createElement('div'); lg.className='legend';
+  opts.series.forEach(s=>{ const sp=document.createElement('span'); sp.style.setProperty('--c',s.color); sp.textContent=s.label; lg.appendChild(sp); });
+  container.appendChild(lg);
+}
+
+// ---------- table of contents ----------
+function buildTOC(){
+  const toc = $('toc'); if (!toc) return;
+  const hs = [...document.querySelectorAll('main > section > h2, main > h2')].filter(h=>!h.closest('.quiz'));
+  const ol = document.createElement('ol');
+  hs.forEach((h,i)=>{ if(!h.id) h.id='sec'+(i+1); const li=document.createElement('li'); li.innerHTML=`<a href="#${h.id}">${h.textContent}</a>`; ol.appendChild(li); });
+  const li=document.createElement('li'); li.innerHTML='<a href="#quiz">Quiz (10 questions)</a>'; ol.appendChild(li);
+  toc.appendChild(ol);
+}
+
+// ---------- quiz ----------
+// item: {q, o:[4 options], a:index, e:[4 explanations]}
+function renderQuiz(items){
+  const box = $('quizItems'); box.innerHTML = '';
+  let answered = 0, correct = 0;
+  const bar = $('scoreText'), fin = $('finalMsg');
+  function upd(){
+    bar.textContent = `Answered ${answered}/${items.length} · Correct ${correct}`;
+    if (answered === items.length){
+      fin.style.display='block';
+      const pct = correct/items.length;
+      fin.innerHTML = `<b>You scored ${correct}/${items.length}.</b> ` + (pct===1 ? 'Perfect. You have mastered this lesson.' : pct>=0.7 ? 'Good work. Read the explanations for the questions you missed, then move on.' : 'Re-read the sections linked in the contents above, then press "Retry quiz".');
+    } else fin.style.display='none';
+  }
+  items = items.map(it0=>{ // shuffle option order so the answer is not always in the same place
+    const idx=[0,1,2,3].slice(0,it0.o.length); for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+    return {q:it0.q,o:idx.map(i=>it0.o[i]),e:idx.map(i=>it0.e[i]),a:idx.indexOf(it0.a),orig:it0};
+  });
+  items.forEach((it, qi)=>{
+    const d = document.createElement('div'); d.className='q';
+    d.innerHTML = `<p class="qt">${qi+1}. ${it.q}</p>`;
+    const btns = [];
+    it.o.forEach((t,j)=>{
+      const b = document.createElement('button'); b.className='opt';
+      b.innerHTML = `<b>${String.fromCharCode(65+j)}.</b> ${t}<span class="why">${j===it.a?'✔ ':'✘ '}${it.e[j]}</span>`;
+      b.onclick = ()=>{
+        if (d.classList.contains('done')) return;
+        d.classList.add('done'); answered++;
+        btns[it.a].classList.add('right');
+        if (j===it.a){ correct++; v.innerHTML='<span class="ok">Correct!</span> All options are explained below.'; }
+        else { b.classList.add('wrong'); v.innerHTML=`<span class="bad">Not quite.</span> The answer is ${String.fromCharCode(65+it.a)}. Read why each option is right or wrong.`; }
+        upd();
+      };
+      btns.push(b); d.appendChild(b);
+    });
+    const v = document.createElement('div'); v.className='verdict'; d.insertBefore(v, d.children[1]);
+    box.appendChild(d);
+  });
+  $('retry').onclick = ()=>{ renderQuiz(items.map(x=>x.orig)); $('quiz').scrollIntoView(); };
+  upd();
+}
+</script>
+<script>
+// discount weights
+(function(){
+  function draw(){
+    const g=+$('gSl').value; $('gTxt').textContent=fmt(g,2);
+    const svg=$('wSvg'); svg.innerHTML='';
+    const K=15, L=40, W=600, H=170, bw=W/K;
+    S('line',{x1:L,x2:L+W,y1:H+10,y2:H+10,stroke:'#94a3b8'},svg);
+    for(let k=0;k<K;k++){
+      const v=Math.pow(g,k), h=v*(H-20);
+      S('rect',{x:L+k*bw+6,y:H+10-h,width:bw-12,height:h,rx:4,fill:k===0?'#2563eb':'#93c5fd',style:'transition:all .3s'},svg);
+      S('text',{x:L+k*bw+bw/2,y:H+28,'text-anchor':'middle','font-size':11,fill:'#475569',text:'+'+k},svg);
+      S('text',{x:L+k*bw+bw/2,y:H+4-h,'text-anchor':'middle','font-size':10,fill:'#1e3a8a',text:fmt(v,2)},svg);
+    }
+    S('text',{x:L+W/2,y:H+48,'text-anchor':'middle','font-size':12,fill:'#334155',text:'steps into the future (k) — bar height = weight γᵏ'},svg);
+    $('wTxt').textContent=`A reward of 10 that arrives 10 steps from now is worth 10 × γ¹⁰ = ${fmt(10*Math.pow(g,10),2)} today.`;
+  }
+  $('gSl').oninput=draw; draw();
+})();
+// return calculator
+(function(){
+  const sup=['⁰','¹','²','³','⁴','⁵','⁶','⁷','⁸','⁹'];
+  const pw=k=>String(k).split('').map(d=>sup[+d]).join('');
+  function calc(){
+    const g=+$('g2Sl').value; $('g2Txt').textContent=fmt(g,2);
+    const r=$('rIn').value.split(',').map(x=>parseFloat(x)).filter(x=>!isNaN(x));
+    let G=0, rows='';
+    r.forEach((x,k)=>{const w=Math.pow(g,k);G+=w*x;rows+=`<tr><td>R${k+1}</td><td class="mono">${x}</td><td class="mono">γ${pw(k)} = ${fmt(w,3)}</td><td class="mono">${fmt(w*x,3)}</td></tr>`;});
+    $('rOut').innerHTML=`<table><tr><th>Reward</th><th>Value</th><th>Weight</th><th>Weighted</th></tr>${rows}<tr><td colspan="3"><b>Return G₀ (sum)</b></td><td class="mono"><b>${fmt(G,3)}</b></td></tr></table>`;
+  }
+  $('rIn').oninput=calc; $('g2Sl').oninput=calc; calc();
+})();
+// value grid
+(function(){
+  const N=4,C=72,OFF=6, GOAL='0,3', TRAP='1,2';
+  const D=[[-1,0],[0,1],[1,0],[0,-1]], AN=['Up','Right','Down','Left'];
+  let V, sweeps=0, sel=null;
+  const term=k=>k===GOAL||k===TRAP;
+  function step(r,c,a){let r1=r+D[a][0],c1=c+D[a][1]; if(r1<0||r1>=N||c1<0||c1>=N){r1=r;c1=c;} const k=r1+','+c1; return [r1,c1,k===GOAL?10:k===TRAP?-10:-1,k];}
+  function qv(r,c,a,g){const [r1,c1,rw,k]=step(r,c,a); return rw+g*(term(k)?0:V[r1][c1]);}
+  function sweep(){
+    const g=+$('g3Sl').value, opt=document.querySelector('input[name=pol]:checked').value==='opt';
+    const NV=V.map(x=>x.slice());
+    for(let r=0;r<N;r++)for(let c=0;c<N;c++){ if(term(r+','+c))continue;
+      const q=[0,1,2,3].map(a=>qv(r,c,a,g));
+      NV[r][c]=opt?Math.max(...q):q.reduce((x,y)=>x+y,0)/4; }
+    const diff=Math.max(...NV.flat().map((v,i)=>Math.abs(v-V.flat()[i])));
+    V=NV; sweeps++; return diff;
+  }
+  function col(v){const t=Math.max(-1,Math.min(1,v/10)); if(t>=0){const a=Math.round(255-t*(255-134)),b=Math.round(255-t*(255-239));return `rgb(${a},${Math.round(255-t*(255-239)+0)},${Math.round(255-t*(255-172))})`;} const s=-t; return `rgb(${Math.round(255-s*(255-252))},${Math.round(255-s*(255-165))},${Math.round(255-s*(255-165))})`;}
+  function draw(){
+    const g=+$('g3Sl').value; $('g3Txt').textContent=fmt(g,2);
+    const svg=$('vSvg'); svg.innerHTML='';
+    for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+      const k=r+','+c, x=OFF+c*C, y=OFF+r*C;
+      const fill=k===GOAL?'#86efac':k===TRAP?'#fca5a5':col(V[r][c]);
+      const rc=S('rect',{x:x,y:y,width:C-4,height:C-4,rx:8,fill:fill,stroke:sel===k?'#0f172a':'#cbd5e1','stroke-width':sel===k?3:1,style:'cursor:pointer;transition:fill .3s'},svg);
+      rc.onclick=()=>{sel=k;draw();};
+      if(term(k)){S('text',{x:x+(C-4)/2,y:y+(C-4)/2+5,'text-anchor':'middle','font-size':14,'font-weight':700,fill:'#334155',text:k===GOAL?'GOAL +10':'TRAP −10',style:'font-size:11px'},svg);continue;}
+      S('text',{x:x+(C-4)/2,y:y+24,'text-anchor':'middle','font-size':14,'font-weight':700,fill:'#0f172a',text:fmt(V[r][c],1),style:'pointer-events:none'},svg);
+      if(sweeps>0){
+        const q=[0,1,2,3].map(a=>qv(r,c,a,g)), m=Math.max(...q);
+        q.forEach((v,a)=>{ if(Math.abs(v-m)<1e-6){ const cx=x+(C-4)/2, cy=y+46; const dx=D[a][1]*12, dy=D[a][0]*12;
+          const ux=D[a][1], uy=D[a][0], px=-uy, py=ux, tx=cx+ux*14, ty=cy+uy*10;
+          S('polygon',{points:`${tx+ux*7},${ty+uy*7} ${tx+px*6},${ty+py*6} ${tx-px*6},${ty-py*6}`,fill:'#1e293b',style:'pointer-events:none'},svg);} });
+      }
+    }
+    $('vInfo').textContent=`Sweeps done: ${sweeps}`;
+    if(sel&&!term(sel)){const [r,c]=sel.split(',').map(Number);
+      const lines=[0,1,2,3].map(a=>{const [r1,c1,rw,k]=step(r,c,a);const nv=term(k)?0:V[r1][c1];return `Q(s, ${AN[a].padEnd(5)}) = ${rw>0?'+':''}${rw} + ${fmt(g,2)} × ${fmt(nv,2)} = ${fmt(rw+g*nv,2)}`;});
+      $('qPanel').textContent=`Square (row ${r}, col ${c})\nV(s) = ${fmt(V[r][c],2)}\n\n`+lines.join('\n')+`\n\nFormula: Q(s,a) = reward + γ × V(next square)\n(terminal squares have V = 0)`;}
+    else if(sel){$('qPanel').textContent='This is a terminal square: the episode ends here, so its value is 0.';}
+  }
+  function zero(){V=[...Array(N)].map(()=>Array(N).fill(0));sweeps=0;draw();}
+  $('vSweep').onclick=()=>{sweep();draw();};
+  $('vConv').onclick=()=>{let d=1,i=0;while(d>1e-4&&i<5000){d=sweep();i++;}draw();};
+  $('vZero').onclick=zero;
+  document.querySelectorAll('input[name=pol]').forEach(x=>x.onchange=()=>{zero();});
+  $('g3Sl').oninput=()=>{zero();};
+  zero();
+})();
+
+const QUIZ=[
+{q:"Rewards in an episode are −1, −1, +10 and there is no discounting (γ = 1). What is the return G₀?",
+ o:["10","8","12","−2"],a:1,
+ e:["This ignores the two −1 rewards.","Correct: −1 − 1 + 10 = 8.","The −1 rewards must be subtracted, not added.","This forgets the +10 at the end."]},
+{q:"Same rewards (−1, −1, +10) but now γ = 0.5. What is G₀?",
+ o:["8","1","2.5","−1.5"],a:1,
+ e:["That is the undiscounted return.","Correct: −1 + 0.5 × (−1) + 0.25 × 10 = −1 − 0.5 + 2.5 = 1.","Only the last term is 2.5. You must add the first two terms as well.","This leaves out the discounted +10."]},
+{q:"What happens to the agent's behaviour when γ = 0?",
+ o:["It only cares about the very next reward","It cares about all future rewards equally","It stops receiving rewards","It always chooses random actions"],a:0,
+ e:["Correct. With γ = 0, every term after the first is multiplied by 0.","That is γ = 1.","Rewards still arrive; the agent just ignores future ones when choosing.","γ affects how rewards are valued, not whether actions are random."]},
+{q:"Why is a discount factor γ < 1 needed for continuing tasks?",
+ o:["To make all rewards negative","So the sum of rewards stays finite even though the task never ends","Because continuing tasks have no rewards","To make the agent explore more"],a:1,
+ e:["Discounting scales rewards but never changes their sign.","Correct. Without discounting, an endless stream of rewards could add up to infinity.","Continuing tasks do have rewards.","Exploration is a separate topic (Lesson 3)."]},
+{q:"Which equation expresses the return recursively?",
+ o:["Gₜ = Rₜ₊₁ + γ·Gₜ₊₁","Gₜ = γ·Rₜ₊₁","Gₜ = Gₜ₊₁ − Rₜ₊₁","Gₜ = Rₜ₊₁ × Rₜ₊₂"],a:0,
+ e:["Correct. The return now is the next reward plus the discounted return from the next step.","This keeps only one, discounted reward.","Subtraction runs the wrong way and there is no γ.","Rewards are added, not multiplied."]},
+{q:"What is V<sub>π</sub>(s)?",
+ o:["The reward received when entering s","The expected return starting in s and following policy π","The number of actions available in s","The probability of visiting s"],a:1,
+ e:["That is a single reward, not the long-term total.","Correct. It is the average total (discounted) reward from s onward under π.","That is the size of the action space.","Visit probability is a different quantity."]},
+{q:"An agent knows Q(s, Left) = 2.0, Q(s, Right) = 5.5, Q(s, Up) = −1. Which action should a greedy agent choose?",
+ o:["Left","Right","Up","It must choose randomly"],a:1,
+ e:["2.0 is lower than 5.5.","Correct. Greedy means picking the highest Q-value.","−1 is the lowest value.","A greedy agent always picks the highest value (Lesson 3 explains when to add randomness)."]},
+{q:"In the grid demo, why are values lower under the random policy than under the best policy?",
+ o:["The random policy gets different rewards from the environment","A random walker wastes moves and sometimes falls into the trap, so its expected return is lower","The discount factor is different","The goal is moved"],a:1,
+ e:["The environment and its rewards are identical; only the behaviour changes.","Correct. Value depends on how the agent behaves from that state onward.","γ is the same for both.","The map does not change."]},
+{q:"With γ = 0.9, a square next to the goal has value 10. Moving from a neighbouring square to it costs −1. What is the value of that neighbouring square (best policy)?",
+ o:["9","8","10","−1"],a:1,
+ e:["You must multiply 10 by γ = 0.9 before adding −1: −1 + 9 = 8, not 9.","Correct: −1 + 0.9 × 10 = 8.","Moving costs −1 and the next value is discounted, so it must be lower than 10.","This ignores the value of the next square."]},
+{q:"What does the Markov property say?",
+ o:["Rewards are always positive","The current state contains all the information needed to predict what happens next","The agent must remember the whole history","The policy must be random"],a:1,
+ e:["The Markov property is about states, not rewards.","Correct. Given the present state, the past adds no extra information.","The point is the opposite: the history is not needed.","Policies can be deterministic or stochastic."]}
+];
+</script>
+<script>
+buildTOC();
+renderQuiz(QUIZ);
+</script>
+</body>
+</html>
